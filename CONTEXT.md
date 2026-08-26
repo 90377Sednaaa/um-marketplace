@@ -33,6 +33,7 @@ _Avoid_: verified account, badge, checkmark
 - The app never handles money — an accepted **Offer** leads to an in-person meetup on campus, settled in cash or GCash person-to-person
 - Any **Verified Student** can file a **Report** and can **Block** another **Verified Student**
 - The **Admin** reviews **Reports**, hides **Listings**, and can **Ban** a **Member Account**
+- A **Rating** is exchanged between the two parties of a **Sold Listing**'s chat, once per party, and only after the Listing is **Sold**
 
 **Trading**
 
@@ -51,6 +52,10 @@ _Avoid_: completed, closed, finished
 **Category**:
 One of a fixed set of item types (textbooks, gadgets, org merch, dorm essentials, review materials) used by the Home tiles and by search filtering.
 _Avoid_: type, tag, department
+
+**Rating**:
+A one-time score (1–5 stars) given by one party of a completed deal to the other — buyer rates seller, seller rates buyer — recorded against a Sold Listing and shown as an average with a trade count. Ratings cannot be given by anyone who was not in that Listing's chat.
+_Avoid_: review, feedback, score
 
 **Trust & moderation**
 
