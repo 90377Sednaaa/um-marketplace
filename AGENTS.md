@@ -3,7 +3,7 @@
 ## Project state
 
 - `um_marketplace` is an early-stage Flutter app: `lib/main.dart` is still the unmodified Flutter starter counter demo. There is no architecture yet — one file, no routing, state management, or data-layer packages.
-- Not a git repository: no branches, history, or CI workflows exist.
+- Git repository hosted at https://github.com/90377Sednaaa/um-marketplace (public). Default branch: `main`; no CI workflows configured yet.
 
 ## Commands
 
