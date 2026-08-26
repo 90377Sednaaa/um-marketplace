@@ -30,6 +30,7 @@ _Avoid_: verified account, badge, checkmark
 - Every **Member Account** that can list or chat is a **Verified Student**
 - A **Verified Student** creates one or more **Listings**
 - A **Listing** receives **Offers** from other **Verified Students** and is set to **Sold** by its seller once the in-person deal is done
+- A **Chat** is attached to exactly one **Listing** and links its seller with one buyer; a **Listing** can have many **Chats**, one per interested buyer
 - The app never handles money — an accepted **Offer** leads to an in-person meetup on campus, settled in cash or GCash person-to-person
 - Any **Verified Student** can file a **Report** and can **Block** another **Verified Student**
 - The **Admin** reviews **Reports**, hides **Listings**, and can **Ban** a **Member Account**
@@ -44,6 +45,10 @@ _Avoid_: post, ad, product, item listing
 **Offer**:
 A message from a buyer to a seller expressing intent to purchase a Listing, usually with a stated price. No money moves in the app; an accepted Offer leads to an in-person meetup.
 _Avoid_: buy, bid, reservation, checkout
+
+**Chat**:
+A conversation attached to exactly one Listing between its seller and one interested buyer, started only from the Listing's Chat or Make-an-offer actions. There is no person-to-person chat outside Listings — every Listing can have several Chats (one per interested buyer).
+_Avoid_: DM, PM, inbox thread
 
 **Sold**:
 The terminal state of a Listing, set by its seller once an in-person deal is done; the Listing stops appearing in search results.
