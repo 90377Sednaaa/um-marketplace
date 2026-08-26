@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "39811841253",
+    "project_id": "um-marketplace-a4aa2",
+    "storage_bucket": "um-marketplace-a4aa2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:39811841253:android:baf8983bd618fdae1de80c",
+        "android_client_info": {
+          "package_name": "com.example.um_marketplace"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLsBv6YdI4MkUogxeYNNKjraIbwk9_GiM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
