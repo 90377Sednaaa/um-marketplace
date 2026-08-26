@@ -1,95 +1,121 @@
 # UM Marketplace — Visual Design Spec
 
 The design look of the app: University of Mindanao–branded campus marketplace.
-Light theme only. Brand palette: **Maroon · Gold · White**.
+Light theme only. Brand palette: **Maroon · Gold · White · Ink Black**.
 
-> Hex values below are grounded in WCAG-checked pairs from a curated palette
-> database ("deep burgundy + craft gold"). If official UM brand assets become
-> available, re-tune `primary` to match the logo and re-check contrast (≥ 4.5:1).
+## 1. Design philosophy
 
-## 1. Design direction
+**Neubrutalism, campus edition.** Raw, bold, and unpretentious — thick black outlines,
+hard offset shadows, flat saturated color blocks, zero gradients. It looks hand-made and
+honest, which matches what a student marketplace is: classmates trading stuff directly,
+no corporate polish between them.
 
-- **Style:** Vibrant & block-based — energetic, youthful, high-contrast. Fits a student buy-and-sell audience without looking like a toy.
-- **Feel:** Campus-official (maroon/gold) meets modern marketplace (search-first, deal badges, visual categories).
-- **Conversion focus:** The search bar is the hero CTA of the home screen. Reduce friction to search; popular-search suggestions directly beneath it.
+**Target users: University of Mindanao students.** Price-sensitive, mobile-first,
+scanning between classes. They buy and sell textbooks, gadgets, org merch, dorm
+essentials, review materials. Design implications:
+
+- Fast scanning over decoration — prices and condition visible without tapping.
+- Listing an item must feel like posting a sticker, not filling out paperwork.
+- Trust cues matter (verified-student badge) because transactions are peer-to-peer.
+- Playful "sticker-book" energy is welcome; subtle gray corporate minimalism is not.
+
+### The neubrutalist laws (non-negotiable)
+
+1. **Thick black borders** on every interactive/major element (ink `#000000`).
+2. **Hard offset shadows** — solid black, offset equal on x/y, **blur radius 0**. No soft shadows anywhere.
+3. **Mechanical press** — on tap-down, the element translates onto its shadow (offset collapses); releases with a snap. Spring/linear curves only.
+4. **Flat color blocks** — no gradients, no blurs, no translucent frosted effects.
+5. **Bold type** — heavy weights (600–900); body never thinner than 400.
+6. **Sticker energy** — badges and promo tags may sit slightly rotated (-2°/+2°), overlapping card edges like slapped-on stickers.
 
 ## 2. Color system
 
 | Token | Hex | Usage |
 |---|---|---|
-| `primary` | `#7C2D12` | UM maroon. App bar tint, primary buttons, active nav, links |
+| `primary` | `#7C2D12` | UM maroon. Filled blocks: primary buttons, app bar tint, active nav, hero panels |
 | `onPrimary` | `#FFFFFF` | Text/icons on maroon |
-| `secondary` | `#A16207` | Gold accent (darkened from `#CA8A04` for 3:1 contrast). Badges, highlights, seller/verified marks |
-| `onSecondary` | `#FFFFFF` | Text/icons on gold |
-| `secondaryContainer` | `#FEF3C7` | Soft gold wash: banners, featured chips, promo blocks |
+| `gold` | `#FFC72C` | Vivid UM gold **fills carrying black ink** — highlight blocks, deal badges, Sell accents |
+| `goldSoft` | `#FEF3C7` | Pale gold wash for chips, banners, category tile fills |
 | `surface` / `card` | `#FFFFFF` | Cards, sheets, bars |
-| `background` | `#FFFFFF` | Screen background (white keeps listings clean; reserve tints for sections) |
-| `onSurface` / `foreground` | `#450A0A` | Warm near-black body text |
-| `muted` | `#ECEDF0` | Placeholder fills, dividers' backgrounds, skeletons |
-| `mutedForeground` | `#64748B` | Secondary text: timestamps, subtitles, hints |
-| `outline` / `border` | `#E7E5E4` | Card borders, input outlines, dividers |
-| `success` / `price` | `#16A34A` | Prices, "deal" indicators, availability |
+| `background` | `#FFFFFF` | Screen canvas |
+| `onSurface` | `#450A0A` | Warm near-black body text |
+| `muted` | `#ECEDF0` | Skeletons, placeholder fills |
+| `mutedForeground` | `#64748B` | Secondary text: timestamps, captions, hints |
+| `ink` | `#000000` | All borders and hard shadows |
+| `success` / `price` | `#16A34A` | Prices, availability |
 | `destructive` | `#DC2626` | Errors, delete actions |
 
 Rules:
-- White space does the separating; avoid tinting whole screens — maroon appears as *blocks and accents*, not backgrounds everywhere.
-- Never place gold text on white (`#A16207` on white is for fills/badges with white text, not body copy).
-- Prices always `success` green; discounts additionally get a gold `secondaryContainer` badge.
+- Maroon and gold are **fills behind black-outlined content**, not thin tints. A card is either white, maroon, gold, or `goldSoft` — never "slightly tinted".
+- Gold always carries black ink (`#000` on `#FFC72C` ≈ 11:1 contrast ✓). Never white text on gold.
+- Prices always green; discounted items additionally get a rotated gold sticker badge ("−20%").
+- White space separates sections; color blocks carry meaning (maroon = action, gold = attention).
 
-### Flutter mapping
-Use Material 3: `ColorScheme.fromSeed(seedColor: Color(0xFF7C2D12))` then override `secondary`→`#A16207`, `error`→`#DC2626`. Load fonts via the `google_fonts` package.
+> Hex grounding: maroon pairings WCAG-checked via curated palette database
+> ("deep burgundy + craft gold"); gold/neubrutalism treatment per style database
+> "Neo Brutalism (Mobile)". Re-tune `primary` if official UM brand assets arrive.
 
 ## 3. Typography
 
-Single family: **Outfit** (geometric sans — modern, distinctive headings, clean body).
+Single family: **Outfit** (geometric sans — chunky enough to hold its own against heavy borders).
 
 | Role | Weight | Size | Notes |
 |---|---|---|---|
-| Display / hero | 800 | 32–36 px | Screen heroes, big promos |
+| Display / hero | 800–900 | 32–36 px | Uppercase allowed for promos |
 | Headline | 700 | 24 px | Section titles |
-| Title | 600 | 16–18 px | Card titles, list items, app bar |
+| Title | 600 | 16–18 px | Card titles, app bar, buttons |
 | Body | 400 | 14–15 px | Descriptions, line-height ≥ 1.45 |
-| Label / caption | 500 | 12–13 px | Prices context, timestamps, chips |
+| Label / caption | 500–600 | 12–13 px | Timestamps, chips, sticker badges |
 
-Anti-pattern: no all-caps body text; uppercase reserved for small labels/badges.
+Anti-patterns: light/thin weights anywhere; all-caps paragraphs (caps reserved for heroes and small labels).
 
-## 4. Spacing, shape & iconography
+## 4. Borders, shape & spacing
 
-- **Spacing grid:** 4 dp base. Screen padding 16 dp; intra-card gaps 8–12 dp; section gaps 24–32 dp.
-- **Corner radii:** cards 16 dp · buttons 12 dp · search bar & chips 999 (pill).
-- **Touch targets:** ≥ 48×48 dp with ≥ 8 dp spacing (Material minimum).
-- **Icons:** Material Symbols Rounded (outline style), consistent 24 dp. **Never emoji as UI icons.**
-- **Elevation:** flat-first; shadow only for floating elements (FAB, dragged cards). Prefer borders/tints over shadows for depth.
+- **Border widths:** 2 dp standard on every major element; 3 dp on hero/featured surfaces (search bar, primary CTA panel).
+- **Hard shadow offsets:** 3 dp resting on small elements (chips, inputs), 4 dp on cards/buttons, 6 dp on floating highlights. Always `BoxShadow(color: ink, offset: Offset(n, n), blurRadius: 0)`; the shadow sits inside the element's layout box (add matching padding/margin so nothing clips).
+- **Corner radii:** blocks/cards/buttons 8 dp (near-square, softened for phones) · badges/stickers/chips pill (999). Pure 0 dp is the strict web form — avoid going rounder than 8 dp.
+- **Spacing grid:** 4 dp base; screen padding 16 dp; intra-card gaps 8–12 dp; section gaps 24–32 dp.
+- **Touch targets:** ≥ 48×48 dp with ≥ 8 dp gaps.
+- **Icons:** Material Symbols Rounded (outline), 24 dp, drawn with weight ≥ 500 so they survive next to thick borders. Never emoji as UI icons.
+- **Rotation:** only badges/stickers (-2°/+2°); structural cards stay straight.
 
 ## 5. Core components
 
-- **Search bar:** pill, `muted` fill, leading search icon, maroon focus ring; sits at top of Home with popular-search chips under it.
-- **Product card:** white, 16 dp radius, 1 dp `outline` border; image top (4:3, `BoxFit.cover`, placeholder while loading); title 600; **price in green 700**; condition/location caption in `mutedForeground`; optional gold badge row (e.g. "Negotiable", category chip).
-- **Category tiles:** icon-in-tile grid (maroon icon on `secondaryContainer` circle), label below.
-- **Buttons:** Primary = maroon filled, white label, 12 dp radius. Secondary = white filled with `outline` border. On maroon surfaces = white filled with maroon label. Disabled = `muted` fill, `mutedForeground` label. All ≥ 48 dp tall, pressed state 150 ms.
-- **Badges/chips:** pill; gold `secondaryContainer` for promos/seller status; `muted` for filters.
-- **Bottom navigation:** ≤ 5 items, maroon active icon+label, `mutedForeground` inactive: Home · Browse · **Sell (center FAB-style action)** · Chats · Profile.
-- **Empty/error states:** friendly illustration or large outline icon, one-line message, single recovery button (maroon).
+- **Search bar (hero):** pill, white fill, 3 dp ink border, 4 dp hard shadow, leading search icon; focus ring replaced by shadow growth (4→6 dp). Popular-search chips beneath.
+- **Product card:** white fill, 2 dp ink border, 4 dp hard shadow, 8 dp radius; image top (4:3 cover); title 600; **price in green 700**; condition/location caption `mutedForeground`; gold rotated sticker for discounts; category chip `goldSoft`.
+- **Category tiles:** `goldSoft` fill circle + maroon icon inside an ink-bordered square tile.
+- **Buttons:** all filled blocks with 2 dp ink border + 4 dp hard shadow + mechanical press (translate +3,+3; shadow collapses).
+  - Primary: maroon fill, white label.
+  - Accent: gold fill, black label (Sell / Offer actions).
+  - Secondary: white fill, black label.
+  - Destructive: red fill `#DC2626`, white label.
+  - Disabled: `muted` fill, `mutedForeground` label, shadow removed entirely (flat = dead).
+- **Badges/stickers:** pill, gold or white fill, 2 dp border, rotated ±2°, may overlap the card edge they annotate.
+- **Bottom navigation:** white bar, 2 dp ink top border (full-width edge), ≤ 5 items; active item = maroon icon+label sitting on a `goldSoft` pill; inactive `mutedForeground`.
+- **Inputs:** white fill, 2 dp ink border, 3 dp shadow; error state swaps border to red and shows message beside field in red 500-weight.
+- **Empty/error states:** big outline icon in an ink-bordered square, one-line message, single recovery button (primary).
 
 ## 6. Screen inventory (v1)
 
-1. **Home** — hero search + popular searches, category tile grid, featured/recent listings feed
-2. **Browse/Search results** — filter chips (category, price, condition), listing cards in 2-column grid
-3. **Product detail** — image carousel, price block, seller strip (avatar, name, verified badge, "View profile"), description, safety tips footer, sticky bottom bar: Chat + Buy/Offer buttons
-4. **Sell / List an item** — step form: photos → details → price → publish; progress indicator
-5. **Auth** — sign in / register (email first), UM-branded maroon header panel
-6. **Chats** — conversation list → thread with product snippet pinned
+1. **Home** — hero search + popular searches, category tile grid, recent listings feed
+2. **Browse/Search results** — filter chips (category, price, condition), product cards in 2-column grid
+3. **Product detail** — image carousel in ink-bordered frame, price block, seller strip (avatar, name, verified-student badge, view profile), description, safety tips footer, sticky bottom bar: Chat + Buy/Offer buttons
+4. **Sell / List an item** — step form: photos → details → price → publish; progress shown as filled blocks
+5. **Auth** — sign in / register; maroon header panel with logo lockup, ink-bordered form card
+6. **Chats** — conversation list → thread with pinned product snippet card
 7. **Profile** — avatar, ratings, my listings, settings
 
 ## 7. Motion
 
-- Durations 150–300 ms, standard easing; motion must convey meaning (page transitions, confirmation feedback).
-- Feed items: subtle fade/slide stagger on first load only. Respect reduced-motion settings.
+- **Mechanical press everywhere:** tap-down translates the element onto its shadow; release snaps back. 80–120 ms, linear/spring curves only.
+- Screen transitions: quick slide/fade 150–200 ms. Feed first-load: short stagger.
+- Sticker badges may "slap" into place (scale 1.1→1.0 with overshoot) once.
+- No parallax, no blur transitions, no infinite marquees in v1. Respect reduced-motion settings.
 
 ## 8. Accessibility checklist
 
-- [ ] Body text contrast ≥ 4.5:1 (`#450A0A` on white ≈ 13:1 ✓; `#64748B` on white ≈ 4.8:1 ✓)
-- [ ] Gold never used for small text on white
-- [ ] Touch targets ≥ 48 dp
-- [ ] Visible focus/pressed states on every interactive element
-- [ ] Image placeholders + alt semantics via semantics labels
+- [ ] Body text contrast ≥ 4.5:1 (`#450A0A` on white ≈ 13:1 ✓; `#64748B` on white ≈ 4.8:1 ✓; black on gold ≈ 11:1 ✓)
+- [ ] Gold never carries white text; maroon never carries gold text
+- [ ] Touch targets ≥ 48 dp; press feedback always visible (mechanical press doubles as feedback)
+- [ ] Focus states: 3 dp ink border swap (never remove)
+- [ ] Image placeholders + semantics labels for listings
