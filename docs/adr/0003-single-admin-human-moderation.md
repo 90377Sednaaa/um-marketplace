@@ -1,0 +1,9 @@
+# 0003: Single-Admin, human-only moderation
+
+Moderation is entirely human and entirely one person. The pilot has exactly one Admin — the developer's UM Address (`l.murillo.546842@umindanao.edu.ph`) — who remains an ordinary marketplace user and additionally gets the Admin area: reviewing Reports, looking up members, hiding Listings, and Banning accounts. There is no automated moderation, no reputation scoring, and no dispute-resolution machinery in v1.
+
+Members self-serve two of the three enforcement tools (Report → recorded; Block → hides content and stops chats; the blocked member is not notified), and the Admin wields the third (Ban) manually after reading the evidence in the Firestore console. This matches the pilot scale and a school-project budget; automated or layered moderation is an easy future extension because the Report record already captures who, what, and why.
+
+**Implementation note:** the Admin role lives as a field on the Member Account document and is enforced by Firestore security rules; the role is seeded when a Member Account's UM Address matches the single admin address. Deliberately avoided: Firebase custom claims and Cloud Functions — token-level authz and a server backend are not worth their scope in v1, and the role doc is trivially promotable later if an admin backend ever appears.
+
+**Consequences:** the app's enforcement ceiling is visibility, not justice — the app can hide, block, and evict, but it cannot arbitrate disputes or reverse payments (there are none). Listing a gadget as Sold and then being scammed is handled by Report → Admin-review → Ban, not by any in-app remedy.

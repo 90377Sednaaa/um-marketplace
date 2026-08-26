@@ -31,6 +31,8 @@ _Avoid_: verified account, badge, checkmark
 - A **Verified Student** creates one or more **Listings**
 - A **Listing** receives **Offers** from other **Verified Students** and is set to **Sold** by its seller once the in-person deal is done
 - The app never handles money — an accepted **Offer** leads to an in-person meetup on campus, settled in cash or GCash person-to-person
+- Any **Verified Student** can file a **Report** and can **Block** another **Verified Student**
+- The **Admin** reviews **Reports**, hides **Listings**, and can **Ban** a **Member Account**
 
 **Trading**
 
@@ -45,6 +47,24 @@ _Avoid_: buy, bid, reservation, checkout
 **Sold**:
 The terminal state of a Listing, set by its seller once an in-person deal is done; the Listing stops appearing in search results.
 _Avoid_: completed, closed, finished
+
+**Trust & moderation**
+
+**Report**:
+A record a Verified Student files against a Listing or a chat, naming what was reported, by whom, and why. Only the Admin acts on Reports.
+_Avoid_: ticket, complaint, flag
+
+**Block**:
+A member-level action that hides another member's Listings from you and stops their chat messages from reaching you. The blocked member is not notified.
+_Avoid_: mute, ignore
+
+**Ban**:
+The Admin-only action that revokes a Member Account's ability to sign in; the banned member's Listings disappear from the marketplace.
+_Avoid_: suspend, deactivate
+
+**Admin**:
+The single Member Account (the developer's, `l.murillo.546842@umindanao.edu.ph`) that additionally has access to the Admin area: reviewing Reports, looking up members, hiding Listings, and Banning Member Accounts. The Admin is also an ordinary marketplace user.
+_Avoid_: moderator, staff, superuser
 
 ## Example dialogue
 
