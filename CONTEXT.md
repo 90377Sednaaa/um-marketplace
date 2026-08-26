@@ -48,6 +48,10 @@ _Avoid_: buy, bid, reservation, checkout
 The terminal state of a Listing, set by its seller once an in-person deal is done; the Listing stops appearing in search results.
 _Avoid_: completed, closed, finished
 
+**Category**:
+One of a fixed set of item types (textbooks, gadgets, org merch, dorm essentials, review materials) used by the Home tiles and by search filtering.
+_Avoid_: type, tag, department
+
 **Trust & moderation**
 
 **Report**:
