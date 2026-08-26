@@ -28,6 +28,13 @@ _Avoid_: verified account, badge, checkmark
 - A **Member Account** is bound to exactly one **UM Address** and belongs to exactly one **Student**
 - **Verified** is a property of a **Member Account** that has proven ownership of its **UM Address**
 - Every **Member Account** that can list or chat is a **Verified Student**
+- A **Verified Student** creates one or more **Listings**
+
+**Trading**
+
+**Listing**:
+An offer by a Student to sell a physical item they own (textbook, gadget, org merch, dorm essentials, review materials), shown on the marketplace with photos and a price.
+_Avoid_: post, ad, product, item listing
 
 ## Example dialogue
 
