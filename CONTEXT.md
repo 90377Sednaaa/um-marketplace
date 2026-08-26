@@ -29,12 +29,22 @@ _Avoid_: verified account, badge, checkmark
 - **Verified** is a property of a **Member Account** that has proven ownership of its **UM Address**
 - Every **Member Account** that can list or chat is a **Verified Student**
 - A **Verified Student** creates one or more **Listings**
+- A **Listing** receives **Offers** from other **Verified Students** and is set to **Sold** by its seller once the in-person deal is done
+- The app never handles money — an accepted **Offer** leads to an in-person meetup on campus, settled in cash or GCash person-to-person
 
 **Trading**
 
 **Listing**:
 An offer by a Student to sell a physical item they own (textbook, gadget, org merch, dorm essentials, review materials), shown on the marketplace with photos and a price.
 _Avoid_: post, ad, product, item listing
+
+**Offer**:
+A message from a buyer to a seller expressing intent to purchase a Listing, usually with a stated price. No money moves in the app; an accepted Offer leads to an in-person meetup.
+_Avoid_: buy, bid, reservation, checkout
+
+**Sold**:
+The terminal state of a Listing, set by its seller once an in-person deal is done; the Listing stops appearing in search results.
+_Avoid_: completed, closed, finished
 
 ## Example dialogue
 
@@ -46,3 +56,4 @@ _Avoid_: post, ad, product, item listing
 - "valid university email" was used to mean three different things — the domain, the address format, and proof the person owns the inbox. Resolved: the format is **UM Address**; the ownership proof is what makes a **Member Account Verified**.
 - "gmail" was used loosely — the address is a university email, not a Gmail account; the term is **UM Address**.
 - "account" was used to mean both the Student and their login — resolved: **Student** is the person, **Member Account** is the login.
+- "Buy/Offer buttons" in the visual spec — resolved: a "Buy" action does not exist; the app never handles money. The product-detail action bar offers **Chat** and **Make an offer** only.
