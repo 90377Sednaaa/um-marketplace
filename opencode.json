@@ -4,7 +4,7 @@
     "servers": {
       "firebase": {
         "type": "local",
-        "command": ["npx", "-y", "firebase-tools@latest", "mcp"],
+        "command": ["npx", "-y", "firebase-tools@15.28.1", "mcp"],
         "disabled": false,
         "timeout": { "startup": 60000, "catalog": 60000 }
       }
