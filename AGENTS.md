@@ -17,7 +17,12 @@ flutter run                          # launch on connected Android device/emulat
 
 There is no build/codegen step and no custom task runner; the commands above are the entire workflow.
 
-## Android is the only platform
+## Git workflow: commit and push after every completed task
+
+- Whenever a task is finished and verified (e.g. `flutter analyze` and `flutter test` pass, or the requested change is confirmed working), commit the changes and push to the remote `main` branch — do not wait to be asked.
+- Use clear, conventional commit messages describing what changed and why.
+- Verification must pass before committing: fix any failures first, never commit a broken tree.
+- If there is nothing to commit (no changes), skip silently.
 
 - The only platform folder is `android/`. `ios/`, `web/`, `windows/`, `macos/`, and `linux/` do not exist, so targets like `flutter run -d chrome` or `-d windows` fail. Add one with `flutter create --platforms=<name> .` before attempting it. (`analysis_options.yaml` excludes those directories even though they are absent.)
 - `android/app/build.gradle.kts` uses placeholder values with explicit TODOs: `applicationId`/namespace `com.example.um_marketplace`, debug signing for release builds. Renaming the application ID later affects installs and any future Firebase/Play registration — surface it before doing it casually.
@@ -28,6 +33,7 @@ There is no build/codegen step and no custom task runner; the commands above are
 
 ## Firebase: MCP available, Android wired to `um-marketplace-a4aa2`
 
-- `opencode.json` enables the official Firebase MCP server (`npx -y firebase-tools@latest mcp`, timeout 60 s). Its tools appear prefixed as `firebase_*` and reuse the user's Firebase CLI login — prefer them for inspecting projects/Firestore/Auth over raw CLI guesses.
+- `opencode.json` enables the official Firebase MCP server (`npx -y firebase-tools@15.28.1 mcp` — pinned, not `@latest`; timeout 60 s). Its tools appear prefixed as `firebase_*` and reuse the user's Firebase CLI login — prefer them for inspecting projects/Firestore/Auth over raw CLI guesses.
 - The Flutter app's Android build IS wired to Firebase (project `um-marketplace-a4aa2`, app id `1:39811841253:android:baf8983bd618fdae1de80c`, package `com.example.um_marketplace`): `android/app/google-services.json` + Google Services Gradle plugin 4.4.2 + `firebase_core` in `pubspec.yaml`, initialized via `Firebase.initializeApp()` in `lib/main.dart`.
-- Still absent: `firebase.json`/`.firebaserc` (no deployable resources configured), no iOS/web platform folders, no service-specific plugins (Auth, Firestore, etc.). Add those before planning work that needs them.
+- `firebase.json` and `.firebaserc` exist and set the active project to `um-marketplace-a4aa2` (alias `default`), so the MCP server boots with a project already selected. They currently contain no deployable resource config (no Firestore/Storage rules, no Hosting, no Functions).
+- Still absent: iOS/web platform folders, service-specific plugins (Auth, Firestore, etc.), and any Firebase services beyond the core Android wiring. Add those before planning work that needs them.
