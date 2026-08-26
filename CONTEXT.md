@@ -57,6 +57,10 @@ _Avoid_: type, tag, department
 A one-time score (1–5 stars) given by one party of a completed deal to the other — buyer rates seller, seller rates buyer — recorded against a Sold Listing and shown as an average with a trade count. Ratings cannot be given by anyone who was not in that Listing's chat.
 _Avoid_: review, feedback, score
 
+**Notification**:
+A push message delivered to a member's phone by FCM (banner in the system notification shade, even when the phone is locked) when an event needs their attention: a new Offer or message on their Listing, a Listing Sold, a Rating received.
+_Avoid_: alert, ping, toast
+
 **Trust & moderation**
 
 **Report**:
