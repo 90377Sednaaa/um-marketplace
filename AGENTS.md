@@ -29,4 +29,5 @@ There is no build/codegen step and no custom task runner; the commands above are
 ## Firebase: MCP available, app not wired up
 
 - `opencode.json` enables the official Firebase MCP server (`npx -y firebase-tools@latest mcp`, timeout 60 s). Its tools appear prefixed as `firebase_*` and reuse the user's Firebase CLI login — prefer them for inspecting projects/Firestore/Auth over raw CLI guesses.
-- The Flutter app itself has no Firebase integration yet: no `firebase.json`, `.firebaserc`, or `google-services.json`, and no `firebase_core` (or other Firebase) packages in `pubspec.yaml`. Do not assume plugins are installed when planning Firebase work.
+- The Flutter app's Android build IS wired to Firebase (project `um-marketplace-a4aa2`, app id `1:39811841253:android:baf8983bd618fdae1de80c`, package `com.example.um_marketplace`): `android/app/google-services.json` + Google Services Gradle plugin 4.4.2 + `firebase_core` in `pubspec.yaml`, initialized via `Firebase.initializeApp()` in `lib/main.dart`.
+- Still absent: `firebase.json`/`.firebaserc` (no deployable resources configured), no iOS/web platform folders, no service-specific plugins (Auth, Firestore, etc.). Add those before planning work that needs them.
