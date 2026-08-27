@@ -42,7 +42,7 @@ essentials, review materials. Design implications:
 | `muted` | `#ECEDF0` | Skeletons, placeholder fills |
 | `mutedForeground` | `#64748B` | Secondary text: timestamps, captions, hints |
 | `ink` | `#000000` | All borders and hard shadows |
-| `success` / `price` | `#16A34A` | Prices, availability |
+| `success` / `price` | `#15803D` | Prices, availability — AA-safe on white (≈4.6:1) at any size |
 | `destructive` | `#DC2626` | Errors, delete actions |
 
 Rules:
@@ -82,7 +82,7 @@ Anti-patterns: light/thin weights anywhere; all-caps paragraphs (caps reserved f
 ## 5. Core components
 
 - **Search bar (hero):** pill, white fill, 3 dp ink border, 4 dp hard shadow, leading search icon; focus ring replaced by shadow growth (4→6 dp). Popular-search chips beneath.
-- **Product card:** white fill, 2 dp ink border, 4 dp hard shadow, 8 dp radius; image top (4:3 cover); title 600; **price in green 700**; condition/location caption `mutedForeground`; gold rotated sticker for discounts; category chip `goldSoft`.
+- **Product card:** white fill, 2 dp ink border, 4 dp hard shadow, 8 dp radius; image top (4:3 cover); title 600; **price in `#15803D` green, weight 800**; condition/location caption `mutedForeground`; gold rotated sticker for discounts; category chip `goldSoft`.
 - **Category tiles:** `goldSoft` fill circle + maroon icon inside an ink-bordered square tile.
 - **Buttons:** all filled blocks with 2 dp ink border + 4 dp hard shadow + mechanical press (translate +3,+3; shadow collapses).
   - Primary: maroon fill, white label.
@@ -91,19 +91,22 @@ Anti-patterns: light/thin weights anywhere; all-caps paragraphs (caps reserved f
   - Destructive: red fill `#DC2626`, white label.
   - Disabled: `muted` fill, `mutedForeground` label, shadow removed entirely (flat = dead).
 - **Badges/stickers:** pill, gold or white fill, 2 dp border, rotated ±2°, may overlap the card edge they annotate.
-- **Bottom navigation:** white bar, 2 dp ink top border (full-width edge), ≤ 5 items; active item = maroon icon+label sitting on a `goldSoft` pill; inactive `mutedForeground`.
+- **Verified-student badge:** a gold pill on every seller strip declaring uniform membership — every member passed the UM email gate (ADR 0001), so the badge is a platform marker, not an earned distinction.
+- **Bottom navigation:** white bar, 2 dp ink top border (full-width edge), ≤ 5 items; active item = maroon icon+label sitting on a `goldSoft` pill; inactive `mutedForeground`. v1 ships 4 items — Home, Sell, Chats, Profile (Browse is reached via search, not a tab); the notification bell lives in the Home app bar, never in the nav.
 - **Inputs:** white fill, 2 dp ink border, 3 dp shadow; error state swaps border to red and shows message beside field in red 500-weight.
 - **Empty/error states:** big outline icon in an ink-bordered square, one-line message, single recovery button (primary).
 
 ## 6. Screen inventory (v1)
 
-1. **Home** — hero search + popular searches, category tile grid, recent listings feed
-2. **Browse/Search results** — filter chips (category, price, condition), product cards in 2-column grid
-3. **Product detail** — image carousel in ink-bordered frame, price block, seller strip (avatar, name, verified-student badge, view profile), description, safety tips footer, sticky bottom bar: Chat + Buy/Offer buttons
+1. **Home** — hero search + popular searches (static chips in v1), category tile grid, recent listings feed; notification bell top-right with unread count in a gold sticker
+2. **Browse/Search results** — results of a text query with **category chips only** in v1 (price/condition filters deferred), product cards in 2-column grid
+3. **Product detail** — image frame (v1: single hero photo with a "1/3" count badge; carousel deferred), price block, seller strip (avatar, name, verified-student badge, rating as ★ avg · trade count, view profile), description, safety tips footer, sticky bottom bar: **Chat + Make an offer** — there is no Buy action; the app never handles money (ADR 0002)
 4. **Sell / List an item** — step form: photos → details → price → publish; progress shown as filled blocks
-5. **Auth** — sign in / register; maroon header panel with logo lockup, ink-bordered form card
-6. **Chats** — conversation list → thread with pinned product snippet card
-7. **Profile** — avatar, ratings, my listings, settings
+5. **Auth** — sign in / register; maroon header panel with logo lockup, ink-bordered form card. Register includes a verification step: after submitting a UM Address, a code is emailed to that inbox and the account stays locked until it is entered (ADR 0001)
+6. **Chats** — conversation list → thread with pinned product snippet card; "Make an offer" sends an offer-typed message with a price on the thread; after a Listing is marked Sold, a rating prompt appears in the thread (stretch, ADR 0004)
+7. **Profile** — avatar, rating summary (★ avg · trade count), my listings (with mark-Sold), settings; a **Moderation row appears only for the Admin** and opens screen 9 — every user is an ordinary member first (ADR 0003)
+8. **Notification center** — pushed from the Home bell; list of notifications (offer, message, sold, rating) with unread items marked by a gold sticker; empty state per the empty/error component (ADR 0005)
+9. **Moderation (Admin)** — one screen: open reports (reporter, reported, listing/chat, reason) each with hide-listing and ban-user actions, plus member lookup by display name; unreachable for ordinary members (ADR 0003)
 
 ## 7. Motion
 
@@ -114,7 +117,7 @@ Anti-patterns: light/thin weights anywhere; all-caps paragraphs (caps reserved f
 
 ## 8. Accessibility checklist
 
-- [ ] Body text contrast ≥ 4.5:1 (`#450A0A` on white ≈ 13:1 ✓; `#64748B` on white ≈ 4.8:1 ✓; black on gold ≈ 11:1 ✓)
+- [ ] Body text contrast ≥ 4.5:1 (`#450A0A` on white ≈ 13:1 ✓; `#64748B` on white ≈ 4.8:1 ✓; black on gold ≈ 11:1 ✓; price green `#15803D` on white ≈ 4.6:1 ✓)
 - [ ] Gold never carries white text; maroon never carries gold text
 - [ ] Touch targets ≥ 48 dp; press feedback always visible (mechanical press doubles as feedback)
 - [ ] Focus states: 3 dp ink border swap (never remove)
