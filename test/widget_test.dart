@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:um_marketplace/app.dart';
 import 'package:um_marketplace/auth/auth_service.dart';
+import 'package:um_marketplace/data/listing_store.dart';
+import 'package:um_marketplace/data/member_store.dart';
 
 /// In-memory [AuthService] so widget tests never touch Firebase.
 class FakeAuthService implements AuthService {
@@ -15,26 +19,76 @@ class FakeAuthService implements AuthService {
 
   @override
   Future<void> signInWithGoogle() async {
-    emit(const AuthUser(
-      email: 'l.murillo.546842@umindanao.edu.ph',
-      displayName: 'L. Murillo',
-    ));
+    emit(_student);
   }
 
   @override
   Future<void> signOut() async => emit(null);
 }
 
+/// In-memory [MemberStore]: ensure creates the member and emits it, like
+/// the Firestore implementation does for a missing document.
+class FakeMemberStore implements MemberStore {
+  final _controller = StreamController<Member?>.broadcast();
+  final ensuredUids = <String>[];
+
+  @override
+  Stream<Member?> memberChanges(String uid) => _controller.stream;
+
+  void emit(Member? member) => _controller.add(member);
+
+  @override
+  Future<Member?> ensureMemberAccount(AuthUser authUser) async {
+    ensuredUids.add(authUser.uid);
+    final member = Member(
+      uid: authUser.uid,
+      email: authUser.email,
+      displayName: authUser.displayName,
+    );
+    emit(member);
+    return member;
+  }
+}
+
+class FakeListingsStore implements ListingStore {
+  final _controller = StreamController<List<Listing>>.broadcast();
+  final drafts = <ListingDraft>[];
+  List<Listing> listings = [];
+
+  @override
+  Stream<List<Listing>> activeListingsStream() => _controller.stream;
+
+  void emitListings() => _controller.add(List.of(listings));
+
+  @override
+  Future<void> createListing(String sellerId, ListingDraft draft) async {
+    drafts.add(draft);
+  }
+}
+
 const _student = AuthUser(
+  uid: 'test-uid',
   email: 'l.murillo.546842@umindanao.edu.ph',
   displayName: 'L. Murillo',
 );
+
+Widget _app({
+  FakeAuthService? auth,
+  FakeMemberStore? members,
+  FakeListingsStore? listings,
+}) {
+  return UmMarketplaceApp(
+    authService: auth ?? FakeAuthService(),
+    memberStore: members ?? FakeMemberStore(),
+    listingsStore: listings ?? FakeListingsStore(),
+  );
+}
 
 void main() {
   testWidgets('shows the Google sign-in gate when signed out',
       (WidgetTester tester) async {
     final auth = FakeAuthService();
-    await tester.pumpWidget(UmMarketplaceApp(authService: auth));
+    await tester.pumpWidget(_app(auth: auth));
     await tester.pump();
 
     expect(find.text('Sign in with Google'), findsOneWidget);
@@ -45,23 +99,140 @@ void main() {
     );
   });
 
-  testWidgets('signed-in member lands on the home placeholder',
+  testWidgets('sign-in creates the member account and lands on home',
       (WidgetTester tester) async {
     final auth = FakeAuthService();
-    await tester.pumpWidget(UmMarketplaceApp(authService: auth));
-    auth.emit(_student);
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    await tester
+        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+
+    await tester.tap(find.text('Sign in with Google'));
+    await tester.pump();
+    listings.emitListings();
     await tester.pumpAndSettle();
 
+    expect(members.ensuredUids, ['test-uid']);
     expect(find.text('L. Murillo'), findsOneWidget);
-    expect(find.text('l.murillo.546842@umindanao.edu.ph'), findsOneWidget);
     expect(find.text('Verified UM student'), findsOneWidget);
+    expect(find.text('Recent listings'), findsOneWidget);
     expect(find.text('Sign in with Google'), findsNothing);
+  });
+
+  testWidgets('a banned member is shown the banned screen (ADR 0003)',
+      (WidgetTester tester) async {
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    await tester
+        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pump();
+    members.emit(
+      const Member(
+        uid: 'test-uid',
+        email: 'l.murillo.546842@umindanao.edu.ph',
+        displayName: 'L. Murillo',
+        banned: true,
+      ),
+    );
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    expect(find.text('This account has been banned'), findsOneWidget);
+    expect(find.text('Recent listings'), findsNothing);
+  });
+
+  testWidgets('home feed shows listings with formatted prices',
+      (WidgetTester tester) async {
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'a',
+          sellerId: 's',
+          title: 'Calculus 201 textbook',
+          description: '',
+          price: 1250,
+          category: 'textbooks',
+          condition: 'good',
+        ),
+        const Listing(
+          id: 'b',
+          sellerId: 's',
+          title: 'Mechanical keyboard',
+          description: '',
+          price: 249.9,
+          category: 'gadgets',
+          condition: 'like new',
+          location: 'Matina',
+        ),
+      ];
+    await tester
+        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pump();
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Calculus 201 textbook'), findsOneWidget);
+    expect(find.text('₱1,250'), findsOneWidget);
+    expect(find.text('Mechanical keyboard'), findsOneWidget);
+    expect(find.text('₱250'), findsOneWidget);
+  });
+
+  testWidgets('sell flow validates, publishes and records the draft',
+      (WidgetTester tester) async {
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    await tester
+        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Sell something'));
+    await tester.pumpAndSettle();
+
+    // Invalid publish surfaces the first problem.
+    await tester.ensureVisible(find.text('Publish listing'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Publish listing'));
+    await tester.pump();
+    expect(find.textContaining('Give it a short title'), findsOneWidget);
+
+    await tester.ensureVisible(find.byType(TextField).at(0));
+    await tester.enterText(find.byType(TextField).at(0), 'Calculus notes');
+    await tester.ensureVisible(find.byType(TextField).at(1));
+    await tester.enterText(find.byType(TextField).at(1), '250');
+    await tester.ensureVisible(find.text('textbooks'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('textbooks'));
+    await tester.pump();
+    await tester.ensureVisible(find.text('Publish listing'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Publish listing'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Recent listings'), findsOneWidget); // back on home
+    expect(listings.drafts, hasLength(1));
+    expect(listings.drafts.single.title, 'Calculus notes');
+    expect(listings.drafts.single.price, 250.0);
+    expect(listings.drafts.single.category, 'textbooks');
   });
 
   testWidgets('signing out returns to the gate', (WidgetTester tester) async {
     final auth = FakeAuthService();
-    await tester.pumpWidget(UmMarketplaceApp(authService: auth));
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    await tester
+        .pumpWidget(_app(auth: auth, members: members, listings: listings));
     auth.emit(_student);
+    await tester.pump();
+    listings.emitListings();
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Sign out'));
@@ -70,15 +241,25 @@ void main() {
     expect(find.text('Sign in with Google'), findsOneWidget);
   });
 
-  testWidgets('sign-in updates the gate without user interaction',
-      (WidgetTester tester) async {
-    final auth = FakeAuthService();
-    await tester.pumpWidget(UmMarketplaceApp(authService: auth));
-    await tester.pump();
+  test('kMaxListingPhotos is 2 to stay inside the Firestore document limit',
+      () {
+    expect(kMaxListingPhotos, 2);
+    expect(kListingCategories, contains('review materials'));
+    expect(kListingCategories, hasLength(5));
+    expect(kListingConditions, hasLength(4));
+  });
 
-    await auth.signInWithGoogle();
-    await tester.pumpAndSettle();
-
-    expect(find.text('L. Murillo'), findsOneWidget);
+  test('Uint8List photos round-trip through Listing.fromDoc', () {
+    final bytes = Uint8List.fromList([1, 2, 3]);
+    final listing = Listing.fromDoc('x', {
+      'sellerId': 's',
+      'title': 'T',
+      'price': 50,
+      'category': 'gadgets',
+      'condition': 'good',
+      'photos': [bytes],
+    });
+    expect(listing.photos.single, bytes);
+    expect(listing.status, 'active');
   });
 }

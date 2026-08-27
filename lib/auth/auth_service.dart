@@ -5,8 +5,14 @@ import 'um_email_policy.dart';
 
 /// A signed-in member — the domain view of a Firebase Auth user.
 class AuthUser {
-  const AuthUser({required this.email, required this.displayName});
+  const AuthUser({
+    required this.uid,
+    required this.email,
+    required this.displayName,
+  });
 
+  /// The Firebase Auth uid — the key of the Member Account document.
+  final String uid;
   final String email;
   final String displayName;
 }
@@ -108,6 +114,10 @@ class FirebaseAuthService implements AuthService {
     final displayName = isValidUmStudentEmail(email)
         ? displayNameFromUmEmail(email)
         : (user.displayName ?? email);
-    return AuthUser(email: email, displayName: displayName);
+    return AuthUser(
+      uid: user.uid,
+      email: email,
+      displayName: displayName,
+    );
   }
 }

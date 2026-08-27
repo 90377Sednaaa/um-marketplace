@@ -1,15 +1,25 @@
 import 'package:flutter/material.dart';
 
-import '../auth/auth_service.dart';
+import '../data/listing_store.dart';
+import '../data/member_store.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nbr_button.dart';
+import 'listing_card.dart';
+import 'sell_screen.dart';
 
-/// Temporary home screen standing in for the marketplace feed — the first
-/// verified member lands here; feed/listings/chats screens replace this.
+/// Home (DESIGN.md screen 1, milestone cut): member header, a Sell CTA and
+/// the recent-listings feed straight from Firestore. The hero search,
+/// category tiles and notification bell land with the full screen.
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.user, required this.onSignOut});
+  const HomeScreen({
+    super.key,
+    required this.member,
+    required this.listingsStore,
+    required this.onSignOut,
+  });
 
-  final AuthUser user;
+  final Member member;
+  final ListingStore listingsStore;
   final Future<void> Function() onSignOut;
 
   @override
@@ -26,6 +36,17 @@ class _HomeScreenState extends State<HomeScreen> {
     } finally {
       if (mounted) setState(() => _signingOut = false);
     }
+  }
+
+  Future<void> _openSell() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SellScreen(
+          sellerId: widget.member.uid,
+          listingsStore: widget.listingsStore,
+        ),
+      ),
+    );
   }
 
   @override
@@ -49,26 +70,66 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _MemberCard(user: widget.user),
-                    const SizedBox(height: 16),
-                    const _UnderConstructionCard(),
-                    const SizedBox(height: 20),
-                    Align(
-                      alignment: Alignment.center,
-                      child: NbrButton(
-                        label: _signingOut ? 'Signing out…' : 'Sign out',
-                        fill: UmColors.surface,
-                        labelColor: UmColors.ink,
-                        onPressed: _signingOut ? null : _signOut,
+              child: StreamBuilder<List<Listing>>(
+                stream: widget.listingsStore.activeListingsStream(),
+                builder: (context, snapshot) {
+                  final listings = snapshot.data;
+                  return ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      _MemberCard(member: widget.member),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: NbrButton(
+                              label: 'Sell something',
+                              icon: const Icon(
+                                Icons.add,
+                                size: 20,
+                                color: UmColors.onPrimary,
+                              ),
+                              onPressed: _openSell,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          NbrButton(
+                            label:
+                                _signingOut ? 'Signing out…' : 'Sign out',
+                            fill: UmColors.surface,
+                            labelColor: UmColors.ink,
+                            onPressed: _signingOut ? null : _signOut,
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Recent listings',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: 12),
+                      if (listings == null)
+                        const _FeedSkeleton()
+                      else if (listings.isEmpty)
+                        const _EmptyFeed()
+                      else
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                            childAspectRatio: 0.68,
+                          ),
+                          itemCount: listings.length,
+                          itemBuilder: (context, index) =>
+                              ListingCard(listing: listings[index]),
+                        ),
+                    ],
+                  );
+                },
               ),
             ),
           ],
@@ -79,9 +140,9 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _MemberCard extends StatelessWidget {
-  const _MemberCard({required this.user});
+  const _MemberCard({required this.member});
 
-  final AuthUser user;
+  final Member member;
 
   @override
   Widget build(BuildContext context) {
@@ -108,9 +169,9 @@ class _MemberCard extends StatelessWidget {
                 radius: 24,
                 backgroundColor: UmColors.gold,
                 child: Text(
-                  user.displayName.isEmpty
+                  member.displayName.isEmpty
                       ? '?'
-                      : user.displayName[0].toUpperCase(),
+                      : member.displayName[0].toUpperCase(),
                   style: const TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 18,
@@ -123,11 +184,11 @@ class _MemberCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(user.displayName,
+                    Text(member.displayName,
                         style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 2),
                     Text(
-                      user.email,
+                      member.email,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                             color: UmColors.mutedForeground,
                           ),
@@ -138,28 +199,53 @@ class _MemberCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: UmColors.goldSoft,
-              border: Border.all(color: UmColors.ink, width: 2),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.verified_user, size: 16, color: UmColors.ink),
-                SizedBox(width: 6),
-                Text(
-                  'Verified UM student',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                    color: UmColors.ink,
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: UmColors.goldSoft,
+                  border: Border.all(color: UmColors.ink, width: 2),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.verified_user, size: 16, color: UmColors.ink),
+                    SizedBox(width: 6),
+                    Text(
+                      'Verified UM student',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                        color: UmColors.ink,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (member.isAdmin)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: UmColors.gold,
+                    border: Border.all(color: UmColors.ink, width: 2),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: const Text(
+                    'Admin',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: UmColors.ink,
+                    ),
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
         ],
       ),
@@ -167,43 +253,58 @@ class _MemberCard extends StatelessWidget {
   }
 }
 
-class _UnderConstructionCard extends StatelessWidget {
-  const _UnderConstructionCard();
+class _FeedSkeleton extends StatelessWidget {
+  const _FeedSkeleton();
+
+  /// Static `muted` blocks (DESIGN.md §5 skeletons) — deliberately
+  /// non-animated so the tree settles while the feed streams in.
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.68,
+      ),
+      itemCount: 4,
+      itemBuilder: (context, index) => Container(
+        decoration: BoxDecoration(
+          color: UmColors.muted,
+          border: Border.all(color: UmColors.ink, width: 2),
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyFeed extends StatelessWidget {
+  const _EmptyFeed();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: UmColors.gold,
+        color: UmColors.surface,
         border: Border.all(color: UmColors.ink, width: 2),
         borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
-          BoxShadow(
-            color: UmColors.ink,
-            offset: Offset(4, 4),
-            blurRadius: 0,
-          ),
-        ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'The marketplace is under construction',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: UmColors.ink,
-                ),
+          const Icon(
+            Icons.storefront_outlined,
+            size: 48,
+            color: UmColors.mutedForeground,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 12),
           Text(
-            'Your student gate is live — the feed, listings, chats and '
-            'offers land next.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                  color: UmColors.ink,
-                ),
+            'No listings yet — be the first to post one!',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],
       ),
