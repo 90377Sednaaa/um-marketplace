@@ -1,30 +1,84 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:um_marketplace/app.dart';
+import 'package:um_marketplace/auth/auth_service.dart';
 
-import 'package:um_marketplace/main.dart';
+/// In-memory [AuthService] so widget tests never touch Firebase.
+class FakeAuthService implements AuthService {
+  final _controller = StreamController<AuthUser?>.broadcast();
+
+  @override
+  Stream<AuthUser?> get userChanges => _controller.stream;
+
+  void emit(AuthUser? user) => _controller.add(user);
+
+  @override
+  Future<void> signInWithGoogle() async {
+    emit(const AuthUser(
+      email: 'l.murillo.546842@umindanao.edu.ph',
+      displayName: 'L. Murillo',
+    ));
+  }
+
+  @override
+  Future<void> signOut() async => emit(null);
+}
+
+const _student = AuthUser(
+  email: 'l.murillo.546842@umindanao.edu.ph',
+  displayName: 'L. Murillo',
+);
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('shows the Google sign-in gate when signed out',
+      (WidgetTester tester) async {
+    final auth = FakeAuthService();
+    await tester.pumpWidget(UmMarketplaceApp(authService: auth));
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Sign in with Google'), findsOneWidget);
+    expect(find.text('UM Marketplace'), findsOneWidget);
+    expect(
+      find.textContaining('l.murillo.546842@umindanao.edu.ph'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('signed-in member lands on the home placeholder',
+      (WidgetTester tester) async {
+    final auth = FakeAuthService();
+    await tester.pumpWidget(UmMarketplaceApp(authService: auth));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+
+    expect(find.text('L. Murillo'), findsOneWidget);
+    expect(find.text('l.murillo.546842@umindanao.edu.ph'), findsOneWidget);
+    expect(find.text('Verified UM student'), findsOneWidget);
+    expect(find.text('Sign in with Google'), findsNothing);
+  });
+
+  testWidgets('signing out returns to the gate', (WidgetTester tester) async {
+    final auth = FakeAuthService();
+    await tester.pumpWidget(UmMarketplaceApp(authService: auth));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Sign out'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sign in with Google'), findsOneWidget);
+  });
+
+  testWidgets('sign-in updates the gate without user interaction',
+      (WidgetTester tester) async {
+    final auth = FakeAuthService();
+    await tester.pumpWidget(UmMarketplaceApp(authService: auth));
+    await tester.pump();
+
+    await auth.signInWithGoogle();
+    await tester.pumpAndSettle();
+
+    expect(find.text('L. Murillo'), findsOneWidget);
   });
 }

@@ -1,5 +1,7 @@
 # 0001: Student-only email gate (format + ownership)
 
+**Status: superseded by [ADR 0008](0008-google-sign-in.md)** — the ownership half (emailed verification code) is replaced by Google Sign-In, which proves inbox ownership cryptographically. The format gate described below stands unchanged (enforced in-app per ADR 0008).
+
 Membership is restricted to University of Mindanao students by requiring both (a) a UM Address in the exact student shape `initial.surname.######@umindanao.edu.ph` and (b) proof of ownership — a verification code sent to that inbox must be entered before the account can do anything. A format-only check would let anyone register under a fabricated student address; the ownership check means only the person who controls that inbox can create a usable account.
 
 The 6-digit student-ID segment of the format excludes staff and alumni from membership by construction (their addresses carry no ID segment). This is deliberate for v1 so no role logic is needed; loosening to a domain-only gate later is a one-line change, whereas tightening later would mean evicting already-onboarded accounts — so we start strict.
