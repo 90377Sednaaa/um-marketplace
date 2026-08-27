@@ -1,0 +1,284 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =====================================================================
+    // UM Marketplace — Firestore security rules (ADR 0007).
+    //
+    // Six collections, strict ownership boundaries:
+    //   members/{uid}        one per Member Account; self-read-write, Admin
+    //                        sees all (ADR 0007)
+    //   listings/{id}        active listings readable by every verified
+    //                        member, writable by the seller
+    //   chats/{id} + messages/{id}
+    //                        participants only; blocked pairs cannot message
+    //   reports/{id}         created by any member, read by Admin only
+    //   ratings/{id}         locked to Sold-Listing parties, one vote per
+    //                        party per deal (ADR 0004)
+    //   notifications/{id}   owner-gated bell + FCM feed (ADR 0005)
+    //
+    // Field names below are a drafting proposal for the app data layer;
+    // re-check every document shape when that layer lands.
+    //
+    // Rule-engine realities that shaped this file:
+    //   * get()/exists() are NOT evaluated in list/query read rules. So read
+    //     rules gate on per-document data only, and message docs carry a
+    //     `participants` copy of their chat's participants (enforced equal
+    //     at write time) so message LIST reads can verify membership
+    //     without a join. Block-state checks therefore happen on write
+    //     paths; hiding a blocker's Listings in the feed is client-side
+    //     (ADR 0003: "the app's enforcement ceiling is visibility").
+    //   * Admin status is seeded onto the member doc at create (ADR 0003,
+    //     forge-proof below) for the app's own UI, and read/query rules
+    //     derive admin from the ID-token email claim so admin list queries
+    //     still work without joins.
+    //   * Listings are never deleted in-app — they are hidden (status
+    //     'hidden') or sold. Deletes stay Admin/console-only.
+    // =====================================================================
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // The single Admin — the developer's UM Address (ADR 0003). Read rules
+    // use this via the ID-token email claim; the member doc also carries a
+    // forge-proof isAdmin flag seeded at create for the app's UI.
+    function isAdminEmail(email) {
+      return email == 'l.murillo.546842@umindanao.edu.ph';
+    }
+
+    // Exact student shape (ADR 0001): initial.surname.######@umindanao.edu.ph
+    function isUmAddress(email) {
+      return email is string
+        && email.matches('^[a-z]\\.[a-z]+\\.\\d{6}@umindanao\\.edu\\.ph$');
+    }
+
+    // An approved member in good standing. Write-scope only (uses get()).
+    function isVerifiedMember(uid) {
+      return exists(/databases/$(database)/documents/members/$(uid))
+        && get(/databases/$(database)/documents/members/$(uid)).data.banned != true;
+    }
+
+    // Admin flag on the member doc (ADR 0003). Write-scope only (uses get()).
+    function isAdmin(uid) {
+      return exists(/databases/$(database)/documents/members/$(uid))
+        && get(/databases/$(database)/documents/members/$(uid)).data.isAdmin == true;
+    }
+
+    // Either member blocked the other (CONTEXT: Block).
+    function isBlockedPair(uidA, uidB) {
+      return exists(/databases/$(database)/documents/members/$(uidA))
+        && exists(/databases/$(database)/documents/members/$(uidB))
+        && (get(/databases/$(database)/documents/members/$(uidA)).data.blocked[uidB] == true
+            || get(/databases/$(database)/documents/members/$(uidB)).data.blocked[uidA] == true);
+    }
+
+    // The two parties of a Sold Listing's chat — the only deal evidence the
+    // app has (ADR 0004): rater and ratee are exactly chat buyer + seller,
+    // the chat belongs to the listing, and the listing is Sold.
+    function isCompletedDeal(raterUid, rateeUid, listingId, chatId) {
+      return get(/databases/$(database)/documents/chats/$(chatId)).data.listingId == listingId
+        && get(/databases/$(database)/documents/listings/$(listingId)).data.status == 'sold'
+        && ((get(/databases/$(database)/documents/chats/$(chatId)).data.buyerId == raterUid
+             && get(/databases/$(database)/documents/chats/$(chatId)).data.sellerId == rateeUid)
+            || (get(/databases/$(database)/documents/chats/$(chatId)).data.buyerId == rateeUid
+                && get(/databases/$(database)/documents/chats/$(chatId)).data.sellerId == raterUid));
+    }
+
+    // ---------------------------------------------------------------------
+    // members/{uid} — one per Member Account (ADR 0007)
+    // ---------------------------------------------------------------------
+    match /members/{uid} {
+      // Created once by the app right after Google Sign-In (ADR 0008): the
+      // stored email MUST equal the Google-verified token email and pass the
+      // student format; isAdmin is computed, not client-supplied.
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && !exists(/databases/$(database)/documents/members/$(uid))
+        && request.auth.token.email_verified == true
+        && request.resource.data.uid == uid
+        && request.resource.data.email == request.auth.token.email
+        && isUmAddress(request.resource.data.email)
+        && request.resource.data.isAdmin == isAdminEmail(request.resource.data.email)
+        && request.resource.data.banned == false
+        && request.resource.data.blocked is map
+        && request.resource.data.blocked.size() == 0;
+
+      // Self-read-write; Admin sees all. No get() — safe for list queries.
+      allow read: if signedIn()
+        && (resource.data.uid == request.auth.uid
+            || isAdminEmail(request.auth.token.email));
+
+      // Self-only. Immutable: uid, email, isAdmin, banned. Mutable:
+      // displayName, blocked (self-managed Block list), timestamps.
+      allow update: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.isAdmin == resource.data.isAdmin
+        && request.resource.data.banned == resource.data.banned;
+
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // listings/{id} — photos embedded per ADR 0006; no Storage in v1
+    // ---------------------------------------------------------------------
+    match /listings/{listingId} {
+      allow create: if isVerifiedMember(request.auth.uid)
+        && request.resource.data.sellerId == request.auth.uid
+        && request.resource.data.status == 'active'
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.price is number
+        && request.resource.data.price > 0;
+
+      // Active listings readable by every verified member; the seller can
+      // read their own (including sold/hidden for "my listings").
+      allow read: if signedIn()
+        && (resource.data.status == 'active'
+            || resource.data.sellerId == request.auth.uid);
+
+      // Seller: any state transition active/sold/hidden. Admin: hide only.
+      allow update: if isVerifiedMember(request.auth.uid)
+        && request.resource.data.sellerId == resource.data.sellerId
+        && ((resource.data.sellerId == request.auth.uid
+             && request.resource.data.status in ['active', 'sold', 'hidden'])
+            || (isAdmin(request.auth.uid)
+                && request.resource.data.status == 'hidden'));
+
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // chats/{id} + chats/{id}/messages/{msgId} — listing-bound, participants
+    // only, blocked pairs cannot message (ADR 0007)
+    // ---------------------------------------------------------------------
+    match /chats/{chatId} {
+      // Born only from a Listing, buyer to seller; both verified, neither
+      // banned, not a blocked pair, listing still active.
+      allow create: if isVerifiedMember(request.auth.uid)
+        && isVerifiedMember(request.resource.data.sellerId)
+        && request.resource.data.buyerId == request.auth.uid
+        && request.resource.data.sellerId != request.auth.uid
+        && request.resource.data.participants is map
+        && request.resource.data.participants.size() == 2
+        && request.resource.data.participants[request.auth.uid] == true
+        && request.resource.data.participants[request.resource.data.sellerId] == true
+        && get(/databases/$(database)/documents/listings/$(request.resource.data.listingId)).data.sellerId == request.resource.data.sellerId
+        && get(/databases/$(database)/documents/listings/$(request.resource.data.listingId)).data.status == 'active'
+        && !isBlockedPair(request.auth.uid, request.resource.data.sellerId);
+
+      allow read: if signedIn()
+        && request.auth.uid in resource.data.participants;
+
+      // Participants only; the four core fields are immutable once set.
+      allow update: if signedIn()
+        && request.auth.uid in resource.data.participants
+        && request.resource.data.listingId == resource.data.listingId
+        && request.resource.data.buyerId == resource.data.buyerId
+        && request.resource.data.sellerId == resource.data.sellerId
+        && request.resource.data.participants == resource.data.participants;
+
+      allow delete: if false;
+
+      match /messages/{msgId} {
+        // Message write is fully validated against the chat's data:
+        // participants copy must equal the chat's (read rules then need no
+        // join), chat active listing, sender verified and not banned, and
+        // the pair is not blocked in either direction.
+        allow create: if isVerifiedMember(request.auth.uid)
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.type in ['text', 'offer']
+          && (request.resource.data.type != 'offer'
+              || (request.resource.data.price is number
+                  && request.resource.data.price > 0))
+          && request.resource.data.participants is map
+          && request.resource.data.participants.size() == 2
+          && request.resource.data.participants[request.auth.uid] == true
+          && get(/databases/$(database)/documents/chats/$(chatId)).data.participants
+               == request.resource.data.participants
+          && get(/databases/$(database)/documents/listings/$(get(/databases/$(database)/documents/chats/$(chatId)).data.listingId)).data.status == 'active'
+          && !isBlockedPair(
+              request.auth.uid,
+              get(/databases/$(database)/documents/chats/$(chatId)).data.buyerId
+                  == request.auth.uid
+              ? get(/databases/$(database)/documents/chats/$(chatId)).data.sellerId
+              : get(/databases/$(database)/documents/chats/$(chatId)).data.buyerId);
+
+        // Participants only — enforced per message doc, so list reads work.
+        allow read: if signedIn()
+          && request.auth.uid in resource.data.participants;
+
+        allow update, delete: if false;
+      }
+    }
+
+    // ---------------------------------------------------------------------
+    // reports/{id} — created by any member, read/acted on by Admin only
+    // (ADR 0003)
+    // ---------------------------------------------------------------------
+    match /reports/{reportId} {
+      allow create: if isVerifiedMember(request.auth.uid)
+        && request.resource.data.reporterId == request.auth.uid
+        && request.resource.data.status == 'open'
+        && request.resource.data.reason is string
+        && request.resource.data.reason.size() > 0
+        && (request.resource.data.reportedUid != null
+            || request.resource.data.listingId != null
+            || request.resource.data.chatId != null);
+
+      // Token-email check (no get) so Admin list queries work.
+      allow read, update, delete: if signedIn()
+        && isAdminEmail(request.auth.token.email);
+    }
+
+    // ---------------------------------------------------------------------
+    // ratings/{id} — only the two parties of a Sold Listing's chat, once
+    // per party per deal (ADR 0004). One vote per party is enforced by the
+    // document ID itself: {listingId}_{raterUid}.
+    // ---------------------------------------------------------------------
+    match /ratings/{ratingId} {
+      allow create: if isVerifiedMember(request.auth.uid)
+        && request.resource.id == request.resource.data.listingId + '_' + request.auth.uid
+        && request.resource.data.listingId is string
+        && request.resource.data.raterId == request.auth.uid
+        && request.resource.data.rateeId != request.auth.uid
+        && request.resource.data.stars is int
+        && request.resource.data.stars >= 1
+        && request.resource.data.stars <= 5
+        && isCompletedDeal(
+            request.resource.data.raterId,
+            request.resource.data.rateeId,
+            request.resource.data.listingId,
+            request.resource.data.chatId);
+
+      // Public profile signal (★ avg · trade count); any member may read.
+      allow read: if signedIn();
+
+      allow update, delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // notifications/{id} — owner-gated bell + FCM feed (ADR 0005).
+    // Delivery writes come from Cloud Functions via the Admin SDK (they
+    // bypass rules); member writes are self-owned only.
+    // ---------------------------------------------------------------------
+    match /notifications/{notificationId} {
+      allow create: if isVerifiedMember(request.auth.uid)
+        && request.resource.data.ownerId == request.auth.uid;
+
+      allow read: if signedIn()
+        && resource.data.ownerId == request.auth.uid;
+
+      allow update: if signedIn()
+        && resource.data.ownerId == request.auth.uid
+        && request.resource.data.ownerId == resource.data.ownerId;
+
+      allow delete: if signedIn()
+        && resource.data.ownerId == request.auth.uid;
+    }
+  }
+}

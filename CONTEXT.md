@@ -19,7 +19,7 @@ The login identity bound to exactly one UM Address, held by exactly one Student.
 _Avoid_: account, profile
 
 **Verified Student**:
-A Student whose Member Account has proven ownership of its UM Address (a verification code was delivered to that inbox and entered). Every usable Member Account is Verified by construction — there is no unverified-but-active state.
+A Student whose Member Account has proven ownership of its UM Address via Google Sign-In (ADR 0008). Every usable Member Account is Verified by construction — there is no unverified-but-active state.
 _Avoid_: verified account, badge, checkmark
 
 ## Relationships

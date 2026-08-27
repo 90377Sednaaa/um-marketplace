@@ -1,3 +1,7 @@
 {
-  "project": "um-marketplace-a4aa2"
+  "project": "um-marketplace-a4aa2",
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
 }
