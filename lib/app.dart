@@ -5,6 +5,7 @@ import 'auth/sign_in_screen.dart';
 import 'data/chat_store.dart';
 import 'data/listing_store.dart';
 import 'data/member_store.dart';
+import 'data/rating_store.dart';
 import 'members/member_gate.dart';
 import 'theme/app_theme.dart';
 
@@ -17,12 +18,14 @@ class UmMarketplaceApp extends StatelessWidget {
     required this.memberStore,
     required this.listingsStore,
     required this.chatStore,
+    required this.ratingStore,
   });
 
   final AuthService authService;
   final MemberStore memberStore;
   final ListingStore listingsStore;
   final ChatStore chatStore;
+  final RatingStore ratingStore;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +38,7 @@ class UmMarketplaceApp extends StatelessWidget {
         memberStore: memberStore,
         listingsStore: listingsStore,
         chatStore: chatStore,
+        ratingStore: ratingStore,
       ),
     );
   }
@@ -49,12 +53,14 @@ class AuthGate extends StatelessWidget {
     required this.memberStore,
     required this.listingsStore,
     required this.chatStore,
+    required this.ratingStore,
   });
 
   final AuthService authService;
   final MemberStore memberStore;
   final ListingStore listingsStore;
   final ChatStore chatStore;
+  final RatingStore ratingStore;
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +79,7 @@ class AuthGate extends StatelessWidget {
           memberStore: memberStore,
           listingsStore: listingsStore,
           chatStore: chatStore,
+          ratingStore: ratingStore,
         );
       },
     );

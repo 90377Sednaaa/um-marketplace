@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
+import '../data/rating_store.dart';
 import '../home/listing_detail_screen.dart';
 import '../home/money_format.dart';
 import '../theme/app_theme.dart';
@@ -10,10 +11,10 @@ import '../widgets/member_badges.dart';
 import '../widgets/photo_placeholder.dart';
 
 /// Profile (DESIGN.md screen 7): member identity with the trust badges,
-/// the rating placeholder (ADR 0004 data arrives with the ratings stage),
-/// my listings with the terminal mark-Sold, and — for the Admin only —
-/// the gate to Moderation (ADR 0003; the screen itself lands with the
-/// Moderation stage). Settings land with the notification stage.
+/// the live rating summary (average + trade count, ADR 0004), my listings
+/// with the terminal mark-Sold, and — for the Admin only — the gate to
+/// Moderation (ADR 0003; the screen itself lands with the Moderation
+/// stage). Settings land with the notification stage.
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({
     super.key,
@@ -21,12 +22,14 @@ class ProfileScreen extends StatelessWidget {
     required this.memberStore,
     required this.listingsStore,
     required this.chatStore,
+    required this.ratingStore,
   });
 
   final Member member;
   final MemberStore memberStore;
   final ListingStore listingsStore;
   final ChatStore chatStore;
+  final RatingStore ratingStore;
 
   void _openDetail(BuildContext context, Listing listing) {
     Navigator.of(context).push(
@@ -36,6 +39,7 @@ class ProfileScreen extends StatelessWidget {
           memberStore: memberStore,
           listingsStore: listingsStore,
           chatStore: chatStore,
+          ratingStore: ratingStore,
           viewerId: member.uid,
         ),
       ),
@@ -107,7 +111,17 @@ class ProfileScreen extends StatelessWidget {
           children: [
             _IdentityCard(member: member),
             const SizedBox(height: 12),
-            const _RatingCard(),
+            StreamBuilder<List<Rating>>(
+              stream: ratingStore.ratingsFor(member.uid),
+              builder: (context, snapshot) {
+                final ratings = snapshot.data;
+                return _RatingCard(
+                  summary: ratings == null
+                      ? '★ — · no trades yet'
+                      : ratingSummaryText(ratings),
+                );
+              },
+            ),
             if (member.isAdmin) ...[
               const SizedBox(height: 12),
               _AdminRow(
@@ -246,10 +260,13 @@ class _IdentityCard extends StatelessWidget {
   }
 }
 
-/// The rating summary placeholder: ratings are locked to completed deals
-/// (ADR 0004) and land with the ratings stage.
+/// The rating summary card: average + trade count from the public
+/// ratings stream (ADR 0004), with the placeholder until the first
+/// completed-deal rating arrives.
 class _RatingCard extends StatelessWidget {
-  const _RatingCard();
+  const _RatingCard({required this.summary});
+
+  final String summary;
 
   @override
   Widget build(BuildContext context) {
@@ -272,19 +289,11 @@ class _RatingCard extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Text(
-            '★ — · no trades yet',
+            summary,
             style: Theme.of(context)
                 .textTheme
                 .titleLarge
                 ?.copyWith(fontSize: 15),
-          ),
-          const Spacer(),
-          Text(
-            'Ratings open once deals complete',
-            style: Theme.of(context)
-                .textTheme
-                .labelMedium
-                ?.copyWith(fontSize: 11, color: UmColors.mutedForeground),
           ),
         ],
       ),

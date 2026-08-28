@@ -3,14 +3,17 @@ import 'package:flutter/material.dart';
 import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
+import '../data/rating_store.dart';
 import '../home/listing_detail_screen.dart';
 import '../home/money_format.dart';
 import '../theme/app_theme.dart';
+import '../widgets/nbr_button.dart';
 import '../widgets/offer_price_dialog.dart';
 import '../widgets/photo_placeholder.dart';
 
 /// Chat thread (DESIGN.md screen 6): pinned product snippet, message
-/// list (text + offer blocks), composer. No money changes hands anywhere
+/// list (text + offer blocks), composer, and — once the listing is sold —
+/// the rate-the-deal prompt (ADR 0004). No money changes hands anywhere
 /// (ADR 0002). Sending is fire-and-forget with a snackbar on refusal.
 class ChatThreadScreen extends StatelessWidget {
   const ChatThreadScreen({
@@ -20,6 +23,7 @@ class ChatThreadScreen extends StatelessWidget {
     required this.chatStore,
     required this.memberStore,
     required this.listingsStore,
+    required this.ratingStore,
   });
 
   final Chat chat;
@@ -27,6 +31,7 @@ class ChatThreadScreen extends StatelessWidget {
   final ChatStore chatStore;
   final MemberStore memberStore;
   final ListingStore listingsStore;
+  final RatingStore ratingStore;
 
   void _send(BuildContext context, String text) async {
     final messenger = ScaffoldMessenger.of(context);
@@ -88,8 +93,18 @@ class ChatThreadScreen extends StatelessWidget {
                         memberStore: memberStore,
                         chatStore: chatStore,
                         viewerUid: viewerUid,
+                        ratingStore: ratingStore,
                       ),
-                      if (!active) const _InactiveBanner(),
+                      if (!active) ...[
+                        const _InactiveBanner(),
+                        if (listing.status == 'sold')
+                          _RatingPrompt(
+                            listing: listing,
+                            chat: chat,
+                            viewerUid: viewerUid,
+                            ratingStore: ratingStore,
+                          ),
+                      ],
                       Expanded(
                         child: _MessageList(
                           chat: chat,
@@ -212,6 +227,7 @@ class _PinnedListing extends StatelessWidget {
     required this.memberStore,
     required this.chatStore,
     required this.viewerUid,
+    required this.ratingStore,
   });
 
   final Listing listing;
@@ -219,6 +235,7 @@ class _PinnedListing extends StatelessWidget {
   final MemberStore memberStore;
   final ChatStore chatStore;
   final String viewerUid;
+  final RatingStore ratingStore;
 
   @override
   Widget build(BuildContext context) {
@@ -231,6 +248,7 @@ class _PinnedListing extends StatelessWidget {
                   memberStore: memberStore,
                   listingsStore: listingsStore,
                   chatStore: chatStore,
+                  ratingStore: ratingStore,
                   viewerId: viewerUid,
                 ),
               ),
@@ -602,6 +620,238 @@ class _SendButton extends StatelessWidget {
           Icons.send,
           size: 22,
           color: enabled ? UmColors.onPrimary : UmColors.mutedForeground,
+        ),
+      ),
+    );
+  }
+}
+
+/// The rate-the-deal prompt (DESIGN.md screen 6 stretch, unlocked by
+/// mark-Sold): when the listing is sold, each party of the chat rates the
+/// other exactly once (the deterministic rating doc id enforces it).
+class _RatingPrompt extends StatefulWidget {
+  const _RatingPrompt({
+    required this.listing,
+    required this.chat,
+    required this.viewerUid,
+    required this.ratingStore,
+  });
+
+  final Listing listing;
+  final Chat chat;
+  final String viewerUid;
+  final RatingStore ratingStore;
+
+  @override
+  State<_RatingPrompt> createState() => _RatingPromptState();
+}
+
+class _RatingPromptState extends State<_RatingPrompt> {
+  Rating? _myRating;
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final mine =
+        await widget.ratingStore.myRatingFor(widget.listing.id, widget.viewerUid);
+    if (mounted) {
+      setState(() {
+        _myRating = mine;
+        _loaded = true;
+      });
+    }
+  }
+
+  Future<void> _openDialog() async {
+    final stars = await showDialog<int>(
+      context: context,
+      builder: (_) => const _RateDialog(),
+    );
+    if (stars == null || !mounted) return;
+    final otherUid =
+        widget.chat.participants.firstWhere((u) => u != widget.viewerUid);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await widget.ratingStore.rate(
+        listingId: widget.listing.id,
+        chatId: widget.chat.id,
+        raterId: widget.viewerUid,
+        rateeId: otherUid,
+        stars: stars,
+      );
+    } catch (_) {
+      if (mounted) {
+        messenger
+          ..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(
+              content: Text('Couldn\'t save your rating — try again.')));
+      }
+      return;
+    }
+    if (!mounted) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Rating saved — thanks!')));
+    await _load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final alreadyRated = _loaded && _myRating != null;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: UmColors.goldSoft,
+        border: Border.all(color: UmColors.ink, width: 2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.star_outline,
+            size: 20,
+            color: alreadyRated ? UmColors.mutedForeground : UmColors.ink,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              alreadyRated
+                  ? 'You rated this deal ★${_myRating!.stars}'
+                  : 'How was the deal?',
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 13.5,
+                color: UmColors.ink,
+              ),
+            ),
+          ),
+          if (!alreadyRated)
+            GestureDetector(
+              onTap: _openDialog,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 80),
+                margin: const EdgeInsets.only(left: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: BoxDecoration(
+                  color: UmColors.gold,
+                  border: Border.all(color: UmColors.ink, width: 2),
+                  borderRadius: BorderRadius.circular(999),
+                  boxShadow: const [
+                    BoxShadow(
+                        color: UmColors.ink,
+                        offset: Offset(3, 3),
+                        blurRadius: 0),
+                  ],
+                ),
+                child: const Text(
+                  'Rate deal',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                    color: UmColors.ink,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RateDialog extends StatefulWidget {
+  const _RateDialog();
+
+  @override
+  State<_RateDialog> createState() => _RateDialogState();
+}
+
+class _RateDialogState extends State<_RateDialog> {
+  int _stars = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: UmColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: const BorderSide(color: UmColors.ink, width: 2),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Rate this deal',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 20,
+                color: UmColors.onSurface,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'One honest score for a deal that already happened in person '
+              '(ADR 0002/0004). It becomes part of their public ★ average.',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: UmColors.mutedForeground),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (var star = 1; star <= 5; star++)
+                  IconButton(
+                    key: Key('rate-star-$star'),
+                    onPressed: () => setState(() => _stars = star),
+                    icon: Icon(
+                      star <= _stars ? Icons.star : Icons.star_border,
+                      size: 34,
+                      color: star <= _stars
+                          ? UmColors.gold
+                          : UmColors.mutedForeground,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: NbrButton(
+                    label: 'Cancel',
+                    fill: UmColors.surface,
+                    labelColor: UmColors.ink,
+                    stretch: true,
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: NbrButton(
+                    label: 'Rate',
+                    fill: UmColors.gold,
+                    labelColor: UmColors.ink,
+                    stretch: true,
+                    onPressed: _stars == 0
+                        ? null
+                        : () => Navigator.of(context).pop(_stars),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

@@ -4,6 +4,7 @@ import '../chats/chat_thread_screen.dart';
 import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
+import '../data/rating_store.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nbr_button.dart';
 import '../widgets/offer_price_dialog.dart';
@@ -12,10 +13,10 @@ import 'money_format.dart';
 
 /// Product detail (DESIGN.md screen 3): hero photo with a count chip,
 /// price block, description, the seller strip (avatar, name, verified
-/// student badge), a safety-notes footer and a sticky Chat + Make an
-/// offer bar. Chat/offers open the listing's chat (DESIGN.md screen 6).
-/// There is no Buy action anywhere: the app never handles money
-/// (ADR 0002).
+/// student badge, live rating average), a safety-notes footer and a
+/// sticky Chat + Make an offer bar. Chat/offers open the listing's chat
+/// (DESIGN.md screen 6). There is no Buy action anywhere: the app never
+/// handles money (ADR 0002).
 class ListingDetailScreen extends StatelessWidget {
   const ListingDetailScreen({
     super.key,
@@ -23,6 +24,7 @@ class ListingDetailScreen extends StatelessWidget {
     required this.memberStore,
     required this.listingsStore,
     required this.chatStore,
+    required this.ratingStore,
     required this.viewerId,
   });
 
@@ -30,6 +32,7 @@ class ListingDetailScreen extends StatelessWidget {
   final MemberStore memberStore;
   final ListingStore listingsStore;
   final ChatStore chatStore;
+  final RatingStore ratingStore;
 
   /// The signed-in member's uid — the bar becomes a "this is your
   /// listing" note instead of chat/offer when it equals [Listing.sellerId].
@@ -66,6 +69,7 @@ class ListingDetailScreen extends StatelessWidget {
         chatStore: chatStore,
         memberStore: memberStore,
         listingsStore: listingsStore,
+        ratingStore: ratingStore,
       ),
     ));
   }
@@ -112,6 +116,7 @@ class ListingDetailScreen extends StatelessWidget {
         chatStore: chatStore,
         memberStore: memberStore,
         listingsStore: listingsStore,
+        ratingStore: ratingStore,
       ),
     ));
   }
@@ -135,6 +140,7 @@ class ListingDetailScreen extends StatelessWidget {
                   _SellerStrip(
                     sellerId: listing.sellerId,
                     memberStore: memberStore,
+                    ratingStore: ratingStore,
                   ),
                   const SizedBox(height: 16),
                   const _SafetyTips(),
@@ -365,14 +371,18 @@ class _Pill extends StatelessWidget {
 
 /// The seller strip (DESIGN.md screen 3): avatar, display name, the
 /// verified-student badge (a platform marker — every member passed the UM
-/// email gate, ADR 0001) and the rating line. Ratings are locked to
-/// completed deals (ADR 0004) and the member model has no rating fields
-/// yet, so v1 shows a placeholder instead of inventing data.
+/// email gate, ADR 0001) and the live rating line (average + trade count,
+/// ADR 0004).
 class _SellerStrip extends StatelessWidget {
-  const _SellerStrip({required this.sellerId, required this.memberStore});
+  const _SellerStrip({
+    required this.sellerId,
+    required this.memberStore,
+    required this.ratingStore,
+  });
 
   final String sellerId;
   final MemberStore memberStore;
+  final RatingStore ratingStore;
 
   @override
   Widget build(BuildContext context) {
@@ -421,11 +431,18 @@ class _SellerStrip extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      '★ — · no trades yet',
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: UmColors.mutedForeground,
-                          ),
+                    StreamBuilder<List<Rating>>(
+                      stream: ratingStore.ratingsFor(seller.uid),
+                      builder: (context, snapshot) {
+                        final ratings = snapshot.data;
+                        return Text(
+                          ratings == null
+                              ? '★ — · no trades yet'
+                              : ratingSummaryText(ratings),
+                          style: Theme.of(context).textTheme.labelMedium
+                              ?.copyWith(color: UmColors.mutedForeground),
+                        );
+                      },
                     ),
                   ],
                 ),

@@ -9,6 +9,7 @@ import 'package:um_marketplace/chats/chat_thread_screen.dart';
 import 'package:um_marketplace/data/chat_store.dart';
 import 'package:um_marketplace/data/listing_store.dart';
 import 'package:um_marketplace/data/member_store.dart';
+import 'package:um_marketplace/data/rating_store.dart';
 import 'package:um_marketplace/home/listing_card.dart';
 import 'package:um_marketplace/theme/app_theme.dart';
 
@@ -168,6 +169,46 @@ class FakeChatStore implements ChatStore {
   }
 }
 
+/// In-memory [RatingStore]: deterministic doc ids mirror the rule; the
+/// rate stream is per ratee; failRate injects rule rejections.
+class FakeRatingStore implements RatingStore {
+  final ratings = <String, Rating>{};
+  final _controllers = <String, StreamController<List<Rating>>>{};
+  bool failRate = false;
+
+  StreamController<List<Rating>> _for(String uid) => _controllers
+      .putIfAbsent(uid, StreamController<List<Rating>>.broadcast);
+
+  @override
+  Stream<List<Rating>> ratingsFor(String rateeId) => _for(rateeId).stream;
+
+  void emitRatingsFor(String uid) => _for(uid)
+      .add(ratings.values.where((r) => r.rateeId == uid).toList());
+
+  @override
+  Future<Rating?> myRatingFor(String listingId, String raterId) async =>
+      ratings['${listingId}_$raterId'];
+
+  @override
+  Future<void> rate({
+    required String listingId,
+    required String chatId,
+    required String raterId,
+    required String rateeId,
+    required int stars,
+  }) async {
+    if (failRate) throw Exception('rules rejection');
+    ratings['${listingId}_$raterId'] = Rating(
+      listingId: listingId,
+      raterId: raterId,
+      rateeId: rateeId,
+      stars: stars,
+      chatId: chatId,
+      createdAt: DateTime(2026, 8, 28, 12),
+    );
+  }
+}
+
 class FakeListingsStore implements ListingStore {
   final _controller = StreamController<List<Listing>>.broadcast();
   final _myListingsController = StreamController<List<Listing>>.broadcast();
@@ -237,12 +278,14 @@ Widget _app({
   FakeMemberStore? members,
   FakeListingsStore? listings,
   FakeChatStore? chats,
+  FakeRatingStore? ratings,
 }) {
   return UmMarketplaceApp(
     authService: auth ?? FakeAuthService(),
     memberStore: members ?? FakeMemberStore(),
     listingsStore: listings ?? FakeListingsStore(),
     chatStore: chats ?? FakeChatStore(),
+    ratingStore: ratings ?? FakeRatingStore(),
   );
 }
 
@@ -272,6 +315,7 @@ void main() {
     FakeMemberStore members, {
     Chat? chat,
     String viewerUid = 'buyer-1',
+    FakeRatingStore? ratings,
   }) {
     return MaterialApp(
       theme: buildUmTheme(),
@@ -281,6 +325,7 @@ void main() {
         chatStore: chats,
         memberStore: members,
         listingsStore: listings,
+        ratingStore: ratings ?? FakeRatingStore(),
       ),
     );
   }
@@ -1427,6 +1472,203 @@ void main() {
       find.textContaining('You haven\'t listed anything yet'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a sold listing offers the rate prompt and records the vote',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final chats = FakeChatStore();
+    final listings = FakeListingsStore();
+    final members = FakeMemberStore();
+    final ratings = FakeRatingStore();
+    const listing = Listing(
+      id: 'l1',
+      sellerId: 'seller-1',
+      title: 'Notes',
+      description: '',
+      price: 50,
+      category: 'textbooks',
+      condition: 'good',
+      status: 'sold',
+    );
+    await tester.pumpWidget(
+        threadApp(chats, listings, members, ratings: ratings));
+    await tester.pumpAndSettle();
+    listings.emitListing('l1', listing);
+    await tester.pumpAndSettle();
+    chats.emitMessages('l1_buyer-1');
+    await tester.pumpAndSettle();
+
+    expect(find.text('How was the deal?'), findsOneWidget);
+    await tester.tap(find.text('Rate deal'));
+    await tester.pumpAndSettle();
+    expect(find.text('Rate this deal'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('rate-star-4')));
+    await tester.pump();
+    await tester.tap(find.text('Rate'));
+    await tester.pumpAndSettle();
+
+    final vote = ratings.ratings['l1_buyer-1'];
+    expect(vote, isNotNull);
+    expect(vote!.stars, 4);
+    expect(vote.rateeId, 'seller-1'); // the other party of the chat
+    // Prompt flips to the read-only state.
+    expect(find.text('You rated this deal ★4'), findsOneWidget);
+    expect(find.text('Rate deal'), findsNothing);
+
+    // Snackbar timer must expire before the test ends.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('an already-rated thread shows the read-only state',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final chats = FakeChatStore();
+    final listings = FakeListingsStore();
+    final members = FakeMemberStore();
+    final ratings = FakeRatingStore()
+      ..ratings['l1_buyer-1'] = Rating(
+        listingId: 'l1',
+        raterId: 'buyer-1',
+        rateeId: 'seller-1',
+        stars: 5,
+        chatId: 'l1_buyer-1',
+        createdAt: DateTime(2026, 8, 28, 12),
+      );
+    const listing = Listing(
+      id: 'l1',
+      sellerId: 'seller-1',
+      title: 'Notes',
+      description: '',
+      price: 50,
+      category: 'textbooks',
+      condition: 'good',
+      status: 'sold',
+    );
+    await tester.pumpWidget(
+        threadApp(chats, listings, members, ratings: ratings));
+    await tester.pumpAndSettle();
+    listings.emitListing('l1', listing);
+    await tester.pumpAndSettle();
+
+    expect(find.text('You rated this deal ★5'), findsOneWidget);
+    expect(find.text('Rate deal'), findsNothing);
+  });
+
+  testWidgets('a hidden listing shows no rating prompt',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final chats = FakeChatStore();
+    final listings = FakeListingsStore();
+    final members = FakeMemberStore();
+    const listing = Listing(
+      id: 'l1',
+      sellerId: 'seller-1',
+      title: 'Notes',
+      description: '',
+      price: 50,
+      category: 'textbooks',
+      condition: 'good',
+      status: 'hidden',
+    );
+    await tester.pumpWidget(threadApp(chats, listings, members));
+    await tester.pumpAndSettle();
+    listings.emitListing('l1', listing);
+    await tester.pumpAndSettle();
+
+    expect(find.text('How was the deal?'), findsNothing);
+    expect(find.text('This listing is no longer active'), findsOneWidget);
+  });
+
+  testWidgets('the seller strip shows the live rating average',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'a',
+          sellerId: 'seller-uid',
+          title: 'Dorm lamp',
+          description: 'USB powered.',
+          price: 300,
+          category: 'dorm essentials',
+          condition: 'like new',
+        ),
+      ];
+    final ratings = FakeRatingStore()
+      ..ratings['a_r1'] = Rating(
+        listingId: 'a',
+        raterId: 'r1',
+        rateeId: 'seller-uid',
+        stars: 5,
+        chatId: 'a_r1',
+      )
+      ..ratings['a_r2'] = Rating(
+        listingId: 'a',
+        raterId: 'r2',
+        rateeId: 'seller-uid',
+        stars: 4,
+        chatId: 'a_r2',
+      );
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      ratings: ratings,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Dorm lamp'));
+    await tester.pumpAndSettle();
+    members.emit(const Member(
+      uid: 'seller-uid',
+      email: 'j.delacruz.000000@umindanao.edu.ph',
+      displayName: 'J. Dela Cruz',
+    ));
+    await tester.pumpAndSettle();
+    ratings.emitRatingsFor('seller-uid');
+    await tester.pumpAndSettle();
+
+    expect(find.text('★ 4.5 · 2 trades'), findsOneWidget);
+    expect(find.text('★ — · no trades yet'), findsNothing);
+  });
+
+  testWidgets('the profile card shows the live rating average',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    final ratings = FakeRatingStore()
+      ..ratings['b_r1'] = Rating(
+        listingId: 'b',
+        raterId: 'r1',
+        rateeId: 'test-uid',
+        stars: 3,
+        chatId: 'b_r1',
+      );
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      ratings: ratings,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    ratings.emitRatingsFor('test-uid');
+    await tester.pumpAndSettle();
+
+    expect(find.text('★ 3.0 · 1 trade'), findsOneWidget);
+    expect(find.text('★ — · no trades yet'), findsNothing);
   });
 
   testWidgets('my listings show active and sold rows with pills',

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
+import '../data/rating_store.dart';
 import '../home/relative_time.dart';
 import '../theme/app_theme.dart';
 import 'chat_thread_screen.dart';
@@ -18,12 +19,14 @@ class ChatsScreen extends StatelessWidget {
     required this.chatStore,
     required this.memberStore,
     required this.listingsStore,
+    required this.ratingStore,
   });
 
   final String viewerUid;
   final ChatStore chatStore;
   final MemberStore memberStore;
   final ListingStore listingsStore;
+  final RatingStore ratingStore;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +59,7 @@ class ChatsScreen extends StatelessWidget {
                           chatStore: chatStore,
                           memberStore: memberStore,
                           listingsStore: listingsStore,
+                          ratingStore: ratingStore,
                         ),
                       ),
                     ),

@@ -4,6 +4,7 @@ import '../chats/chats_screen.dart';
 import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
+import '../data/rating_store.dart';
 import '../profile/profile_screen.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
@@ -19,6 +20,7 @@ class AppShell extends StatefulWidget {
     required this.memberStore,
     required this.listingsStore,
     required this.chatStore,
+    required this.ratingStore,
     required this.onSignOut,
   });
 
@@ -26,6 +28,7 @@ class AppShell extends StatefulWidget {
   final MemberStore memberStore;
   final ListingStore listingsStore;
   final ChatStore chatStore;
+  final RatingStore ratingStore;
   final Future<void> Function() onSignOut;
 
   @override
@@ -51,6 +54,7 @@ class _AppShellState extends State<AppShell> {
                     memberStore: widget.memberStore,
                     listingsStore: widget.listingsStore,
                     chatStore: widget.chatStore,
+                    ratingStore: widget.ratingStore,
                     onSignOut: widget.onSignOut,
                     onSellRequested: () => setState(() => _index = 1),
                   ),
@@ -64,12 +68,14 @@ class _AppShellState extends State<AppShell> {
                     chatStore: widget.chatStore,
                     memberStore: widget.memberStore,
                     listingsStore: widget.listingsStore,
+                    ratingStore: widget.ratingStore,
                   ),
                   ProfileScreen(
                     member: widget.member,
                     memberStore: widget.memberStore,
                     listingsStore: widget.listingsStore,
                     chatStore: widget.chatStore,
+                    ratingStore: widget.ratingStore,
                   ),
                 ],
               ),
