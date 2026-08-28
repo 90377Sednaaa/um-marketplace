@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'um_email_policy.dart';
@@ -55,10 +56,11 @@ class FirebaseAuthService implements AuthService {
   Future<void>? _googleInit;
 
   /// google_sign_in v7 requires `initialize` exactly once, awaited before
-  /// any other call on the plugin.
+  /// any other call on the plugin. In debug (qa/bypass) the hostedDomain
+  /// gate is lifted so any Gmail can QA without a UM Workspace account.
   Future<void> _ensureGoogleInitialized() =>
       _googleInit ??= GoogleSignIn.instance.initialize(
-        hostedDomain: umDomain,
+        hostedDomain: kDebugMode ? null : umDomain,
       );
 
   @override
@@ -86,8 +88,9 @@ class FirebaseAuthService implements AuthService {
     }
 
     // Gate BEFORE any Firebase session exists: a staff/alumni/non-UM
-    // account must never become a member.
-    if (!isValidUmStudentEmail(account.email)) {
+    // account must never become a member. Bypassed in debug so QA can
+    // use any Gmail (firestore.rules.qa relaxes the server side).
+    if (!kDebugMode && !isValidUmStudentEmail(account.email)) {
       await GoogleSignIn.instance.signOut();
       throw UmEmailRejectedException(account.email);
     }
