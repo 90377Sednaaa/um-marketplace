@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../data/listing_store.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brutal_dialog.dart';
 import '../widgets/nbr_button.dart';
 
 /// Picks one photo from the gallery and returns compressed bytes (photo
@@ -141,8 +142,11 @@ class _SellScreenState extends State<SellScreen> {
       if (mounted) widget.onPublished();
     } catch (_) {
       if (mounted) {
-        setState(() => _error =
-            'Could not publish. Check your connection and try again.');
+        await showBrutalErrorDialog(
+          context,
+          title: 'Publish failed',
+          message: 'Could not publish. Check your connection and try again.',
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);

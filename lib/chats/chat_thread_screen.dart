@@ -8,6 +8,7 @@ import '../data/report_store.dart';
 import '../home/listing_detail_screen.dart';
 import '../home/money_format.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brutal_dialog.dart';
 import '../widgets/nbr_button.dart';
 import '../widgets/offer_price_dialog.dart';
 import '../widgets/photo_placeholder.dart';
@@ -38,41 +39,46 @@ class ChatThreadScreen extends StatelessWidget {
   final ReportStore reportStore;
 
   void _send(BuildContext context, String text) async {
-    final messenger = ScaffoldMessenger.of(context);
     try {
       await chatStore.sendText(chat, senderId: viewerUid, text: text);
     } on ChatSendException {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-            content: Text("You can't message this member right now")));
+      if (!context.mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Can\'t message',
+        message: "You can't message this member right now",
+      );
     } catch (_) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-            const SnackBar(content: Text('Couldn\'t send — try again.')));
+      if (!context.mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Send failed',
+        message: 'Couldn\'t send — try again.',
+      );
     }
   }
 
   void _sendOffer(BuildContext context, double price) async {
-    final messenger = ScaffoldMessenger.of(context);
     try {
       await chatStore.sendOffer(chat, senderId: viewerUid, price: price);
     } on ChatSendException {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-            content: Text("You can't message this member right now")));
+      if (!context.mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Can\'t message',
+        message: "You can't message this member right now",
+      );
     } catch (_) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-            const SnackBar(content: Text('Couldn\'t send — try again.')));
+      if (!context.mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Send failed',
+        message: 'Couldn\'t send — try again.',
+      );
     }
   }
 
   Future<void> _reportChat(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
     final otherUid = chat.participants.firstWhere((u) => u != viewerUid);
     final reason = await showReportDialog(
       context,
@@ -89,16 +95,19 @@ class ChatThreadScreen extends StatelessWidget {
         chatId: chat.id,
         reportedUid: otherUid,
       );
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-            content: Text(
-                'Report submitted — thanks for keeping the marketplace safe.')));
+      if (!context.mounted) return;
+      await showBrutalSuccessDialog(
+        context,
+        title: 'Report sent',
+        message: 'Report submitted — thanks for keeping the marketplace safe.',
+      );
     } catch (_) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-            content: Text('Couldn\'t submit the report — try again.')));
+      if (!context.mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Report failed',
+        message: 'Couldn\'t submit the report — try again.',
+      );
     }
   }
 
@@ -728,7 +737,6 @@ class _RatingPromptState extends State<_RatingPrompt> {
     if (stars == null || !mounted) return;
     final otherUid =
         widget.chat.participants.firstWhere((u) => u != widget.viewerUid);
-    final messenger = ScaffoldMessenger.of(context);
     try {
       await widget.ratingStore.rate(
         listingId: widget.listing.id,
@@ -739,18 +747,21 @@ class _RatingPromptState extends State<_RatingPrompt> {
       );
     } catch (_) {
       if (mounted) {
-        messenger
-          ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(
-              content: Text('Couldn\'t save your rating — try again.')));
+        await showBrutalErrorDialog(
+          context,
+          title: 'Rating failed',
+          message: 'Couldn\'t save your rating — try again.',
+        );
       }
       return;
     }
-    if (!mounted) return;
-    messenger
-      ..hideCurrentSnackBar()
-      ..showSnackBar(const SnackBar(content: Text('Rating saved — thanks!')));
     await _load();
+    if (!mounted) return;
+    await showBrutalSuccessDialog(
+      context,
+      title: 'Rating saved',
+      message: 'Rating saved — thanks!',
+    );
   }
 
   @override

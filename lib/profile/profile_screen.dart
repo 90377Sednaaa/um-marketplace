@@ -10,6 +10,7 @@ import '../home/listing_detail_screen.dart';
 import '../home/money_format.dart';
 import '../moderation/moderation_screen.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brutal_dialog.dart';
 import '../widgets/member_badges.dart';
 import '../widgets/nbr_button.dart';
 import '../widgets/photo_placeholder.dart';
@@ -121,10 +122,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await widget.listingsStore.markSold(listing.id);
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(
-              content: Text('Couldn\'t update the listing — try again.')));
+        await showBrutalErrorDialog(
+          context,
+          title: 'Update failed',
+          message: 'Couldn\'t update the listing — try again.',
+        );
       }
     }
   }

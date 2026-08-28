@@ -7,6 +7,7 @@ import '../data/member_store.dart';
 import '../data/rating_store.dart';
 import '../data/report_store.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brutal_dialog.dart';
 import '../widgets/nbr_button.dart';
 import '../widgets/offer_price_dialog.dart';
 import '../widgets/photo_placeholder.dart';
@@ -43,7 +44,6 @@ class ListingDetailScreen extends StatelessWidget {
   final String viewerId;
 
   Future<void> _reportListing(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
     final reason = await showReportDialog(
       context,
       title: 'Report listing',
@@ -59,21 +59,23 @@ class ListingDetailScreen extends StatelessWidget {
         listingId: listing.id,
         reportedUid: listing.sellerId,
       );
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-            content: Text(
-                'Report submitted — thanks for keeping the marketplace safe.')));
+      if (!context.mounted) return;
+      await showBrutalSuccessDialog(
+        context,
+        title: 'Report sent',
+        message: 'Report submitted — thanks for keeping the marketplace safe.',
+      );
     } catch (_) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-            content: Text('Couldn\'t submit the report — try again.')));
+      if (!context.mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Report failed',
+        message: 'Couldn\'t submit the report — try again.',
+      );
     }
   }
 
   Future<void> _openChat(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
     final me = await memberStore.fetchMember(viewerId);
     final Chat chat;
     try {
@@ -83,18 +85,22 @@ class ListingDetailScreen extends StatelessWidget {
         buyerDisplayName: me?.displayName ?? '',
       );
     } on ChatOpenException catch (e) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-            content: Text(e.reason == ChatOpenFailure.listingInactive
-                ? 'This listing is no longer available'
-                : "You can't start a chat with this member right now")));
+      if (!context.mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Can\'t start chat',
+        message: e.reason == ChatOpenFailure.listingInactive
+            ? 'This listing is no longer available'
+            : "You can't start a chat with this member right now",
+      );
       return;
     } catch (_) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-            content: Text('Couldn\'t start the chat — try again.')));
+      if (!context.mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Chat failed',
+        message: 'Couldn\'t start the chat — try again.',
+      );
       return;
     }
     if (!context.mounted) return;
@@ -114,7 +120,6 @@ class ListingDetailScreen extends StatelessWidget {
   Future<void> _makeOffer(BuildContext context) async {
     final price = await showOfferPriceDialog(context);
     if (!context.mounted || price == null) return;
-    final messenger = ScaffoldMessenger.of(context);
     final me = await memberStore.fetchMember(viewerId);
     final Chat chat;
     try {
@@ -124,27 +129,33 @@ class ListingDetailScreen extends StatelessWidget {
         buyerDisplayName: me?.displayName ?? '',
       );
     } on ChatOpenException catch (e) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-            content: Text(e.reason == ChatOpenFailure.listingInactive
-                ? 'This listing is no longer available'
-                : "You can't start a chat with this member right now")));
+      if (!context.mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Can\'t start chat',
+        message: e.reason == ChatOpenFailure.listingInactive
+            ? 'This listing is no longer available'
+            : "You can't start a chat with this member right now",
+      );
       return;
     } catch (_) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-            content: Text('Couldn\'t start the chat — try again.')));
+      if (!context.mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Chat failed',
+        message: 'Couldn\'t start the chat — try again.',
+      );
       return;
     }
     try {
       await chatStore.sendOffer(chat, senderId: viewerId, price: price);
     } catch (_) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-            content: Text('Couldn\'t send the offer — try again.')));
+      if (!context.mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Offer failed',
+        message: 'Couldn\'t send the offer — try again.',
+      );
       return;
     }
     if (!context.mounted) return;

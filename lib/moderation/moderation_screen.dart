@@ -5,6 +5,7 @@ import '../data/member_store.dart';
 import '../data/report_store.dart';
 import '../home/relative_time.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brutal_dialog.dart';
 
 /// Moderation (DESIGN.md screen 9, ADR 0003): the single Admin's console
 /// — the open-reports inbox with hide-listing and ban-user actions, and
@@ -23,26 +24,29 @@ class ModerationScreen extends StatelessWidget {
   final ReportStore reportStore;
 
   Future<void> _hideListing(BuildContext context, Report report) async {
-    final messenger = ScaffoldMessenger.of(context);
     try {
       if (report.listingId != null) {
         await listingsStore.hideListing(report.listingId!);
       }
       await reportStore.resolveReport(report.id);
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text('Listing hidden.')));
+      if (!context.mounted) return;
+      await showBrutalSuccessDialog(
+        context,
+        title: 'Listing hidden',
+        message: 'Listing hidden.',
+      );
     } catch (_) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-            content: Text('Couldn\'t hide the listing — try again.')));
+      if (!context.mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Hide failed',
+        message: 'Couldn\'t hide the listing — try again.',
+      );
     }
   }
 
   Future<void> _banMember(BuildContext context, Report report,
       {bool confirm = true}) async {
-    final messenger = ScaffoldMessenger.of(context);
     final uid = report.reportedUid;
     if (uid == null) return;
     if (confirm) {
@@ -61,15 +65,19 @@ class ModerationScreen extends StatelessWidget {
       await memberStore.setBanned(uid, true);
       await listingsStore.hideAllListingsOf(uid);
       await reportStore.resolveReport(report.id);
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-            content: Text('Member banned — listings hidden.')));
+      if (!context.mounted) return;
+      await showBrutalSuccessDialog(
+        context,
+        title: 'Member banned',
+        message: 'Member banned — listings hidden.',
+      );
     } catch (_) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-            content: Text('Couldn\'t ban the member — try again.')));
+      if (!context.mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Ban failed',
+        message: 'Couldn\'t ban the member — try again.',
+      );
     }
   }
 
@@ -470,7 +478,6 @@ class _MemberRowState extends State<_MemberRow> {
   bool _busy = false;
 
   Future<void> _toggleBan(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
     if (_busy) return;
     final banning = !_member.banned;
     if (banning) {
@@ -500,17 +507,21 @@ class _MemberRowState extends State<_MemberRow> {
           blocked: _member.blocked,
         );
       });
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(
-            content: Text(banning
-                ? 'Member banned — listings hidden.'
-                : 'Member unbanned.')));
+      if (!context.mounted) return;
+      await showBrutalSuccessDialog(
+        context,
+        title: banning ? 'Member banned' : 'Member unbanned',
+        message: banning
+            ? 'Member banned — listings hidden.'
+            : 'Member unbanned.',
+      );
     } catch (_) {
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-            content: Text('Couldn\'t update the member — try again.')));
+      if (!context.mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Update failed',
+        message: 'Couldn\'t update the member — try again.',
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }

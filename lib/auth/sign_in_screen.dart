@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_theme.dart';
+import '../widgets/brutal_dialog.dart';
 import '../widgets/nbr_button.dart';
 import 'auth_service.dart';
 import 'um_email_policy.dart';
@@ -21,24 +22,29 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   bool _busy = false;
-  String? _error;
 
   Future<void> _signIn() async {
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
+    if (_busy) return;
+    setState(() => _busy = true);
     try {
       await widget.authService.signInWithGoogle();
       // Success is observed through userChanges; the gate swaps screens.
     } on UmEmailRejectedException catch (e) {
-      setState(() => _error =
-          '“${e.email}” is not a UM student address. Student addresses look '
-          'like $umStudentEmailExample — initials + surname + 6-digit ID.');
+      if (!mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Not a student address',
+        message:
+            '“${e.email}” is not a UM student address. Student addresses look like $umStudentEmailExample — initials + surname + 6-digit ID.',
+      );
     } catch (e) {
       debugPrint('Google sign-in failed: $e');
-      setState(() =>
-          _error = 'Could not sign in. Check your connection and try again.');
+      if (!mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Sign-in failed',
+        message: 'Could not sign in. Check your connection and try again.',
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -62,7 +68,6 @@ class _SignInScreenState extends State<SignInScreen> {
                     const SizedBox(height: 8),
                     _SignInCard(
                       busy: _busy,
-                      error: _error,
                       onSignIn: _signIn,
                     ),
                     const SizedBox(height: 20),
@@ -228,12 +233,10 @@ class _HeroPanel extends StatelessWidget {
 class _SignInCard extends StatelessWidget {
   const _SignInCard({
     required this.busy,
-    required this.error,
     required this.onSignIn,
   });
 
   final bool busy;
-  final String? error;
   final VoidCallback onSignIn;
 
   @override
@@ -313,10 +316,6 @@ class _SignInCard extends StatelessWidget {
                   onPressed: busy ? null : onSignIn,
                 ),
               ),
-              if (error != null) ...[
-                const SizedBox(height: 14),
-                _ErrorBox(message: error!),
-              ],
             ],
           ),
         ),
@@ -346,42 +345,6 @@ class _SignInCard extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _ErrorBox extends StatelessWidget {
-  const _ErrorBox({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFEF2F2),
-        border: Border.all(color: UmColors.destructive, width: 2),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.error_outline, size: 18, color: UmColors.destructive),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              message,
-              style: GoogleFonts.outfit(
-                color: UmColors.destructive,
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
