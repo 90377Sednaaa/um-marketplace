@@ -29,6 +29,11 @@ No build/codegen; these are the entire workflow.
 - Never commit broken tree; fix first.
 - Skip silently if nothing to commit.
 
+## Branches: `main` is production, `qa/bypass` is dev/QA
+
+- `main` — production, strict UM gate (`lib/auth/auth_service.dart:60,90` `isValidUmStudentEmail` + `firestore.rules:101` `isUmAddress`). Never deploy `firestore.rules.qa` to prod.
+- `qa/bypass` — development workspace (branched from `main`, `kDebugMode`-gated bypass `lib/auth/auth_service.dart:60,90` `hostedDomain: null` + client gate lifted). `flutter run` (debug) any Gmail can QA publish/chat; `flutter build apk --release` stays gated. Extra file `firestore.rules.qa` (relaxed `isUmAddress` → `email.size()>0`) for live Firestore QA — deploy via `copy firestore.rules.qa firestore.rules && firebase deploy --only firestore` and revert with `git checkout main -- firestore.rules && firebase deploy --only firestore` before release. Safe to merge `qa/bypass` → `main` (bypass is debug-only, `firestore.rules` unchanged unless you copy).
+
 ## Android is the only platform
 
 - Only `android/` exists; `ios/`, `web/`, `windows/`, `macos/`, `linux/` do not — `flutter run -d chrome/windows` fails. Add via `flutter create --platforms=<name> .` (`analysis_options.yaml` excludes them even when absent).
