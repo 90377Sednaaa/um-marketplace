@@ -6,6 +6,7 @@ import 'package:um_marketplace/data/listing_store.dart';
 import 'package:um_marketplace/data/member_store.dart';
 import 'package:um_marketplace/data/rating_store.dart';
 import 'package:um_marketplace/data/report_store.dart';
+import 'package:um_marketplace/data/notification_store.dart';
 import 'package:um_marketplace/home/money_format.dart';
 import 'package:um_marketplace/home/relative_time.dart';
 
@@ -428,6 +429,35 @@ void main() {
       expect(report.chatId, 'l1_b1');
       expect(report.listingId, isNull);
       expect(report.reportedUid, isNull);
+    });
+  });
+
+  group('AppNotification', () {
+    test('fromDoc reads the owner-gated fields', () {
+      final notification = AppNotification.fromDoc('n1', {
+        'ownerId': 's1',
+        'type': 'offer',
+        'title': 'New offer on your listing',
+        'body': '₱250 for "Dorm lamp"',
+        'read': false,
+        'createdAt': Timestamp.fromDate(DateTime(2026, 8, 28, 12)),
+      });
+      expect(notification.ownerId, 's1');
+      expect(notification.type, 'offer');
+      expect(notification.title, 'New offer on your listing');
+      expect(notification.body, '₱250 for "Dorm lamp"');
+      expect(notification.read, isFalse);
+      expect(notification.createdAt, DateTime(2026, 8, 28, 12));
+    });
+
+    test('fromDoc defaults unread', () {
+      final notification = AppNotification.fromDoc('n1', {
+        'ownerId': 's1',
+        'type': 'sold',
+        'title': 'Your listing sold',
+        'body': 'See you next deal!',
+      });
+      expect(notification.read, isFalse);
     });
   });
 }
