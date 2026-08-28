@@ -4,6 +4,7 @@ import 'package:um_marketplace/auth/um_email_policy.dart';
 import 'package:um_marketplace/data/chat_store.dart';
 import 'package:um_marketplace/data/listing_store.dart';
 import 'package:um_marketplace/data/member_store.dart';
+import 'package:um_marketplace/data/rating_store.dart';
 import 'package:um_marketplace/home/money_format.dart';
 import 'package:um_marketplace/home/relative_time.dart';
 
@@ -320,6 +321,61 @@ void main() {
         ),
       );
       expect(result.map((l) => l.id), ['2']);
+    });
+  });
+
+  group('Rating', () {
+    test('fromDoc reads the rule-validated fields', () {
+      final rating = Rating.fromDoc('l1_r1', {
+        'listingId': 'l1',
+        'raterId': 'r1',
+        'rateeId': 's1',
+        'stars': 4,
+        'chatId': 'l1_r1',
+        'createdAt': Timestamp.fromDate(DateTime(2026, 8, 28, 12)),
+      });
+      expect(rating.listingId, 'l1');
+      expect(rating.raterId, 'r1');
+      expect(rating.rateeId, 's1');
+      expect(rating.stars, 4);
+      expect(rating.createdAt, DateTime(2026, 8, 28, 12));
+    });
+
+    test('fromDoc defaults a missing createdAt', () {
+      final rating = Rating.fromDoc('l1_r1', {
+        'listingId': 'l1',
+        'raterId': 'r1',
+        'rateeId': 's1',
+        'stars': 5,
+        'chatId': 'l1_r1',
+      });
+      expect(rating.createdAt, isNull);
+    });
+  });
+
+  group('ratingSummaryText', () {
+    Rating rating(int stars) => Rating(
+          listingId: 'l1',
+          raterId: 'r1',
+          rateeId: 's1',
+          stars: stars,
+          chatId: 'c',
+        );
+
+    test('placeholder when there are no ratings', () {
+      expect(ratingSummaryText(const []), '★ — · no trades yet');
+    });
+
+    test('averages stars with one decimal and counts trades', () {
+      expect(ratingSummaryText([rating(5), rating(4)]), '★ 4.5 · 2 trades');
+      expect(ratingSummaryText([rating(5)]), '★ 5.0 · 1 trade');
+    });
+
+    test('rounds averages to one decimal', () {
+      expect(
+        ratingSummaryText([rating(5), rating(4), rating(4)]),
+        '★ 4.3 · 3 trades',
+      );
     });
   });
 }
