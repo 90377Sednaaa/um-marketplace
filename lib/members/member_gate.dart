@@ -55,6 +55,7 @@ class _MemberGateState extends State<MemberGate> {
         }
         return HomeScreen(
           member: member,
+          memberStore: widget.memberStore,
           listingsStore: widget.listingsStore,
           onSignOut: widget.authService.signOut,
         );

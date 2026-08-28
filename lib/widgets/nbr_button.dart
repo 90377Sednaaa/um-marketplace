@@ -14,6 +14,7 @@ class NbrButton extends StatefulWidget {
     this.icon,
     this.fill = UmColors.primary,
     this.labelColor = UmColors.onPrimary,
+    this.stretch = false,
   });
 
   final String label;
@@ -24,6 +25,10 @@ class NbrButton extends StatefulWidget {
 
   final Color fill;
   final Color labelColor;
+
+  /// Whether the button fills the width of its parent (for full-width
+  /// bars) instead of hugging its label.
+  final bool stretch;
 
   @override
   State<NbrButton> createState() => _NbrButtonState();
@@ -53,7 +58,7 @@ class _NbrButtonState extends State<NbrButton> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: widget.stretch ? MainAxisSize.max : MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (widget.icon != null) ...[

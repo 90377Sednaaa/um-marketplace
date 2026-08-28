@@ -5,6 +5,7 @@ import '../data/member_store.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nbr_button.dart';
 import 'listing_card.dart';
+import 'listing_detail_screen.dart';
 import 'sell_screen.dart';
 
 /// Home (DESIGN.md screen 1, milestone cut): member header, a Sell CTA and
@@ -14,11 +15,13 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
     required this.member,
+    required this.memberStore,
     required this.listingsStore,
     required this.onSignOut,
   });
 
   final Member member;
+  final MemberStore memberStore;
   final ListingStore listingsStore;
   final Future<void> Function() onSignOut;
 
@@ -44,6 +47,18 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (_) => SellScreen(
           sellerId: widget.member.uid,
           listingsStore: widget.listingsStore,
+        ),
+      ),
+    );
+  }
+
+  void _openDetail(Listing listing) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ListingDetailScreen(
+          listing: listing,
+          memberStore: widget.memberStore,
+          viewerId: widget.member.uid,
         ),
       ),
     );
@@ -124,8 +139,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             childAspectRatio: 0.68,
                           ),
                           itemCount: listings.length,
-                          itemBuilder: (context, index) =>
-                              ListingCard(listing: listings[index]),
+                          itemBuilder: (context, index) {
+                            final listing = listings[index];
+                            return ListingCard(
+                              listing: listing,
+                              onTap: () => _openDetail(listing),
+                            );
+                          },
                         ),
                     ],
                   );

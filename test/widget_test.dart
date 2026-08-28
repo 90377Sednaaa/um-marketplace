@@ -27,15 +27,20 @@ class FakeAuthService implements AuthService {
 }
 
 /// In-memory [MemberStore]: ensure creates the member and emits it, like
-/// the Firestore implementation does for a missing document.
+/// the Firestore implementation does for a missing document. Streams are
+/// kept per uid so a listing detail can resolve a seller separately from
+/// the signed-in viewer.
 class FakeMemberStore implements MemberStore {
-  final _controller = StreamController<Member?>.broadcast();
+  final _controllers = <String, StreamController<Member?>>{};
   final ensuredUids = <String>[];
 
-  @override
-  Stream<Member?> memberChanges(String uid) => _controller.stream;
+  StreamController<Member?> _for(String uid) =>
+      _controllers.putIfAbsent(uid, StreamController<Member?>.broadcast);
 
-  void emit(Member? member) => _controller.add(member);
+  @override
+  Stream<Member?> memberChanges(String uid) => _for(uid).stream;
+
+  void emit(Member? member) => _for(member?.uid ?? 'unknown').add(member);
 
   @override
   Future<Member?> ensureMemberAccount(AuthUser authUser) async {
@@ -183,6 +188,264 @@ void main() {
     expect(find.text('₱250'), findsOneWidget);
   });
 
+  /// Detail-screen tests use a tall portrait surface so the whole layout
+  /// (hero, body, seller strip, safety tips, action bar) is on screen.
+  void usePortraitPhone(WidgetTester tester) {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+  }
+
+  testWidgets('tapping a listing card opens its detail screen',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        Listing(
+          id: 'a',
+          sellerId: 'seller-uid',
+          title: 'Analytical Geometry notes',
+          description: 'Complete set, minimal highlights.',
+          price: 180,
+          category: 'textbooks',
+          condition: 'good',
+          location: 'Matina',
+          photos: [Uint8List.fromList([1]), Uint8List.fromList([2])],
+        ),
+      ];
+    await tester
+        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pump();
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Analytical Geometry notes'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('₱180'), findsOneWidget);
+    expect(find.text('Analytical Geometry notes'), findsOneWidget);
+    expect(find.text('Complete set, minimal highlights.'), findsOneWidget);
+    expect(find.text('textbooks'), findsOneWidget);
+    expect(find.text('1/2'), findsOneWidget); // photo count chip
+    expect(find.text('Safety tips'), findsOneWidget);
+    expect(find.text('Chat'), findsOneWidget);
+    expect(find.text('Make an offer'), findsOneWidget);
+  });
+
+  testWidgets('the seller strip resolves the member with trust cues',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'a',
+          sellerId: 'seller-uid',
+          title: 'Dorm lamp',
+          description: 'USB powered.',
+          price: 300,
+          category: 'dorm essentials',
+          condition: 'like new',
+        ),
+      ];
+    await tester
+        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pump();
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Dorm lamp'));
+    await tester.pumpAndSettle();
+    members.emit(const Member(
+      uid: 'seller-uid',
+      email: 'j.delacruz.000000@umindanao.edu.ph',
+      displayName: 'J. Dela Cruz',
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('J. Dela Cruz'), findsOneWidget);
+    expect(find.text('Verified UM student'), findsOneWidget);
+    expect(find.text('★ — · no trades yet'), findsOneWidget);
+  });
+
+  testWidgets('a missing seller document falls back to a generic name',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'a',
+          sellerId: 'seller-uid',
+          title: 'Dorm lamp',
+          description: '',
+          price: 300,
+          category: 'dorm essentials',
+          condition: 'like new',
+        ),
+      ];
+    await tester
+        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pump();
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Dorm lamp'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('UM student'), findsOneWidget);
+    expect(find.text('Verified UM student'), findsNothing);
+  });
+
+  testWidgets('viewing your own listing hides the chat/offer bar',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'a',
+          sellerId: 'test-uid',
+          title: 'My old headphones',
+          description: '',
+          price: 450,
+          category: 'gadgets',
+          condition: 'good',
+        ),
+      ];
+    await tester
+        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pump();
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('My old headphones'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('This is your listing'), findsOneWidget);
+    expect(find.text('Chat'), findsNothing);
+    expect(find.text('Make an offer'), findsNothing);
+  });
+
+  testWidgets('chat and offer actions are inert with a coming-soon note',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'a',
+          sellerId: 'seller-uid',
+          title: 'Dorm lamp',
+          description: '',
+          price: 300,
+          category: 'dorm essentials',
+          condition: 'like new',
+        ),
+      ];
+    await tester
+        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pump();
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Dorm lamp'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Make an offer'));
+    await tester.pump();
+    expect(find.textContaining('Chats are coming soon'), findsOneWidget);
+
+    await tester.tap(find.text('Chat'));
+    await tester.pump();
+    expect(find.textContaining('Chats are coming soon'), findsOneWidget);
+
+    // Let the snackbar timers expire before the test ends.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('a listing without photos shows the placeholder, no count chip',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'a',
+          sellerId: 'seller-uid',
+          title: 'Old notes',
+          description: '',
+          price: 50,
+          category: 'review materials',
+          condition: 'fair',
+        ),
+      ];
+    await tester
+        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pump();
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Old notes'));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.image_not_supported_outlined), findsOneWidget);
+    expect(find.text('1/2'), findsNothing);
+  });
+
+  testWidgets('a sold listing shows the SOLD sticker on the hero photo',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'a',
+          sellerId: 'seller-uid',
+          title: 'Sold mug',
+          description: '',
+          price: 120,
+          category: 'dorm essentials',
+          condition: 'good',
+          status: 'sold',
+        ),
+      ];
+    await tester
+        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pump();
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Sold mug'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('SOLD'), findsOneWidget);
+  });
+
   testWidgets('sell flow validates, publishes and records the draft',
       (WidgetTester tester) async {
     final auth = FakeAuthService();
@@ -232,6 +495,7 @@ void main() {
         .pumpWidget(_app(auth: auth, members: members, listings: listings));
     auth.emit(_student);
     await tester.pump();
+    await tester.pumpAndSettle();
     listings.emitListings();
     await tester.pumpAndSettle();
 
