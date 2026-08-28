@@ -4,6 +4,7 @@ import 'package:um_marketplace/auth/um_email_policy.dart';
 import 'package:um_marketplace/data/chat_store.dart';
 import 'package:um_marketplace/data/member_store.dart';
 import 'package:um_marketplace/home/money_format.dart';
+import 'package:um_marketplace/home/relative_time.dart';
 
 void main() {
   group('Member.fromDoc', () {
@@ -207,6 +208,21 @@ void main() {
         ChatOpenFailure.listingInactive,
       );
       expect(ChatSendException(), isA<Exception>());
+    });
+  });
+
+  group('formatRelativeTime', () {
+    test('covers the buckets', () {
+      final now = DateTime(2026, 8, 28, 12);
+      expect(formatRelativeTime(DateTime(2026, 8, 28, 11, 59, 30), now: now),
+          'now');
+      expect(formatRelativeTime(DateTime(2026, 8, 28, 11, 58), now: now), '2m');
+      expect(formatRelativeTime(DateTime(2026, 8, 28, 9), now: now), '3h');
+      expect(formatRelativeTime(DateTime(2026, 8, 27, 10), now: now),
+          'yesterday');
+      expect(formatRelativeTime(DateTime(2026, 8, 1), now: now), 'Aug 1');
+      expect(formatRelativeTime(DateTime(2024, 12, 25), now: now),
+          '25 Dec 2024');
     });
   });
 }

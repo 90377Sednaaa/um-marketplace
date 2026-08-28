@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:um_marketplace/app.dart';
 import 'package:um_marketplace/auth/auth_service.dart';
+import 'package:um_marketplace/chats/chat_thread_screen.dart';
 import 'package:um_marketplace/data/chat_store.dart';
 import 'package:um_marketplace/data/listing_store.dart';
 import 'package:um_marketplace/data/member_store.dart';
+import 'package:um_marketplace/theme/app_theme.dart';
 
 /// In-memory [AuthService] so widget tests never touch Firebase.
 class FakeAuthService implements AuthService {
@@ -211,6 +213,44 @@ Widget _app({
 }
 
 void main() {
+  /// Detail/thread tests use a tall portrait surface so the whole layout
+  /// (hero, body, seller strip, safety tips, action bar) is on screen.
+  void usePortraitPhone(WidgetTester tester) {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+  }
+
+  Chat sampleChat({String listingId = 'l1', String buyerId = 'buyer-1'}) => Chat(
+        id: chatIdFor(listingId, buyerId),
+        listingId: listingId,
+        sellerId: 'seller-1',
+        buyerId: buyerId,
+        participants: {'seller-1', buyerId},
+        lastMessagePreview: 'Hi',
+        lastMessageAt: DateTime(2026, 8, 28, 12),
+      );
+
+  Widget threadApp(
+    FakeChatStore chats,
+    FakeListingsStore listings,
+    FakeMemberStore members, {
+    Chat? chat,
+    String viewerUid = 'buyer-1',
+  }) {
+    return MaterialApp(
+      theme: buildUmTheme(),
+      home: ChatThreadScreen(
+        chat: chat ?? sampleChat(),
+        viewerUid: viewerUid,
+        chatStore: chats,
+        memberStore: members,
+        listingsStore: listings,
+      ),
+    );
+  }
+
   testWidgets('shows the Google sign-in gate when signed out',
       (WidgetTester tester) async {
     final auth = FakeAuthService();
@@ -421,14 +461,128 @@ void main() {
     expect(listings.drafts, hasLength(1));
   });
 
-  /// Detail-screen tests use a tall portrait surface so the whole layout
-  /// (hero, body, seller strip, safety tips, action bar) is on screen.
-  void usePortraitPhone(WidgetTester tester) {
-    tester.view.physicalSize = const Size(1080, 2400);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-  }
+  testWidgets('thread renders the pinned listing and messages',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final chats = FakeChatStore();
+    final listings = FakeListingsStore();
+    final members = FakeMemberStore();
+    const listing = Listing(
+      id: 'l1',
+      sellerId: 'seller-1',
+      title: 'Analytical Geometry notes',
+      description: '',
+      price: 180,
+      category: 'textbooks',
+      condition: 'good',
+    );
+    chats.messages['l1_buyer-1'] = [
+      const ChatMessage(
+          id: 'm1', senderId: 'seller-1', type: 'text', text: 'Hi there!'),
+      const ChatMessage(
+          id: 'm2', senderId: 'buyer-1', type: 'text', text: 'Still available?'),
+    ];
+    await tester.pumpWidget(threadApp(chats, listings, members));
+    await tester.pumpAndSettle();
+    listings.emitListing('l1', listing);
+    await tester.pumpAndSettle();
+    // The message list subscribes only once the listing arrives — settle
+    // first, then emit messages so the broadcast event is not dropped.
+    chats.emitMessages('l1_buyer-1');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Analytical Geometry notes'), findsOneWidget); // snippet
+    expect(find.text('₱180'), findsOneWidget);
+    expect(find.text('Hi there!'), findsOneWidget);
+    expect(find.text('Still available?'), findsOneWidget);
+  });
+
+  testWidgets('thread composer sends a text message',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final chats = FakeChatStore();
+    final listings = FakeListingsStore();
+    final members = FakeMemberStore();
+    const listing = Listing(
+      id: 'l1',
+      sellerId: 'seller-1',
+      title: 'Notes',
+      description: '',
+      price: 50,
+      category: 'textbooks',
+      condition: 'good',
+    );
+    await tester.pumpWidget(threadApp(chats, listings, members));
+    await tester.pumpAndSettle();
+    listings.emitListing('l1', listing);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'Tara, swap meet?');
+    await tester.tap(find.byIcon(Icons.send));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tara, swap meet?'), findsOneWidget);
+    expect(chats.messages['l1_buyer-1'], hasLength(1));
+    expect(chats.messages['l1_buyer-1']!.single.senderId, 'buyer-1');
+    expect(chats.chats['l1_buyer-1']!.lastMessagePreview, 'Tara, swap meet?');
+  });
+
+  testWidgets('a sold listing shows the banner and disables the composer',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final chats = FakeChatStore();
+    final listings = FakeListingsStore();
+    final members = FakeMemberStore();
+    const listing = Listing(
+      id: 'l1',
+      sellerId: 'seller-1',
+      title: 'Notes',
+      description: '',
+      price: 50,
+      category: 'textbooks',
+      condition: 'good',
+      status: 'sold',
+    );
+    await tester.pumpWidget(threadApp(chats, listings, members));
+    await tester.pumpAndSettle();
+    listings.emitListing('l1', listing);
+    await tester.pumpAndSettle();
+
+    expect(find.text('This listing is no longer active'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.send));
+    expect(chats.messages['l1_buyer-1'] ?? const [], isEmpty);
+  });
+
+  testWidgets('a blocked send surfaces a snackbar and keeps the thread open',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final chats = FakeChatStore()..failSend = true;
+    final listings = FakeListingsStore();
+    final members = FakeMemberStore();
+    const listing = Listing(
+      id: 'l1',
+      sellerId: 'seller-1',
+      title: 'Notes',
+      description: '',
+      price: 50,
+      category: 'textbooks',
+      condition: 'good',
+    );
+    await tester.pumpWidget(threadApp(chats, listings, members));
+    await tester.pumpAndSettle();
+    listings.emitListing('l1', listing);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'Hello?');
+    await tester.tap(find.byIcon(Icons.send));
+    await tester.pumpAndSettle();
+
+    expect(find.text("You can't message this member right now"), findsOneWidget);
+
+    // Let the snackbar timer expire before the test ends.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+  });
 
   testWidgets('tapping a listing card opens its detail screen',
       (WidgetTester tester) async {
