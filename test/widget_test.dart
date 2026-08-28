@@ -384,7 +384,7 @@ void main() {
     expect(find.text('₱250'), findsOneWidget);
   });
 
-  testWidgets('bottom nav shows 3 tabs and switches between them',
+  testWidgets('bottom nav shows 4 tabs and switches between them',
       (WidgetTester tester) async {
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -402,6 +402,7 @@ void main() {
     expect(find.text('Home'), findsOneWidget);
     expect(find.text('Sell'), findsOneWidget);
     expect(find.text('Chats'), findsOneWidget);
+    expect(find.text('Profile'), findsOneWidget);
     expect(find.text('Recent listings'), findsOneWidget);
 
     await tester.tap(find.text('Chats'));
@@ -412,6 +413,11 @@ void main() {
     await tester.tap(find.text('Sell'));
     await tester.pumpAndSettle();
     expect(find.text('Title — e.g. Calculus 201 textbook'), findsOneWidget);
+
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    expect(find.text('My listings'), findsOneWidget);
+    expect(find.text('Title — e.g. Calculus 201 textbook'), findsNothing);
   });
 
   testWidgets('the Sell CTA switches to the Sell tab',
@@ -1393,6 +1399,197 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Dorm lamp'), findsNothing);
+  });
+
+  testWidgets('profile shows member identity and the rating placeholder',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    final chats = FakeChatStore();
+    await tester.pumpWidget(_app(
+      auth: auth, members: members, listings: listings, chats: chats));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    listings.emitMyListings(); // empty: nothing listed yet
+    await tester.pumpAndSettle();
+
+    expect(find.text('L. Murillo'), findsOneWidget);
+    expect(find.text('l.murillo.546842@umindanao.edu.ph'), findsOneWidget);
+    expect(find.text('Verified UM student'), findsOneWidget);
+    expect(find.text('★ — · no trades yet'), findsOneWidget);
+    expect(find.text('My listings'), findsOneWidget);
+    expect(
+      find.textContaining('You haven\'t listed anything yet'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('my listings show active and sold rows with pills',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'a',
+          sellerId: 'test-uid',
+          title: 'Calculus 201 textbook',
+          description: '',
+          price: 1250,
+          category: 'textbooks',
+          condition: 'good',
+        ),
+        const Listing(
+          id: 'b',
+          sellerId: 'test-uid',
+          title: 'Old desk lamp',
+          description: '',
+          price: 60,
+          category: 'dorm essentials',
+          condition: 'fair',
+          status: 'sold',
+        ),
+      ];
+    final chats = FakeChatStore();
+    await tester.pumpWidget(_app(
+      auth: auth, members: members, listings: listings, chats: chats));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    listings.emitMyListings();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Calculus 201 textbook'), findsOneWidget);
+    expect(find.text('Mark as sold'), findsOneWidget); // active row only
+    expect(find.text('Old desk lamp'), findsOneWidget);
+    expect(find.text('SOLD'), findsOneWidget);
+  });
+
+  testWidgets('marking a listing sold confirms and flips the row',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'a',
+          sellerId: 'test-uid',
+          title: 'Calculus 201 textbook',
+          description: '',
+          price: 1250,
+          category: 'textbooks',
+          condition: 'good',
+        ),
+        const Listing(
+          id: 'b',
+          sellerId: 'test-uid',
+          title: 'Mechanical keyboard',
+          description: '',
+          price: 250,
+          category: 'gadgets',
+          condition: 'like new',
+        ),
+      ];
+    final chats = FakeChatStore();
+    await tester.pumpWidget(_app(
+      auth: auth, members: members, listings: listings, chats: chats));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    listings.emitMyListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Mark as sold').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Mark as sold?'), findsOneWidget); // confirm dialog
+
+    // The dialog's confirm button is the later match.
+    await tester.tap(find.text('Mark as sold').last);
+    await tester.pumpAndSettle();
+
+    expect(listings.soldIds, ['a']);
+    expect(find.text('SOLD'), findsOneWidget);
+    expect(find.text('Mark as sold'), findsOneWidget); // only b remains active
+  });
+
+  testWidgets('the moderation row is admin-only and shows a coming-soon note',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    final chats = FakeChatStore();
+    await tester.pumpWidget(_app(
+      auth: auth, members: members, listings: listings, chats: chats));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    // Ordinary member: no moderation row (ADR 0003).
+    expect(find.text('Moderation'), findsNothing);
+
+    // The Admin's account carries the flag; the row appears and gates.
+    members.emit(const Member(
+      uid: 'test-uid',
+      email: 'l.murillo.546842@umindanao.edu.ph',
+      displayName: 'L. Murillo',
+      isAdmin: true,
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Moderation'), findsOneWidget);
+
+    await tester.tap(find.text('Moderation'));
+    await tester.pumpAndSettle();
+    expect(find.text('Moderation is coming soon'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('a profile listing row opens the listing detail',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'a',
+          sellerId: 'test-uid',
+          title: 'Calculus 201 textbook',
+          description: 'Clean set, minimal highlights.',
+          price: 1250,
+          category: 'textbooks',
+          condition: 'good',
+        ),
+      ];
+    final chats = FakeChatStore();
+    await tester.pumpWidget(_app(
+      auth: auth, members: members, listings: listings, chats: chats));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    listings.emitMyListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Calculus 201 textbook'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Clean set, minimal highlights.'), findsOneWidget);
   });
 
   testWidgets('category tiles open Browse pre-filtered by category',

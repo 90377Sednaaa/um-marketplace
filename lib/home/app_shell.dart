@@ -4,13 +4,14 @@ import '../chats/chats_screen.dart';
 import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
+import '../profile/profile_screen.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'sell_screen.dart';
 
 /// The app shell (DESIGN.md §5): maroon brand band, an IndexedStack of the
-/// three v1 tabs — Home, Sell, Chats — and the neubrutalist bottom nav.
-/// Profile joins the nav with its own stage.
+/// four v1 tabs — Home, Sell, Chats, Profile — and the neubrutalist
+/// bottom nav.
 class AppShell extends StatefulWidget {
   const AppShell({
     super.key,
@@ -64,6 +65,12 @@ class _AppShellState extends State<AppShell> {
                     memberStore: widget.memberStore,
                     listingsStore: widget.listingsStore,
                   ),
+                  ProfileScreen(
+                    member: widget.member,
+                    memberStore: widget.memberStore,
+                    listingsStore: widget.listingsStore,
+                    chatStore: widget.chatStore,
+                  ),
                 ],
               ),
             ),
@@ -115,6 +122,7 @@ class _BottomNav extends StatelessWidget {
       (label: 'Home', icon: Icons.home_outlined),
       (label: 'Sell', icon: Icons.add_box_outlined),
       (label: 'Chats', icon: Icons.chat_bubble_outline),
+      (label: 'Profile', icon: Icons.person_outline),
     ];
     return Container(
       decoration: const BoxDecoration(

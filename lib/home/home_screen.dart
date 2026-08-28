@@ -4,6 +4,7 @@ import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
 import '../theme/app_theme.dart';
+import '../widgets/member_badges.dart';
 import '../widgets/nbr_button.dart';
 import 'browse_screen.dart';
 import 'listing_card.dart';
@@ -241,54 +242,7 @@ class _MemberCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: UmColors.goldSoft,
-                  border: Border.all(color: UmColors.ink, width: 2),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.verified_user, size: 16, color: UmColors.ink),
-                    SizedBox(width: 6),
-                    Text(
-                      'Verified UM student',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                        color: UmColors.ink,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (member.isAdmin)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: UmColors.gold,
-                    border: Border.all(color: UmColors.ink, width: 2),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: const Text(
-                    'Admin',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                      color: UmColors.ink,
-                    ),
-                  ),
-                ),
-            ],
-          ),
+          MemberBadges(member: member),
         ],
       ),
     );
