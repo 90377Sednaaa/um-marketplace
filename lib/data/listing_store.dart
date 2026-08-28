@@ -18,6 +18,78 @@ const List<String> kListingConditions = ['new', 'like new', 'good', 'fair'];
 /// photos stay comfortably under the 1 MiB document limit by design.
 const int kMaxListingPhotos = 2;
 
+/// How many active listings the Browse screen fetches to filter
+/// client-side (Firestore cannot substring-search text fields).
+const int kBrowseFetchLimit = 200;
+
+/// Client-side filter state for Browse (DESIGN.md screen 2). All fields
+/// are null = no constraint; category/condition use the fixed sets from
+/// [kListingCategories]/[kListingConditions].
+class BrowseFilters {
+  const BrowseFilters({
+    this.category,
+    this.condition,
+    this.minPrice,
+    this.maxPrice,
+  });
+
+  final String? category;
+  final String? condition;
+  final double? minPrice;
+  final double? maxPrice;
+
+  bool get isActive =>
+      category != null ||
+      condition != null ||
+      minPrice != null ||
+      maxPrice != null;
+
+  BrowseFilters copyWith({String? category, String? condition}) {
+    return BrowseFilters(
+      category: category ?? this.category,
+      condition: condition ?? this.condition,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
+    );
+  }
+}
+
+/// Filters listings client-side for Browse: case-insensitive substring on
+/// title + description, equality on category/condition, inclusive price
+/// range. Input order is preserved (the stream arrives newest-first).
+List<Listing> filterListings(
+  List<Listing> listings, {
+  required String query,
+  BrowseFilters filters = const BrowseFilters(),
+}) {
+  final q = query.trim().toLowerCase();
+  return [
+    for (final listing in listings)
+      if (_matches(listing, q, filters)) listing,
+  ];
+}
+
+bool _matches(Listing listing, String query, BrowseFilters filters) {
+  if (query.isNotEmpty &&
+      !listing.title.toLowerCase().contains(query) &&
+      !listing.description.toLowerCase().contains(query)) {
+    return false;
+  }
+  if (filters.category != null && listing.category != filters.category) {
+    return false;
+  }
+  if (filters.condition != null && listing.condition != filters.condition) {
+    return false;
+  }
+  if (filters.minPrice != null && listing.price < filters.minPrice!) {
+    return false;
+  }
+  if (filters.maxPrice != null && listing.price > filters.maxPrice!) {
+    return false;
+  }
+  return true;
+}
+
 /// A Listing document (ADR 0007, `listings/{id}`).
 class Listing {
   const Listing({
@@ -102,8 +174,9 @@ class ListingDraft {
 
 /// The listings surface the UI depends on (injected, fake-able in tests).
 abstract interface class ListingStore {
-  /// Recent active listings for the Home feed (realtime).
-  Stream<List<Listing>> activeListingsStream();
+  /// Recent active listings for the Home feed (realtime). Browse fetches
+  /// a larger window ([kBrowseFetchLimit]) and filters client-side.
+  Stream<List<Listing>> activeListingsStream({int limit = 20});
 
   /// Live single-listing watch (get-then-listen): the thread screen uses
   /// it for the pinned snippet and the status banner.
@@ -121,12 +194,12 @@ class FirestoreListingsStore implements ListingStore {
   final FirebaseFirestore _firestore;
 
   @override
-  Stream<List<Listing>> activeListingsStream() {
+  Stream<List<Listing>> activeListingsStream({int limit = 20}) {
     return _firestore
         .collection('listings')
         .where('status', isEqualTo: 'active')
         .orderBy('createdAt', descending: true)
-        .limit(20)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Listing.fromDoc(doc.id, doc.data()))

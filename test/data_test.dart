@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:um_marketplace/auth/um_email_policy.dart';
 import 'package:um_marketplace/data/chat_store.dart';
+import 'package:um_marketplace/data/listing_store.dart';
 import 'package:um_marketplace/data/member_store.dart';
 import 'package:um_marketplace/home/money_format.dart';
 import 'package:um_marketplace/home/relative_time.dart';
@@ -223,6 +224,102 @@ void main() {
       expect(formatRelativeTime(DateTime(2026, 8, 1), now: now), 'Aug 1');
       expect(formatRelativeTime(DateTime(2024, 12, 25), now: now),
           '25 Dec 2024');
+    });
+  });
+
+  group('filterListings', () {
+    Listing listing(
+      String id, {
+      String title = '',
+      String description = '',
+      String category = 'textbooks',
+      String condition = 'good',
+      double price = 100,
+    }) =>
+        Listing(
+          id: id,
+          sellerId: 's',
+          title: title,
+          description: description,
+          price: price,
+          category: category,
+          condition: condition,
+        );
+
+    final all = [
+      listing('1', title: 'Calculus 201 textbook', category: 'textbooks'),
+      listing(
+        '2',
+        title: 'Mechanical keyboard',
+        description: 'RGB backlighting',
+        category: 'gadgets',
+        condition: 'like new',
+        price: 250,
+      ),
+      listing(
+        '3',
+        title: 'Dorm lamp',
+        category: 'dorm essentials',
+        condition: 'fair',
+        price: 60,
+      ),
+    ];
+
+    test('empty query with no filters returns everything in order', () {
+      expect(
+        filterListings(all, query: ''),
+        all,
+      );
+    });
+
+    test('query matches title and description case-insensitively', () {
+      expect(filterListings(all, query: 'CALCULUS').map((l) => l.id), ['1']);
+      expect(
+        filterListings(all, query: 'backlight').map((l) => l.id),
+        ['2'],
+      );
+      expect(filterListings(all, query: 'nonexistent'), isEmpty);
+    });
+
+    test('category filter narrows to the fixed set value', () {
+      final result = filterListings(
+        all,
+        query: '',
+        filters: const BrowseFilters(category: 'gadgets'),
+      );
+      expect(result.map((l) => l.id), ['2']);
+    });
+
+    test('condition filter narrows', () {
+      final result = filterListings(
+        all,
+        query: '',
+        filters: const BrowseFilters(condition: 'like new'),
+      );
+      expect(result.map((l) => l.id), ['2']);
+    });
+
+    test('price range narrows inclusively', () {
+      final result = filterListings(
+        all,
+        query: '',
+        filters: const BrowseFilters(minPrice: 100, maxPrice: 250),
+      );
+      expect(result.map((l) => l.id).toSet(), {'1', '2'});
+    });
+
+    test('combined filters intersect', () {
+      final result = filterListings(
+        all,
+        query: 'mechanical',
+        filters: const BrowseFilters(
+          category: 'gadgets',
+          condition: 'like new',
+          minPrice: 100,
+          maxPrice: 300,
+        ),
+      );
+      expect(result.map((l) => l.id), ['2']);
     });
   });
 }

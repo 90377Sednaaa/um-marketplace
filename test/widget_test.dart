@@ -177,7 +177,8 @@ class FakeListingsStore implements ListingStore {
       _listingControllers.putIfAbsent(id, StreamController<Listing?>.broadcast);
 
   @override
-  Stream<List<Listing>> activeListingsStream() => _controller.stream;
+  Stream<List<Listing>> activeListingsStream({int limit = 20}) =>
+      _controller.stream;
 
   @override
   Stream<Listing?> listingChanges(String id) => _listingFor(id).stream;
