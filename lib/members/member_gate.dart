@@ -8,8 +8,11 @@ import '../data/rating_store.dart';
 import '../data/report_store.dart';
 import '../data/notification_store.dart';
 import '../data/messaging_service.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '../home/app_shell.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brutal_loader.dart';
 import '../widgets/nbr_button.dart';
 
 /// Resolves the Member Account right after Google sign-in (ADR 0007/0008):
@@ -96,34 +99,100 @@ class _MemberSplash extends StatelessWidget {
     return Scaffold(
       body: Container(
         color: UmColors.primary,
-        child: const Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'UM',
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 36,
-                  letterSpacing: 2,
-                  color: UmColors.gold,
-                ),
+        child: Stack(
+          children: [
+            // Subtle brutal grid dots
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.08,
+                child: CustomPaint(painter: _GridPainter()),
               ),
-              SizedBox(height: 20),
-              SizedBox(
-                width: 28,
-                height: 28,
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                  color: UmColors.gold,
-                ),
+            ),
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Transform.rotate(
+                    angle: -0.04,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 18, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: UmColors.gold,
+                        border: Border.all(color: UmColors.ink, width: 3),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: const [
+                          BoxShadow(
+                              color: UmColors.ink,
+                              offset: Offset(4, 4),
+                              blurRadius: 0),
+                        ],
+                      ),
+                      child: Text(
+                        'Ga',
+                        style: GoogleFonts.spaceGrotesk(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 42,
+                          letterSpacing: 1.0,
+                          color: UmColors.ink,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  const BrutalLoader(size: 56, stroke: 3),
+                  const SizedBox(height: 18),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: UmColors.surface,
+                      border: Border.all(color: UmColors.ink, width: 2),
+                      borderRadius: BorderRadius.circular(999),
+                      boxShadow: const [
+                        BoxShadow(
+                            color: UmColors.ink,
+                            offset: Offset(3, 3),
+                            blurRadius: 0),
+                      ],
+                    ),
+                    child: Text(
+                      'LOADING MARKET',
+                      style: GoogleFonts.spaceGrotesk(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                        letterSpacing: 1.2,
+                        color: UmColors.ink,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
+}
+
+class _GridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = UmColors.gold
+      ..style = PaintingStyle.fill;
+    const gap = 22.0;
+    const r = 1.2;
+    for (double x = gap; x < size.width; x += gap) {
+      for (double y = gap; y < size.height; y += gap) {
+        canvas.drawCircle(Offset(x, y), r, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 /// Shown when the member account carries the banned flag (ADR 0003).
