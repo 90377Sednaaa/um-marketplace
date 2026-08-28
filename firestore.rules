@@ -126,6 +126,20 @@ service cloud.firestore {
                 && request.resource.data.banned is bool));
 
       allow delete: if false;
+
+      // FCM device tokens: doc id = token, self-managed. Functions (Admin
+      // SDK) read these and prune dead tokens; the app upserts on sign-in
+      // / refresh and deletes its doc on sign-out (ADR 0005).
+      match /devices/{token} {
+        allow create: if signedIn()
+          && request.auth.uid == uid
+          && request.resource.data.token == token
+          && request.resource.data.ownerId == uid;
+        allow read, update, delete: if signedIn()
+          && request.auth.uid == uid
+          && request.resource.data.token == token
+          && request.resource.data.ownerId == uid;
+      }
     }
 
     // ---------------------------------------------------------------------
