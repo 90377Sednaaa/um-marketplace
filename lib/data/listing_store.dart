@@ -100,6 +100,7 @@ class Listing {
     required this.price,
     required this.category,
     required this.condition,
+    this.sellerDisplayName = '',
     this.location,
     this.photos = const [],
     this.status = 'active',
@@ -113,6 +114,11 @@ class Listing {
   final double price;
   final String category;
   final String condition;
+
+  /// Public display name, denormalized at create (rules validate it
+  /// against the seller's member doc) — the seller strip reads it without
+  /// crossing the members read boundary (ADR 0007).
+  final String sellerDisplayName;
   final String? location;
   final List<Uint8List> photos;
 
@@ -129,6 +135,7 @@ class Listing {
       price: (data['price'] as num? ?? 0).toDouble(),
       category: data['category'] as String? ?? '',
       condition: data['condition'] as String? ?? '',
+      sellerDisplayName: data['sellerDisplayName'] as String? ?? '',
       location: data['location'] as String?,
       photos: (data['photos'] as List<dynamic>? ?? const [])
           .whereType<Uint8List>()
@@ -146,6 +153,7 @@ class ListingDraft {
     required this.price,
     required this.category,
     required this.condition,
+    required this.sellerDisplayName,
     this.description = '',
     this.location,
     this.photos = const [],
@@ -155,6 +163,7 @@ class ListingDraft {
   final double price;
   final String category;
   final String condition;
+  final String sellerDisplayName;
   final String description;
   final String? location;
   final List<Uint8List> photos;
@@ -166,6 +175,7 @@ class ListingDraft {
       'category': category,
       'condition': condition,
       'description': description,
+      'sellerDisplayName': sellerDisplayName,
       if (location != null && location!.isNotEmpty) 'location': location,
       'photos': photos,
     };
@@ -194,6 +204,11 @@ abstract interface class ListingStore {
   /// Flips a listing to the terminal 'sold' state (CONTEXT: Sold; the
   /// rules allow the seller that transition from 'active').
   Future<void> markSold(String listingId);
+
+  /// Admin: hides every active listing of a member (the ban flow uses it
+  /// so a banned member's listings disappear, CONTEXT: Ban). Returns the
+  /// number of listings hidden.
+  Future<int> hideAllListingsOf(String sellerId);
 }
 
 class FirestoreListingsStore implements ListingStore {
@@ -245,6 +260,24 @@ class FirestoreListingsStore implements ListingStore {
       'status': 'sold',
       'updatedAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  @override
+  Future<int> hideAllListingsOf(String sellerId) async {
+    final snapshot = await _firestore
+        .collection('listings')
+        .where('sellerId', isEqualTo: sellerId)
+        .where('status', isEqualTo: 'active')
+        .get();
+    final batch = _firestore.batch();
+    for (final doc in snapshot.docs) {
+      batch.update(doc.reference, {
+        'status': 'hidden',
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
+    await batch.commit();
+    return snapshot.docs.length;
   }
 
   @override

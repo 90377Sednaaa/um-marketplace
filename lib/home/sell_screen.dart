@@ -40,12 +40,17 @@ class SellScreen extends StatefulWidget {
   const SellScreen({
     super.key,
     required this.sellerId,
+    required this.sellerDisplayName,
     required this.listingsStore,
     required this.onPublished,
     this.pickPhoto = pickAndCompressGalleryPhoto,
   });
 
   final String sellerId;
+
+  /// The seller's own public display name — written onto the listing
+  /// (rules validate it against the member doc).
+  final String sellerDisplayName;
   final ListingStore listingsStore;
 
   /// Called after a successful publish so the shell can return to Home.
@@ -127,6 +132,7 @@ class _SellScreenState extends State<SellScreen> {
           price: price!,
           category: category!,
           condition: _condition,
+          sellerDisplayName: widget.sellerDisplayName,
           description: _description.text.trim(),
           location: _location.text.trim(),
           photos: List.of(_photos),

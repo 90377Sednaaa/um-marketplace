@@ -40,11 +40,13 @@ class ListingDetailScreen extends StatelessWidget {
 
   Future<void> _openChat(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
+    final me = await memberStore.fetchMember(viewerId);
     final Chat chat;
     try {
       chat = await chatStore.openChatWithBuyer(
         listing: listing,
         buyerUid: viewerId,
+        buyerDisplayName: me?.displayName ?? '',
       );
     } on ChatOpenException catch (e) {
       messenger
@@ -78,11 +80,13 @@ class ListingDetailScreen extends StatelessWidget {
     final price = await showOfferPriceDialog(context);
     if (!context.mounted || price == null) return;
     final messenger = ScaffoldMessenger.of(context);
+    final me = await memberStore.fetchMember(viewerId);
     final Chat chat;
     try {
       chat = await chatStore.openChatWithBuyer(
         listing: listing,
         buyerUid: viewerId,
+        buyerDisplayName: me?.displayName ?? '',
       );
     } on ChatOpenException catch (e) {
       messenger

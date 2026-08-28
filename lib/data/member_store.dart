@@ -56,9 +56,21 @@ abstract interface class MemberStore {
   /// Live member document; null while signed in but no account yet.
   Stream<Member?> memberChanges(String uid);
 
+  /// One-shot member read (self-read is always allowed; other members are
+  /// not readable by design — use denormalized names across boundaries).
+  Future<Member?> fetchMember(String uid);
+
   /// Creates the Member Account if it does not exist yet (get-then-set,
   /// matching the create rule in firestore.rules). Returns the member.
   Future<Member?> ensureMemberAccount(AuthUser authUser);
+
+  /// Admin: member lookup by display-name prefix (ADRs 0003/0007 — names
+  /// are public-safe; the full UM email stays admin/self-only).
+  Stream<List<Member>> searchMembers(String displayNamePrefix);
+
+  /// Admin: flips the banned flag (the rules restrict the update to the
+  /// banned field only).
+  Future<void> setBanned(String uid, bool banned);
 }
 
 class FirestoreMemberStore implements MemberStore {
@@ -77,6 +89,14 @@ class FirestoreMemberStore implements MemberStore {
       final data = snapshot.data();
       return data == null ? null : Member.fromDoc(snapshot.id, data);
     });
+  }
+
+  @override
+  Future<Member?> fetchMember(String uid) async {
+    final doc = _firestore.collection('members').doc(uid);
+    final snapshot = await doc.get();
+    final data = snapshot.data();
+    return data == null ? null : Member.fromDoc(snapshot.id, data);
   }
 
   @override
@@ -101,5 +121,30 @@ class FirestoreMemberStore implements MemberStore {
     });
     final created = await doc.get();
     return Member.fromDoc(authUser.uid, created.data()!);
+  }
+
+  @override
+  Stream<List<Member>> searchMembers(String displayNamePrefix) {
+    final prefix = displayNamePrefix.trim();
+    if (prefix.isEmpty) {
+      return Stream.value(const []);
+    }
+    return _firestore
+        .collection('members')
+        .where('displayName', isGreaterThanOrEqualTo: prefix)
+        .where('displayName', isLessThan: '$prefix\uf8ff')
+        .limit(20)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => Member.fromDoc(doc.id, doc.data()))
+            .toList());
+  }
+
+  @override
+  Future<void> setBanned(String uid, bool banned) async {
+    await _firestore.collection('members').doc(uid).update({
+      'banned': banned,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 }

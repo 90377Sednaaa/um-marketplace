@@ -20,6 +20,8 @@ class Chat {
     required this.sellerId,
     required this.buyerId,
     this.participants = const {},
+    this.buyerName = '',
+    this.sellerName = '',
     this.lastMessagePreview = '',
     this.lastMessageAt,
   });
@@ -32,6 +34,12 @@ class Chat {
   /// Exactly `{sellerId, buyerId}` — the rules require a 2-entry map with
   /// both values true, and every message copies this map verbatim.
   final Set<String> participants;
+
+  /// Denormalized public display names, validated at create by the rules
+  /// (ADR 0007) — chat rows and thread headers read them without crossing
+  /// the members read boundary.
+  final String buyerName;
+  final String sellerName;
   final String lastMessagePreview;
   final DateTime? lastMessageAt;
 
@@ -45,6 +53,8 @@ class Chat {
       participants: participantsData is Map
           ? participantsData.keys.whereType<String>().toSet()
           : const {},
+      buyerName: data['buyerName'] as String? ?? '',
+      sellerName: data['sellerName'] as String? ?? '',
       lastMessagePreview: data['lastMessagePreview'] as String? ?? '',
       lastMessageAt: (data['lastMessageAt'] as Timestamp?)?.toDate(),
     );
@@ -143,6 +153,7 @@ abstract interface class ChatStore {
   Future<Chat> openChatWithBuyer({
     required Listing listing,
     required String buyerUid,
+    required String buyerDisplayName,
   });
 
   /// Sends a text message; atomic with chat-doc bookkeeping. Throws
@@ -235,6 +246,7 @@ class FirestoreChatStore implements ChatStore {
   Future<Chat> openChatWithBuyer({
     required Listing listing,
     required String buyerUid,
+    required String buyerDisplayName,
   }) async {
     final id = chatIdFor(listing.id, buyerUid);
     final doc = _firestore.collection('chats').doc(id);
@@ -247,6 +259,8 @@ class FirestoreChatStore implements ChatStore {
         'sellerId': listing.sellerId,
         'buyerId': buyerUid,
         'participants': {listing.sellerId: true, buyerUid: true},
+        'buyerName': buyerDisplayName,
+        'sellerName': listing.sellerDisplayName,
         'lastMessagePreview': '',
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),

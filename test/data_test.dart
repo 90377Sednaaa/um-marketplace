@@ -5,6 +5,7 @@ import 'package:um_marketplace/data/chat_store.dart';
 import 'package:um_marketplace/data/listing_store.dart';
 import 'package:um_marketplace/data/member_store.dart';
 import 'package:um_marketplace/data/rating_store.dart';
+import 'package:um_marketplace/data/report_store.dart';
 import 'package:um_marketplace/home/money_format.dart';
 import 'package:um_marketplace/home/relative_time.dart';
 
@@ -376,6 +377,57 @@ void main() {
         ratingSummaryText([rating(5), rating(4), rating(4)]),
         '★ 4.3 · 3 trades',
       );
+    });
+  });
+
+  group('denormalized names', () {
+    test('Listing.fromDoc reads sellerDisplayName', () {
+      final listing =
+          Listing.fromDoc('l1', {'sellerDisplayName': 'J. Dela Cruz'});
+      expect(listing.sellerDisplayName, 'J. Dela Cruz');
+    });
+
+    test('Chat.fromDoc reads participant names', () {
+      final chat = Chat.fromDoc('l1_b1', {
+        'listingId': 'l1',
+        'sellerId': 's1',
+        'buyerId': 'b1',
+        'participants': {'s1': true, 'b1': true},
+        'buyerName': 'B. One',
+        'sellerName': 'J. Dela Cruz',
+      });
+      expect(chat.buyerName, 'B. One');
+      expect(chat.sellerName, 'J. Dela Cruz');
+    });
+  });
+
+  group('Report', () {
+    test('fromDoc reads the rule-validated fields', () {
+      final report = Report.fromDoc('r1', {
+        'reporterId': 'b1',
+        'status': 'open',
+        'reason': 'Scam listing',
+        'listingId': 'l1',
+        'reportedUid': 's1',
+        'createdAt': Timestamp.fromDate(DateTime(2026, 8, 28, 12)),
+      });
+      expect(report.reporterId, 'b1');
+      expect(report.status, 'open');
+      expect(report.reason, 'Scam listing');
+      expect(report.listingId, 'l1');
+      expect(report.reportedUid, 's1');
+    });
+
+    test('fromDoc allows chat reports', () {
+      final report = Report.fromDoc('r2', {
+        'reporterId': 'b1',
+        'status': 'open',
+        'reason': 'Hostile messages',
+        'chatId': 'l1_b1',
+      });
+      expect(report.chatId, 'l1_b1');
+      expect(report.listingId, isNull);
+      expect(report.reportedUid, isNull);
     });
   });
 }

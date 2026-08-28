@@ -10,6 +10,7 @@ import 'package:um_marketplace/data/chat_store.dart';
 import 'package:um_marketplace/data/listing_store.dart';
 import 'package:um_marketplace/data/member_store.dart';
 import 'package:um_marketplace/data/rating_store.dart';
+import 'package:um_marketplace/data/report_store.dart';
 import 'package:um_marketplace/home/listing_card.dart';
 import 'package:um_marketplace/theme/app_theme.dart';
 
@@ -38,6 +39,10 @@ class FakeAuthService implements AuthService {
 class FakeMemberStore implements MemberStore {
   final _controllers = <String, StreamController<Member?>>{};
   final ensuredUids = <String>[];
+  final accounts = <String, Member>{};
+  final knownMembers = <String, Member>{};
+  final bannedUids = <String, bool>{};
+  final _searchController = StreamController<List<Member>>.broadcast();
 
   StreamController<Member?> _for(String uid) =>
       _controllers.putIfAbsent(uid, StreamController<Member?>.broadcast);
@@ -45,7 +50,47 @@ class FakeMemberStore implements MemberStore {
   @override
   Stream<Member?> memberChanges(String uid) => _for(uid).stream;
 
+  @override
+  Future<Member?> fetchMember(String uid) async => accounts[uid];
+
   void emit(Member? member) => _for(member?.uid ?? 'unknown').add(member);
+
+  @override
+  Stream<List<Member>> searchMembers(String displayNamePrefix) {
+    final matches = knownMembers.values
+        .where((m) =>
+            m.displayName.toLowerCase().startsWith(displayNamePrefix.toLowerCase()))
+        .take(20)
+        .toList();
+    return Stream<List<Member>>.value(matches).asBroadcastStream();
+  }
+
+  void emitSearch(String prefix) {
+    final matches = knownMembers.values
+        .where((m) =>
+            m.displayName.toLowerCase().startsWith(prefix.toLowerCase()))
+        .take(20)
+        .toList();
+    _searchController.add(matches);
+  }
+
+  @override
+  Future<void> setBanned(String uid, bool banned) async {
+    bannedUids[uid] = banned;
+    final known = knownMembers[uid];
+    if (known != null) {
+      final updated = Member(
+        uid: known.uid,
+        email: known.email,
+        displayName: known.displayName,
+        isAdmin: known.isAdmin,
+        banned: banned,
+        blocked: known.blocked,
+      );
+      knownMembers[uid] = updated;
+      _for(uid).add(updated);
+    }
+  }
 
   @override
   Future<Member?> ensureMemberAccount(AuthUser authUser) async {
@@ -55,6 +100,7 @@ class FakeMemberStore implements MemberStore {
       email: authUser.email,
       displayName: authUser.displayName,
     );
+    accounts[authUser.uid] = member;
     emit(member);
     return member;
   }
@@ -93,6 +139,7 @@ class FakeChatStore implements ChatStore {
   Future<Chat> openChatWithBuyer({
     required Listing listing,
     required String buyerUid,
+    required String buyerDisplayName,
   }) async {
     if (failOpen) throw ChatOpenException(openFailure);
     final id = chatIdFor(listing.id, buyerUid);
@@ -104,6 +151,8 @@ class FakeChatStore implements ChatStore {
       sellerId: listing.sellerId,
       buyerId: buyerUid,
       participants: {listing.sellerId, buyerUid},
+      buyerName: buyerDisplayName,
+      sellerName: listing.sellerDisplayName,
     );
     chats[id] = chat;
     emitList();
@@ -169,6 +218,53 @@ class FakeChatStore implements ChatStore {
   }
 }
 
+/// In-memory [ReportStore]: submissions are recorded raw; open reports
+/// stream live and resolve removes.
+class FakeReportStore implements ReportStore {
+  final reports = <Report>[];
+  final _openController = StreamController<List<Report>>.broadcast();
+  final submitted = <Map<String, dynamic>>[];
+
+  @override
+  Stream<List<Report>> openReportsStream() => _openController.stream;
+
+  void emitOpen() => _openController.add(List.of(reports));
+
+  @override
+  Future<void> submitReport({
+    required String reporterId,
+    required String reason,
+    String? reportedUid,
+    String? listingId,
+    String? chatId,
+  }) async {
+    submitted.add({
+      'reporterId': reporterId,
+      'reason': reason,
+      'reportedUid': reportedUid,
+      'listingId': listingId,
+      'chatId': chatId,
+    });
+    reports.add(Report(
+      id: 'r${reports.length}',
+      reporterId: reporterId,
+      status: 'open',
+      reason: reason,
+      reportedUid: reportedUid,
+      listingId: listingId,
+      chatId: chatId,
+      createdAt: DateTime(2026, 8, 28, 12),
+    ));
+    emitOpen();
+  }
+
+  @override
+  Future<void> resolveReport(String reportId) async {
+    reports.removeWhere((r) => r.id == reportId);
+    emitOpen();
+  }
+}
+
 /// In-memory [RatingStore]: deterministic doc ids mirror the rule; the
 /// rate stream is per ratee; failRate injects rule rejections.
 class FakeRatingStore implements RatingStore {
@@ -215,6 +311,8 @@ class FakeListingsStore implements ListingStore {
   final _listingControllers = <String, StreamController<Listing?>>{};
   final drafts = <ListingDraft>[];
   final soldIds = <String>[];
+  final hiddenIds = <String>[];
+  final hiddenFor = <String>[];
   List<Listing> listings = [];
 
   StreamController<Listing?> _listingFor(String id) =>
@@ -251,6 +349,7 @@ class FakeListingsStore implements ListingStore {
         price: l.price,
         category: l.category,
         condition: l.condition,
+        sellerDisplayName: l.sellerDisplayName,
         location: l.location,
         photos: l.photos,
         status: 'sold',
@@ -259,6 +358,36 @@ class FakeListingsStore implements ListingStore {
     }
     emitListings();
     emitMyListings();
+  }
+
+  @override
+  Future<int> hideAllListingsOf(String sellerId) async {
+    var count = 0;
+    for (var i = 0; i < listings.length; i++) {
+      final l = listings[i];
+      if (l.sellerId == sellerId && l.status == 'active') {
+        listings[i] = Listing(
+          id: l.id,
+          sellerId: l.sellerId,
+          title: l.title,
+          description: l.description,
+          price: l.price,
+          category: l.category,
+          condition: l.condition,
+          sellerDisplayName: l.sellerDisplayName,
+          location: l.location,
+          photos: l.photos,
+          status: 'hidden',
+          createdAt: l.createdAt,
+        );
+        count++;
+        hiddenIds.add(l.id);
+      }
+    }
+    hiddenFor.add(sellerId);
+    emitListings();
+    emitMyListings();
+    return count;
   }
 
   @override

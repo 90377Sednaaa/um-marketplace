@@ -60,6 +60,7 @@ class _AppShellState extends State<AppShell> {
                   ),
                   SellScreen(
                     sellerId: widget.member.uid,
+                    sellerDisplayName: widget.member.displayName,
                     listingsStore: widget.listingsStore,
                     onPublished: () => setState(() => _index = 0),
                   ),
