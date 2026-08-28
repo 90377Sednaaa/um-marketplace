@@ -111,12 +111,19 @@ service cloud.firestore {
 
       // Self-only. Immutable: uid, email, isAdmin, banned. Mutable:
       // displayName, blocked (self-managed Block list), timestamps.
+      // Admin (ADR 0003): may change ONLY the banned flag (ban/unban) —
+      // diff().affectedKeys() is the supported way to say "only these
+      // fields changed" against update() semantics.
       allow update: if signedIn()
-        && request.auth.uid == uid
-        && request.resource.data.uid == uid
-        && request.resource.data.email == resource.data.email
-        && request.resource.data.isAdmin == resource.data.isAdmin
-        && request.resource.data.banned == resource.data.banned;
+        && ((request.auth.uid == uid
+             && request.resource.data.uid == uid
+             && request.resource.data.email == resource.data.email
+             && request.resource.data.isAdmin == resource.data.isAdmin
+             && request.resource.data.banned == resource.data.banned)
+            || (isAdminEmail(request.auth.token.email)
+                && request.resource.data.diff(resource.data)
+                     .affectedKeys().hasOnly(['banned'])
+                && request.resource.data.banned is bool));
 
       allow delete: if false;
     }
@@ -131,7 +138,14 @@ service cloud.firestore {
         && request.resource.data.title is string
         && request.resource.data.title.size() > 0
         && request.resource.data.price is number
-        && request.resource.data.price > 0;
+        && request.resource.data.price > 0
+        // Denormalized public name (ADR 0007): display names are
+        // public-safe; full email addresses are not. Validated against
+        // the seller's member doc so it can't be forged.
+        && request.resource.data.sellerDisplayName is string
+        && request.resource.data.sellerDisplayName
+             == get(/databases/$(database)/documents/members/$(request.auth.uid))
+                  .data.displayName;
 
       // Active listings readable by every verified member; the seller can
       // read their own (including sold/hidden for "my listings").
@@ -167,7 +181,15 @@ service cloud.firestore {
         && request.resource.data.participants[request.resource.data.sellerId] == true
         && get(/databases/$(database)/documents/listings/$(request.resource.data.listingId)).data.sellerId == request.resource.data.sellerId
         && get(/databases/$(database)/documents/listings/$(request.resource.data.listingId)).data.status == 'active'
-        && !isBlockedPair(request.auth.uid, request.resource.data.sellerId);
+        && !isBlockedPair(request.auth.uid, request.resource.data.sellerId)
+        // Denormalized participant names (ADR 0007): display names are
+        // public-safe; emails are not. Validated against the member docs.
+        && request.resource.data.buyerName
+             == get(/databases/$(database)/documents/members/$(request.auth.uid))
+                  .data.displayName
+        && request.resource.data.sellerName
+             == get(/databases/$(database)/documents/members/$(request.resource.data.sellerId))
+                  .data.displayName;
 
       allow read: if signedIn()
         && request.auth.uid in resource.data.participants;
