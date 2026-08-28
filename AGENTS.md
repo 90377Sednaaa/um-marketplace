@@ -2,56 +2,63 @@
 
 ## Project state
 
-- `um_marketplace` is an early-stage Flutter app: `lib/main.dart` is still the unmodified Flutter starter counter demo. There is no architecture yet — one file, no routing, state management, or data-layer packages.
-- The product design is complete and lives in the repo — `DESIGN.md` (visual spec), `CONTEXT.md` (domain glossary), and `docs/adr/0001–0007` (architecture decisions). Treat these as the source of truth for intent; the code has not caught up yet.
-- Git repository hosted at https://github.com/90377Sednaaa/um-marketplace (public). Default branch: `main`; no CI workflows configured yet.
+- `um_marketplace` is **v1 shipped** (not starter): `lib/main.dart` boots `Firebase.initializeApp` + `UmMarketplaceApp` (`lib/app.dart` → `AuthGate` → `MemberGate` → `AppShell` 4-tab `IndexedStack`). Architecture is layered: `theme/` (`UmColors`/`UmShadows`/`ThemeData` Space Grotesk 800/700 + Outfit 400/600 via `google_fonts`) + `data/` (`member/listing/chat/rating/report/notification/messaging` stores, injectable fakes for tests) + `widgets/` (`NbrButton` brutal `4dp` shadow, `BrutalLoader`/`BrutalDialog`, report/offer dialogs) + `auth/home/chats/profile/moderation/notifications/members`.
+- Product design lives in `DESIGN.md` (dual type, flat brutal nav `3dp` top + `2dp` dividers, hero/search/category/product card/button/badge/empty, 9 screens), `CONTEXT.md` (glossary only), `docs/adr/0001–0009` (email gate, no payments, admin, ratings, FCM, embedded photos, Firestore model, Google Sign-In only, deterministic chat id). Treat as source of truth; code now matches (lean Home, `Ga` sticker, `flutter_svg` stickers, `BrutalLoader`).
+- Git `https://github.com/90377Sednaaa/um-marketplace` public `main`; recent history is brutal overhaul + firestore `PERMISSION_DENIED` fix (`buyerId/sellerId`) + auth `Ga` + loading `Ga` + error pop-ups. No CI yet.
 
 ## Commands
 
 ```sh
-flutter pub get                      # required after editing pubspec.yaml
-flutter analyze                      # static analysis + lints (flutter_lints ^6.0.0)
-flutter test                         # whole widget-test suite
-flutter test test/widget_test.dart   # single test file
-flutter run                          # launch on connected Android device/emulator
+flutter pub get                      # after pubspec.yaml + assets/stickers + assets/logos
+flutter analyze                      # flutter_lints ^6.0.0
+flutter test                         # 103 tests (widget + data_test + um_email_policy_test)
+flutter test test/widget_test.dart   # single file
+flutter run                          # Android device/emulator only
+cd functions && npm test              # Functions payload.js unit tests
+firebase deploy --only firestore      # rules + 8 indexes (sellerId+createdAt etc) — wait CREATING→READY
+firebase deploy --only functions      # 3 pushes asia-southeast1 Node20 2nd-gen — retry on Eventarc SA propagation
+firebase firestore:indexes --pretty  # poll until all READY
 ```
 
-There is no build/codegen step and no custom task runner; the commands above are the entire workflow.
+No build/codegen; these are the entire workflow.
 
 ## Git workflow: commit and push after every completed task
 
-- Whenever a task is finished and verified (e.g. `flutter analyze` and `flutter test` pass, or the requested change is confirmed working), commit the changes and push to the remote `main` branch — do not wait to be asked.
-- Use clear, conventional commit messages describing what changed and why.
-- Verification must pass before committing: fix any failures first, never commit a broken tree.
-- If there is nothing to commit (no changes), skip silently.
+- Whenever verified (`flutter analyze` + `flutter test` pass, or requested change confirmed), commit and push to `main` — do not wait to be asked.
+- Conventional messages (`feat:`, `fix:` etc) describing what/why.
+- Never commit broken tree; fix first.
+- Skip silently if nothing to commit.
 
 ## Android is the only platform
 
-- The only platform folder is `android/`. `ios/`, `web/`, `windows/`, `macos/`, and `linux/` do not exist, so targets like `flutter run -d chrome` or `-d windows` fail. Add one with `flutter create --platforms=<name> .` before attempting it. (`analysis_options.yaml` excludes those directories even though they are absent.)
-- `android/app/build.gradle.kts` uses placeholder values with explicit TODOs: `applicationId`/namespace `com.example.um_marketplace`, debug signing for release builds. Renaming the application ID later affects installs and any future Firebase/Play registration — surface it before doing it casually.
+- Only `android/` exists; `ios/`, `web/`, `windows/`, `macos/`, `linux/` do not — `flutter run -d chrome/windows` fails. Add via `flutter create --platforms=<name> .` (`analysis_options.yaml` excludes them even when absent).
+- `android/app/build.gradle.kts` has `TODO` placeholders: `applicationId`/namespace `com.example.um_marketplace`, debug signing for release. Renaming affects installs and Firebase/Play — surface before doing casually.
 
-## Tests are coupled to the starter UI
+## Tests are comprehensive (no longer starter-coupled)
 
-- `test/widget_test.dart` asserts the stock counter behavior (finds `'0'`, taps `Icons.add`, expects `'1'`). Rewriting `main.dart` without updating this test in the same change breaks `flutter test`.
+- `test/widget_test.dart` `103` tests: auth gate (`Ga` not `l.murillo` email), `Sign in with Google` → `Verified UM student`, `Recent listings`, bottom nav `HOME/SELL/CHATS/PROFILE` uppercase, `SELL` CTA, sell draft persistence, `Publish listing` `Give it a short title` inline, chats/threads/offers, sold/banner, blocked, search/browse/category chips + `Browse` pills + filters, `Popular search` chips, `Profile` identity + `My listings` `SOLD`/`Mark as sold`, moderation `Reports`, notifications bell, FCM register/unregister, `kMaxListingPhotos=2`, `Uint8List` round-trip.
+- `test/data_test.dart` + `test/um_email_policy_test.dart` cover `isValidUmStudentEmail` (`^[a-z]\.[a-z]+\.\d{6}@umindanao\.edu\.ph$` case-insensitive), `displayNameFromUmEmail`, `formatPesos`, `chat/helpers` (`chatIdFor`, `Chat.fromDoc`, `chatPreview`, `mergeChatStreams`), `formatRelativeTime`, `filterListings`, `Rating.fromDoc`/`ratingSummaryText`, `Listing.fromDoc`, `Report.fromDoc`, `AppNotification.fromDoc`.
+- Updating `main.dart`/`SignInScreen`/`Home`/`AppShell`/`Sell`/`Chats`/`Profile` now requires updating `widget_test.dart` in the same change (e.g. `Ga` vs `UM`, `HOME` vs `Home`, `SELL` vs `Sell something` on Home, `Sign out` now on `PROFILE` top not Home, error dialogs not inline `SnackBar` for some paths).
 
 ## Design documentation
 
-- `DESIGN.md` — visual spec: neubrutalist campus edition, UM palette, components, v1 screens. Source of truth for UI intent.
-- `CONTEXT.md` — domain glossary (Student, UM Address, Listing, Offer, Sold, Chat, Rating, …). It is a glossary **only**: no specs, no implementation details, no scratch space. Terms resolve during design sessions (e.g. via the `grill-with-docs` skill) and get captured inline as they crystallize.
-- `docs/adr/0001–0007` — architecture decision records; each one explains a decision a future reader would otherwise question. Append a new ADR only when a decision is hard to reverse, surprising without context, or a genuine trade-off; never edit an old ADR in place except to mark it superseded (status + pointer to the new ADR).
+- `DESIGN.md` — neubrutalist campus edition, UM palette, dual type (`Space Grotesk`/`Outfit`), borders `2dp`/`3dp`, shadows `3/4/6dp` `0` blur, `8dp` radius + `999` pills, stickers (`Ga`, `starburst`/`bag`/`tag` `4dp` stroke via `flutter_svg`), 9 screens. Source of truth for UI.
+- `CONTEXT.md` — glossary only (Student, UM Address, Verified Student, Member Account, Listing, Offer, Chat, Sold, Category, Rating, Notification, Report, Block, Ban, Admin). Captured via `grill-with-docs`.
+- `docs/adr/0001–0009` — hard-to-reverse decisions; never edit old in place (mark superseded + pointer). `assets/stickers/` + `assets/logos/google_g.svg` are the brutal sticker system.
 
 ## Firebase: MCP available, Android wired to `um-marketplace-a4aa2`
 
-- `opencode.json` enables the official Firebase MCP server (`npx -y firebase-tools@15.28.1 mcp` — pinned, not `@latest`; timeout 60 s). Its tools appear prefixed as `firebase_*` and reuse the user's Firebase CLI login — prefer them for inspecting projects/Firestore/Auth over raw CLI guesses.
-- The Flutter app's Android build IS wired to Firebase (project `um-marketplace-a4aa2`, app id `1:39811841253:android:baf8983bd618fdae1de80c`, package `com.example.um_marketplace`): `android/app/google-services.json` + Google Services Gradle plugin 4.4.2 + `firebase_core` in `pubspec.yaml`, initialized via `Firebase.initializeApp()` in `lib/main.dart`.
-- `firebase.json` and `.firebaserc` exist and set the active project to `um-marketplace-a4aa2` (alias `default`), so the MCP server boots with a project already selected. They currently contain no deployable resource config (no Firestore/Storage rules, no Hosting, no Functions).
-- Still absent: iOS/web platform folders, service-specific plugins (Auth, Firestore), and any Firebase services beyond the core Android wiring — the ADRs define the intended architecture (Auth gate per ADR 0001, Firestore model per ADR 0007, FCM + Functions per ADR 0005), but none of it is implemented yet. Add those before planning work that needs them.
+- `opencode.json` Firebase MCP (`npx -y firebase-tools@15.28.1 mcp`, pinned, 60s) reuses CLI login — prefer `firebase_*` tools over raw CLI guesses.
+- Android wired (project `um-marketplace-a4aa2`, app `1:39811841253:android:baf8983bd618fdae1de80c`, `com.example.um_marketplace`): `android/app/google-services.json` + GMS `4.4.2` + `firebase_core` + `firebase_auth` + `google_sign_in` + `cloud_firestore` + `firebase_messaging` + `image_picker`/`flutter_image_compress` + `google_fonts` + `flutter_svg`, `Firebase.initializeApp()` in `lib/main.dart`.
+- `firebase.json` + `.firebaserc` set `default` to `um-marketplace-a4aa2`; `firestore.rules` (buyerId/sellerId/participants for chats, `status/active||sellerId` for listings) + `firestore.indexes.json` (8 `READY`: `listings status+createdAt`, `sellerId+createdAt`, `sellerId+status`, `ratings rateeId+createdAt`, `reports status+createdAt`, `chats buyerId/sellerId+lastMessageAt`, `notifications ownerId+createdAt`) are deployed. Functions too — not absent.
+- Still absent: `ios`/`web` folders, Storage bucket (by design — photos in docs ADR `0006`), Hosting.
 
 ## Push notifications (ADR 0005): deployed; billing guardrail deferred — read before any public launch
 
-- **Status: deployed and live.** The project is on the **Blaze** plan (upgraded from Spark — required because Cloud Functions cannot deploy on the free plan). Three 2nd-gen Node 20 functions are ACTIVE in `asia-southeast1` on `um-marketplace-a4aa2`: `onMessageCreated` (chat messages + offers → notify the other participant), `onListingSold` (→ notify chat buyers), `onRatingCreated` (→ notify the ratee). Delivery writes `notifications/{id}` docs (feeds the in-app center) and FCM-pushes to `members/{uid}/devices/{token}`, pruning dead tokens. Unit coverage: `cd functions && npm test`.
-- **Known first-deploy quirk:** a first 2nd-gen functions deploy needs a few minutes for Eventarc service-agent permissions to propagate — retry the deploy if you see "Permission denied while using the Eventarc Service Agent".
-- **Artifact retention:** deployed with `--force`, which set a cleanup policy deleting container images older than 1 day in `asia-southeast1` (prevents a small growing monthly bill). Redeploy with plain `firebase deploy --only functions` — never downgrade/revert the policy; re-set with `firebase deploy --only functions --force` if it ever warns.
-- **End-to-end verification is still manual:** CI proves the app (flutter test) and the payload logic (npm test), but not device reception — after any function change, smoke-test on a real device: two students chat/offer → seller's phone gets the push; mark a listing sold → buyers get it; rate after sold → ratee gets it; kill the app and repeat (background delivery).
-- **Cost reality:** effectively ₱0 at this scale (Functions free tier ~2M invocations/mo; Firestore 50K reads / 20K writes per day). It is **metered, not capped** — anomalies (runaway script, scraper) could accrue.
-- **Before any PUBLIC launch, install the billing hard-stop guardrail (user decision, deferred):** (1) Console → Google Cloud Billing → Budgets: ~₱100 budget, email alerts, enable alerts to a Pub/Sub topic named `billing-alerts` (use the console's one-click subscription grant). (2) Add + deploy an `onBillingAlert` Pub/Sub-triggered function (standard "stop billing with a Cloud Function" pattern; parser unit-testable like `payload.js`) that detaches the billing account on threshold — freezing the project (even reads) within minutes of the tripwire. Budget alerts alone are notifications and never stop spending.
+- **Status: deployed and live.** Blaze plan (Spark → Blaze for Functions). Three 2nd-gen Node 20 `asia-southeast1` `ACTIVE`: `onMessageCreated` (chat+offer → other participant), `onListingSold` (→ chat buyers), `onRatingCreated` (→ ratee). Writes `notifications/{id}` + FCM to `members/{uid}/devices/{token}` prune. Unit coverage `cd functions && npm test`.
+- **First-deploy quirk:** Eventarc SA needs minutes to propagate — retry on `Permission denied while using the Eventarc Service Agent`.
+- **Artifact retention:** deployed `--force` sets 1-day image cleanup `asia-southeast1`. Redeploy plain `firebase deploy --only functions`.
+- **End-to-end verification manual:** `flutter test` + `npm test` prove logic, not device reception — smoke on real device after any function change: two students chat/offer → seller push; sold → buyers; rate after sold → ratee; kill app + repeat background.
+- **Cost:** ~₱0 at scale (Functions 2M/mo, Firestore 50K reads/20K writes per day) but **metered, not capped**.
+- **Before PUBLIC launch, install guardrail (deferred):** (1) Google Cloud Billing → Budgets `≈₱100` + email + Pub/Sub `billing-alerts` (one-click grant). (2) Add + deploy `onBillingAlert` Pub/Sub function (stop-billing pattern, parser unit-testable) detaches billing → freeze within minutes. Budget alerts alone never stop spending.
+- **After fresh `firestore:indexes` deploy:** four indexes `CREATING` ~1–5 min — poll `firebase firestore:indexes --pretty` until all `READY`, then cold-restart app (listeners don't auto-retry `FAILED_PRECONDITION`).
