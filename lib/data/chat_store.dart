@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../home/money_format.dart';
@@ -158,4 +160,168 @@ abstract interface class ChatStore {
     required double price,
     String text = '',
   });
+}
+
+class FirestoreChatStore implements ChatStore {
+  FirestoreChatStore({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  final FirebaseFirestore _firestore;
+
+  @override
+  Stream<List<Chat>> myChatsStream(String uid) {
+    final buyerSide = _firestore
+        .collection('chats')
+        .where('buyerId', isEqualTo: uid)
+        .orderBy('lastMessageAt', descending: true)
+        .limit(50)
+        .snapshots()
+        .map(_chatsFrom);
+    final sellerSide = _firestore
+        .collection('chats')
+        .where('sellerId', isEqualTo: uid)
+        .orderBy('lastMessageAt', descending: true)
+        .limit(50)
+        .snapshots()
+        .map(_chatsFrom);
+    return _mergeSides(buyerSide, sellerSide);
+  }
+
+  List<Chat> _chatsFrom(QuerySnapshot<Map<String, dynamic>> snapshot) =>
+      snapshot.docs.map((doc) => Chat.fromDoc(doc.id, doc.data())).toList();
+
+  /// Two-query merge (spec §2.4): a chat belongs to exactly one side, so
+  /// the latest of either side re-sorts the merged list.
+  Stream<List<Chat>> _mergeSides(Stream<List<Chat>> a, Stream<List<Chat>> b) {
+    late StreamSubscription<List<Chat>> subA;
+    late StreamSubscription<List<Chat>> subB;
+    List<Chat>? latestA;
+    List<Chat>? latestB;
+    final controller = StreamController<List<Chat>>.broadcast();
+    void emit() {
+      if (latestA == null || latestB == null) return;
+      controller.add(mergeChatStreams(latestA!, latestB!));
+    }
+
+    subA = a.listen((chats) {
+      latestA = chats;
+      emit();
+    }, onError: controller.addError);
+    subB = b.listen((chats) {
+      latestB = chats;
+      emit();
+    }, onError: controller.addError);
+    controller.onCancel = () async {
+      await subA.cancel();
+      await subB.cancel();
+    };
+    return controller.stream;
+  }
+
+  @override
+  Stream<List<ChatMessage>> chatMessagesStream(String chatId) {
+    return _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('createdAt')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ChatMessage.fromDoc(doc.id, doc.data()))
+            .toList());
+  }
+
+  @override
+  Future<Chat> openChatWithBuyer({
+    required Listing listing,
+    required String buyerUid,
+  }) async {
+    final id = chatIdFor(listing.id, buyerUid);
+    final doc = _firestore.collection('chats').doc(id);
+    final existing = await doc.get();
+    if (existing.exists) return Chat.fromDoc(id, existing.data()!);
+
+    try {
+      await doc.set({
+        'listingId': listing.id,
+        'sellerId': listing.sellerId,
+        'buyerId': buyerUid,
+        'participants': {listing.sellerId: true, buyerUid: true},
+        'lastMessagePreview': '',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied') {
+        // Rules see a blocked pair or a non-active listing. Distinguish
+        // deterministically (spec §2.4): re-read the listing.
+        final listingSnap =
+            await _firestore.collection('listings').doc(listing.id).get();
+        final status = listingSnap.data()?['status'];
+        if (status != null && status != 'active') {
+          throw const ChatOpenException(ChatOpenFailure.listingInactive);
+        }
+      }
+      throw const ChatOpenException(ChatOpenFailure.rejected);
+    }
+    return Chat.fromDoc(id, (await doc.get()).data()!);
+  }
+
+  @override
+  Future<void> sendText(
+    Chat chat, {
+    required String senderId,
+    required String text,
+  }) async {
+    await _send(chat, senderId, 'text', text);
+  }
+
+  @override
+  Future<void> sendOffer(
+    Chat chat, {
+    required String senderId,
+    required double price,
+    String text = '',
+  }) async {
+    await _send(chat, senderId, 'offer', text, price: price);
+  }
+
+  /// Batch: message doc + chat-doc bookkeeping, both-or-neither. The
+  /// participants map is copied exactly from [chat] (rule line 201).
+  Future<void> _send(Chat chat, String senderId, String type, String text,
+      {double? price}) async {
+    final batch = _firestore.batch();
+    batch.set(
+      _firestore.collection('chats').doc(chat.id).collection('messages').doc(),
+      {
+        'senderId': senderId,
+        'type': type,
+        'text': text,
+        'price': ?price,
+        'participants': {
+          for (final uid in chat.participants) uid: true,
+        },
+        'createdAt': FieldValue.serverTimestamp(),
+      },
+    );
+    batch.update(
+      _firestore.collection('chats').doc(chat.id),
+      {
+        'lastMessageAt': FieldValue.serverTimestamp(),
+        'lastMessagePreview': chatPreview(ChatMessage(
+          id: '',
+          senderId: senderId,
+          type: type,
+          text: text,
+          price: price,
+        )),
+        'updatedAt': FieldValue.serverTimestamp(),
+      },
+    );
+    try {
+      await batch.commit();
+    } on FirebaseException {
+      throw const ChatSendException();
+    }
+  }
 }

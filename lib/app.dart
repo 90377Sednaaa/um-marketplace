@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'auth/auth_service.dart';
 import 'auth/sign_in_screen.dart';
+import 'data/chat_store.dart';
 import 'data/listing_store.dart';
 import 'data/member_store.dart';
 import 'members/member_gate.dart';
@@ -15,11 +16,13 @@ class UmMarketplaceApp extends StatelessWidget {
     required this.authService,
     required this.memberStore,
     required this.listingsStore,
+    required this.chatStore,
   });
 
   final AuthService authService;
   final MemberStore memberStore;
   final ListingStore listingsStore;
+  final ChatStore chatStore;
 
   @override
   Widget build(BuildContext context) {
@@ -31,24 +34,27 @@ class UmMarketplaceApp extends StatelessWidget {
         authService: authService,
         memberStore: memberStore,
         listingsStore: listingsStore,
+        chatStore: chatStore,
       ),
     );
   }
 }
 
 /// Signed out → [SignInScreen]; signed in → [MemberGate], which creates
-/// the Member Account if needed and shows home (or the banned screen).
+/// the Member Account if needed and shows the shell (or the banned screen).
 class AuthGate extends StatelessWidget {
   const AuthGate({
     super.key,
     required this.authService,
     required this.memberStore,
     required this.listingsStore,
+    required this.chatStore,
   });
 
   final AuthService authService;
   final MemberStore memberStore;
   final ListingStore listingsStore;
+  final ChatStore chatStore;
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +72,7 @@ class AuthGate extends StatelessWidget {
           authService: authService,
           memberStore: memberStore,
           listingsStore: listingsStore,
+          chatStore: chatStore,
         );
       },
     );

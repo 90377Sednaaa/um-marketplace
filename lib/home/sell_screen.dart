@@ -33,17 +33,23 @@ Future<Uint8List?> pickAndCompressGalleryPhoto() async {
 
 /// The Sell flow (DESIGN.md screen 4, sticker-light cut): a single
 /// ink-bordered card — details, price, category/condition, optional photos
-/// — published straight to Firestore.
+/// — published straight to Firestore. Hosted as the second tab of the
+/// AppShell: there is no back button (the tab switcher navigates) and
+/// publishing hands control back to the shell's Home tab.
 class SellScreen extends StatefulWidget {
   const SellScreen({
     super.key,
     required this.sellerId,
     required this.listingsStore,
+    required this.onPublished,
     this.pickPhoto = pickAndCompressGalleryPhoto,
   });
 
   final String sellerId;
   final ListingStore listingsStore;
+
+  /// Called after a successful publish so the shell can return to Home.
+  final VoidCallback onPublished;
 
   /// Injectable for tests; default walks the real gallery picker.
   final Future<Uint8List?> Function() pickPhoto;
@@ -126,7 +132,7 @@ class _SellScreenState extends State<SellScreen> {
           photos: List.of(_photos),
         ),
       );
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) widget.onPublished();
     } catch (_) {
       if (mounted) {
         setState(() => _error =
@@ -144,28 +150,6 @@ class _SellScreenState extends State<SellScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              color: UmColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: _busy ? null : () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back, color: UmColors.onPrimary),
-                    tooltip: 'Back',
-                  ),
-                  const Text(
-                    'Sell something',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 16,
-                      letterSpacing: 0.5,
-                      color: UmColors.onPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.all(16),

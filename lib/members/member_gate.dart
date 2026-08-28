@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../auth/auth_service.dart';
+import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
-import '../home/home_screen.dart';
+import '../home/app_shell.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nbr_button.dart';
 
 /// Resolves the Member Account right after Google sign-in (ADR 0007/0008):
-/// creates `members/{uid}` if missing, then routes to the home screen —
-/// or the banned screen when the Admin has banned the account (ADR 0003).
+/// creates `members/{uid}` if missing, then routes to the app shell — or
+/// the banned screen when the Admin has banned the account (ADR 0003).
 class MemberGate extends StatefulWidget {
   const MemberGate({
     super.key,
@@ -17,12 +18,14 @@ class MemberGate extends StatefulWidget {
     required this.authService,
     required this.memberStore,
     required this.listingsStore,
+    required this.chatStore,
   });
 
   final AuthUser authUser;
   final AuthService authService;
   final MemberStore memberStore;
   final ListingStore listingsStore;
+  final ChatStore chatStore;
 
   @override
   State<MemberGate> createState() => _MemberGateState();
@@ -53,10 +56,11 @@ class _MemberGateState extends State<MemberGate> {
         if (member.banned) {
           return BannedScreen(onSignOut: widget.authService.signOut);
         }
-        return HomeScreen(
+        return AppShell(
           member: member,
           memberStore: widget.memberStore,
           listingsStore: widget.listingsStore,
+          chatStore: widget.chatStore,
           onSignOut: widget.authService.signOut,
         );
       },

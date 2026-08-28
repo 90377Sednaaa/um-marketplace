@@ -1,29 +1,35 @@
 import 'package:flutter/material.dart';
 
+import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nbr_button.dart';
 import 'listing_card.dart';
 import 'listing_detail_screen.dart';
-import 'sell_screen.dart';
 
 /// Home (DESIGN.md screen 1, milestone cut): member header, a Sell CTA and
 /// the recent-listings feed straight from Firestore. The hero search,
-/// category tiles and notification bell land with the full screen.
+/// category tiles and notification bell land with the full screen. Hosted
+/// as the first tab of the AppShell — the shell owns the brand band and
+/// the Sell CTA switches tabs instead of pushing a route.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
     required this.member,
     required this.memberStore,
     required this.listingsStore,
+    required this.chatStore,
     required this.onSignOut,
+    required this.onSellRequested,
   });
 
   final Member member;
   final MemberStore memberStore;
   final ListingStore listingsStore;
+  final ChatStore chatStore;
   final Future<void> Function() onSignOut;
+  final VoidCallback onSellRequested;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -41,16 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _openSell() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => SellScreen(
-          sellerId: widget.member.uid,
-          listingsStore: widget.listingsStore,
-        ),
-      ),
-    );
-  }
+  void _openSell() => widget.onSellRequested();
 
   void _openDetail(Listing listing) {
     Navigator.of(context).push(
@@ -68,91 +65,71 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              color: UmColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: const Text(
-                'UM MARKETPLACE',
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 16,
-                  letterSpacing: 1.2,
-                  color: UmColors.onPrimary,
-                ),
-              ),
-            ),
-            Expanded(
-              child: StreamBuilder<List<Listing>>(
-                stream: widget.listingsStore.activeListingsStream(),
-                builder: (context, snapshot) {
-                  final listings = snapshot.data;
-                  return ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      _MemberCard(member: widget.member),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: NbrButton(
-                              label: 'Sell something',
-                              icon: const Icon(
-                                Icons.add,
-                                size: 20,
-                                color: UmColors.onPrimary,
-                              ),
-                              onPressed: _openSell,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          NbrButton(
-                            label:
-                                _signingOut ? 'Signing out…' : 'Sign out',
-                            fill: UmColors.surface,
-                            labelColor: UmColors.ink,
-                            onPressed: _signingOut ? null : _signOut,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Recent listings',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      const SizedBox(height: 12),
-                      if (listings == null)
-                        const _FeedSkeleton()
-                      else if (listings.isEmpty)
-                        const _EmptyFeed()
-                      else
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 12,
-                            crossAxisSpacing: 12,
-                            childAspectRatio: 0.68,
-                          ),
-                          itemCount: listings.length,
-                          itemBuilder: (context, index) {
-                            final listing = listings[index];
-                            return ListingCard(
-                              listing: listing,
-                              onTap: () => _openDetail(listing),
-                            );
-                          },
+        child: StreamBuilder<List<Listing>>(
+          stream: widget.listingsStore.activeListingsStream(),
+          builder: (context, snapshot) {
+            final listings = snapshot.data;
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _MemberCard(member: widget.member),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: NbrButton(
+                        label: 'Sell something',
+                        icon: const Icon(
+                          Icons.add,
+                          size: 20,
+                          color: UmColors.onPrimary,
                         ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ],
+                        onPressed: _openSell,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    NbrButton(
+                      label:
+                          _signingOut ? 'Signing out…' : 'Sign out',
+                      fill: UmColors.surface,
+                      labelColor: UmColors.ink,
+                      onPressed: _signingOut ? null : _signOut,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Recent listings',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                const SizedBox(height: 12),
+                if (listings == null)
+                  const _FeedSkeleton()
+                else if (listings.isEmpty)
+                  const _EmptyFeed()
+                else
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 0.68,
+                    ),
+                    itemCount: listings.length,
+                    itemBuilder: (context, index) {
+                      final listing = listings[index];
+                      return ListingCard(
+                        listing: listing,
+                        onTap: () => _openDetail(listing),
+                      );
+                    },
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );

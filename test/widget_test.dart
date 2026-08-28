@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:um_marketplace/app.dart';
 import 'package:um_marketplace/auth/auth_service.dart';
+import 'package:um_marketplace/data/chat_store.dart';
 import 'package:um_marketplace/data/listing_store.dart';
 import 'package:um_marketplace/data/member_store.dart';
 
@@ -55,6 +56,115 @@ class FakeMemberStore implements MemberStore {
   }
 }
 
+/// In-memory [ChatStore]: deterministic find-or-create is honored, sends
+/// append messages + update the chat doc (like the Firestore batch), and
+/// streams emit on mutation. Failure flags drive the error-path tests.
+class FakeChatStore implements ChatStore {
+  final chats = <String, Chat>{};
+  final messages = <String, List<ChatMessage>>{};
+  final _listController = StreamController<List<Chat>>.broadcast();
+  final _messageControllers = <String, StreamController<List<ChatMessage>>>{};
+  bool failOpen = false;
+  ChatOpenFailure openFailure = ChatOpenFailure.rejected;
+  bool failSend = false;
+  int _messageSeq = 0;
+
+  StreamController<List<ChatMessage>> _for(String chatId) =>
+      _messageControllers.putIfAbsent(
+          chatId, StreamController<List<ChatMessage>>.broadcast);
+
+  @override
+  Stream<List<Chat>> myChatsStream(String uid) => _listController.stream;
+
+  @override
+  Stream<List<ChatMessage>> chatMessagesStream(String chatId) =>
+      _for(chatId).stream;
+
+  void emitList() => _listController.add(chats.values.toList());
+
+  void emitMessages(String chatId) =>
+      _for(chatId).add(List.of(messages[chatId] ?? const []));
+
+  @override
+  Future<Chat> openChatWithBuyer({
+    required Listing listing,
+    required String buyerUid,
+  }) async {
+    if (failOpen) throw ChatOpenException(openFailure);
+    final id = chatIdFor(listing.id, buyerUid);
+    final existing = chats[id];
+    if (existing != null) return existing;
+    final chat = Chat(
+      id: id,
+      listingId: listing.id,
+      sellerId: listing.sellerId,
+      buyerId: buyerUid,
+      participants: {listing.sellerId, buyerUid},
+    );
+    chats[id] = chat;
+    emitList();
+    return chat;
+  }
+
+  @override
+  Future<void> sendText(
+    Chat chat, {
+    required String senderId,
+    required String text,
+  }) async {
+    if (failSend) throw ChatSendException();
+    _append(
+      chat,
+      ChatMessage(
+        id: 'm${_messageSeq++}',
+        senderId: senderId,
+        type: 'text',
+        text: text,
+        createdAt: DateTime(2026, 8, 28, 12),
+      ),
+    );
+  }
+
+  @override
+  Future<void> sendOffer(
+    Chat chat, {
+    required String senderId,
+    required double price,
+    String text = '',
+  }) async {
+    if (failSend) throw ChatSendException();
+    _append(
+      chat,
+      ChatMessage(
+        id: 'm${_messageSeq++}',
+        senderId: senderId,
+        type: 'offer',
+        text: text,
+        price: price,
+        createdAt: DateTime(2026, 8, 28, 12),
+      ),
+    );
+  }
+
+  void _append(Chat chat, ChatMessage message) {
+    // Mirrors the Firestore batch: message appended and the chat doc's
+    // preview/timestamp updated, then both streams emit.
+    final list = messages.putIfAbsent(chat.id, () => []);
+    list.add(message);
+    chats[chat.id] = Chat(
+      id: chat.id,
+      listingId: chat.listingId,
+      sellerId: chat.sellerId,
+      buyerId: chat.buyerId,
+      participants: chat.participants,
+      lastMessagePreview: chatPreview(message),
+      lastMessageAt: message.createdAt,
+    );
+    emitMessages(chat.id);
+    emitList();
+  }
+}
+
 class FakeListingsStore implements ListingStore {
   final _controller = StreamController<List<Listing>>.broadcast();
   final _listingControllers = <String, StreamController<Listing?>>{};
@@ -90,11 +200,13 @@ Widget _app({
   FakeAuthService? auth,
   FakeMemberStore? members,
   FakeListingsStore? listings,
+  FakeChatStore? chats,
 }) {
   return UmMarketplaceApp(
     authService: auth ?? FakeAuthService(),
     memberStore: members ?? FakeMemberStore(),
     listingsStore: listings ?? FakeListingsStore(),
+    chatStore: chats ?? FakeChatStore(),
   );
 }
 
@@ -195,6 +307,118 @@ void main() {
     expect(find.text('₱1,250'), findsOneWidget);
     expect(find.text('Mechanical keyboard'), findsOneWidget);
     expect(find.text('₱250'), findsOneWidget);
+  });
+
+  testWidgets('bottom nav shows 3 tabs and switches between them',
+      (WidgetTester tester) async {
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    final chats = FakeChatStore();
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      chats: chats,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Home'), findsOneWidget);
+    expect(find.text('Sell'), findsOneWidget);
+    expect(find.text('Chats'), findsOneWidget);
+    expect(find.text('Recent listings'), findsOneWidget);
+
+    await tester.tap(find.text('Chats'));
+    await tester.pumpAndSettle();
+    expect(find.text('Conversations'), findsOneWidget);
+    expect(find.text('Recent listings'), findsNothing);
+
+    await tester.tap(find.text('Sell'));
+    await tester.pumpAndSettle();
+    expect(find.text('Title — e.g. Calculus 201 textbook'), findsOneWidget);
+  });
+
+  testWidgets('the Sell CTA switches to the Sell tab',
+      (WidgetTester tester) async {
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    final chats = FakeChatStore();
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      chats: chats,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Sell something'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Title — e.g. Calculus 201 textbook'), findsOneWidget);
+  });
+
+  testWidgets('the sell draft survives switching tabs (IndexedStack)',
+      (WidgetTester tester) async {
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    final chats = FakeChatStore();
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      chats: chats,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Sell'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).at(0), 'Half-finished draft');
+    await tester.tap(find.text('Home'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sell'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Half-finished draft'), findsOneWidget);
+  });
+
+  testWidgets('publishing from the Sell tab lands back on Home',
+      (WidgetTester tester) async {
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    final chats = FakeChatStore();
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      chats: chats,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Sell'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byType(TextField).at(0));
+    await tester.enterText(find.byType(TextField).at(0), 'Tab publish');
+    await tester.ensureVisible(find.byType(TextField).at(1));
+    await tester.enterText(find.byType(TextField).at(1), '120');
+    await tester.ensureVisible(find.text('textbooks'));
+    await tester.tap(find.text('textbooks'));
+    await tester.pump();
+    await tester.ensureVisible(find.text('Publish listing'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Publish listing'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Recent listings'), findsOneWidget); // back on Home tab
+    expect(listings.drafts, hasLength(1));
   });
 
   /// Detail-screen tests use a tall portrait surface so the whole layout

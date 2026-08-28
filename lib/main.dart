@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'app.dart';
 import 'auth/auth_service.dart';
+import 'data/chat_store.dart';
 import 'data/listing_store.dart';
 import 'data/member_store.dart';
 
@@ -14,6 +15,7 @@ Future<void> main() async {
       authService: FirebaseAuthService(),
       memberStore: FirestoreMemberStore(),
       listingsStore: FirestoreListingsStore(),
+      chatStore: FirestoreChatStore(),
     ),
   );
 }
