@@ -9,6 +9,7 @@ import 'package:um_marketplace/chats/chat_thread_screen.dart';
 import 'package:um_marketplace/data/chat_store.dart';
 import 'package:um_marketplace/data/listing_store.dart';
 import 'package:um_marketplace/data/member_store.dart';
+import 'package:um_marketplace/home/listing_card.dart';
 import 'package:um_marketplace/theme/app_theme.dart';
 
 /// In-memory [AuthService] so widget tests never touch Firebase.
@@ -312,6 +313,7 @@ void main() {
 
   testWidgets('home feed shows listings with formatted prices',
       (WidgetTester tester) async {
+    usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore()
@@ -1091,6 +1093,351 @@ void main() {
     expect(find.text('This listing is no longer available'), findsOneWidget);
     await tester.pump(const Duration(seconds: 5));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('search pill opens Browse; typing filters results live',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'a',
+          sellerId: 's',
+          title: 'Calculus 201 textbook',
+          description: '',
+          price: 1250,
+          category: 'textbooks',
+          condition: 'good',
+        ),
+        const Listing(
+          id: 'b',
+          sellerId: 's',
+          title: 'Mechanical keyboard',
+          description: '',
+          price: 250,
+          category: 'gadgets',
+          condition: 'like new',
+        ),
+        const Listing(
+          id: 'c',
+          sellerId: 's',
+          title: 'Dorm lamp',
+          description: '',
+          price: 60,
+          category: 'dorm essentials',
+          condition: 'fair',
+        ),
+      ];
+    await tester.pumpWidget(_app(
+      auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    // Browse subscribed only on push — broadcast streams don't replay, so
+    // re-emit the seeded listings after settling.
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Calculus 201 textbook'), findsOneWidget);
+    expect(find.text('Mechanical keyboard'), findsOneWidget);
+    expect(find.text('Dorm lamp'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'keyboard');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mechanical keyboard'), findsOneWidget);
+    expect(find.text('Calculus 201 textbook'), findsNothing);
+    expect(find.text('Dorm lamp'), findsNothing);
+  });
+
+  testWidgets('browse category chips filter the grid',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'a',
+          sellerId: 's',
+          title: 'Calculus 201 textbook',
+          description: '',
+          price: 1250,
+          category: 'textbooks',
+          condition: 'good',
+        ),
+        const Listing(
+          id: 'b',
+          sellerId: 's',
+          title: 'Mechanical keyboard',
+          description: '',
+          price: 250,
+          category: 'gadgets',
+          condition: 'like new',
+        ),
+      ];
+    await tester.pumpWidget(_app(
+      auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    final chips = find.byKey(const Key('browse-category-chips'));
+    await tester.tap(find.descendant(of: chips, matching: find.text('gadgets')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mechanical keyboard'), findsOneWidget);
+    expect(find.text('Calculus 201 textbook'), findsNothing);
+
+    await tester.tap(find.descendant(of: chips, matching: find.text('All')));
+    await tester.pumpAndSettle();
+    expect(find.text('Calculus 201 textbook'), findsOneWidget);
+  });
+
+  testWidgets('the filters sheet applies condition and price range',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'a',
+          sellerId: 's',
+          title: 'Calculus 201 textbook',
+          description: '',
+          price: 1250,
+          category: 'textbooks',
+          condition: 'good',
+        ),
+        const Listing(
+          id: 'b',
+          sellerId: 's',
+          title: 'Mechanical keyboard',
+          description: '',
+          price: 250,
+          category: 'gadgets',
+          condition: 'like new',
+        ),
+        const Listing(
+          id: 'c',
+          sellerId: 's',
+          title: 'Dorm lamp',
+          description: '',
+          price: 60,
+          category: 'dorm essentials',
+          condition: 'fair',
+        ),
+      ];
+    await tester.pumpWidget(_app(
+      auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Filters'));
+    await tester.pumpAndSettle();
+
+    final sheet = find.byType(BottomSheet);
+    await tester.tap(find.descendant(
+        of: sheet, matching: find.byKey(const Key('browse-condition-pills'))));
+    await tester.pump();
+    await tester.tap(find.descendant(
+      of: find.byKey(const Key('browse-condition-pills')),
+      matching: find.text('like new'),
+    ));
+    await tester.pump();
+    await tester.enterText(
+      find.descendant(of: sheet, matching: find.byType(TextField)).at(0),
+      '100',
+    );
+    await tester.tap(find.text('Apply'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mechanical keyboard'), findsOneWidget);
+    expect(find.text('Calculus 201 textbook'), findsNothing);
+    expect(find.text('Dorm lamp'), findsNothing);
+  });
+
+  testWidgets('empty results show the empty state and clear filters recovers',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'b',
+          sellerId: 's',
+          title: 'Mechanical keyboard',
+          description: '',
+          price: 250,
+          category: 'gadgets',
+          condition: 'like new',
+        ),
+      ];
+    await tester.pumpWidget(_app(
+      auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'zzz nothing');
+    await tester.pumpAndSettle();
+    expect(find.text('No listings match your search.'), findsOneWidget);
+
+    await tester.tap(find.text('Clear filters'));
+    await tester.pumpAndSettle();
+    expect(find.text('Mechanical keyboard'), findsOneWidget);
+  });
+
+  testWidgets('popular search chips open Browse pre-filled',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'a',
+          sellerId: 's',
+          title: 'Statistics notes',
+          description: '',
+          price: 80,
+          category: 'review materials',
+          condition: 'good',
+        ),
+        const Listing(
+          id: 'b',
+          sellerId: 's',
+          title: 'Dorm lamp',
+          description: '',
+          price: 60,
+          category: 'dorm essentials',
+          condition: 'fair',
+        ),
+      ];
+    await tester.pumpWidget(_app(
+      auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    // Chips render before the feed grid, so `.first` is the entry chip.
+    await tester.tap(find.text('Statistics notes').first);
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    // Browse opened with the query pre-filled (field + card both show it);
+    // the matching card is the one in the results grid.
+    expect(
+      find.descendant(
+        of: find.byType(ListingCard),
+        matching: find.text('Statistics notes'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Dorm lamp'), findsNothing);
+  });
+
+  testWidgets('category tiles open Browse pre-filtered by category',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'b',
+          sellerId: 's',
+          title: 'Mechanical keyboard',
+          description: '',
+          price: 250,
+          category: 'gadgets',
+          condition: 'like new',
+        ),
+        const Listing(
+          id: 'c',
+          sellerId: 's',
+          title: 'Dorm lamp',
+          description: '',
+          price: 60,
+          category: 'dorm essentials',
+          condition: 'fair',
+        ),
+      ];
+    await tester.pumpWidget(_app(
+      auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    // Tiles render before the feed grid, so `.first` is the tile.
+    await tester.tap(find.text('gadgets').first);
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mechanical keyboard'), findsOneWidget);
+    expect(find.text('Dorm lamp'), findsNothing);
+  });
+
+  testWidgets('browse cards open the listing detail',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'b',
+          sellerId: 'seller-1',
+          title: 'Mechanical keyboard',
+          description: 'RGB switches',
+          price: 250,
+          category: 'gadgets',
+          condition: 'like new',
+        ),
+      ];
+    await tester.pumpWidget(_app(
+      auth: auth, members: members, listings: listings));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Mechanical keyboard'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('RGB switches'), findsOneWidget); // detail description
   });
 
   testWidgets('a listing without photos shows the placeholder, no count chip',
