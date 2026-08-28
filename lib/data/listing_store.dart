@@ -138,6 +138,11 @@ class Listing {
       sellerDisplayName: data['sellerDisplayName'] as String? ?? '',
       location: data['location'] as String?,
       photos: (data['photos'] as List<dynamic>? ?? const [])
+          .map<Uint8List?>((e) {
+            if (e is Blob) return e.bytes;
+            if (e is Uint8List) return e;
+            return null;
+          })
           .whereType<Uint8List>()
           .toList(),
       status: data['status'] as String? ?? 'active',
@@ -177,7 +182,7 @@ class ListingDraft {
       'description': description,
       'sellerDisplayName': sellerDisplayName,
       if (location != null && location!.isNotEmpty) 'location': location,
-      'photos': photos,
+      'photos': photos.map((b) => Blob(b)).toList(),
     };
   }
 }
