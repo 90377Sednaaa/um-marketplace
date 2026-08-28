@@ -33,7 +33,11 @@ class _SignInScreenState extends State<SignInScreen> {
       setState(() => _error =
           '“${e.email}” is not a UM student address. Student addresses look '
           'like $umStudentEmailExample — initials + surname + 6-digit ID.');
-    } catch (_) {
+    } catch (e) {
+      // Log the real cause (e.g. a missing OAuth client config, an
+      // unregistered SHA-1 fingerprint, or a non-UM Google account) — the
+      // friendly copy below must never be the only trace.
+      debugPrint('Google sign-in failed: $e');
       setState(() =>
           _error = 'Could not sign in. Check your connection and try again.');
     } finally {
