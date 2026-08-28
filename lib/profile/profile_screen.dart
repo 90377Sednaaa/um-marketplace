@@ -7,6 +7,7 @@ import '../data/rating_store.dart';
 import '../data/report_store.dart';
 import '../home/listing_detail_screen.dart';
 import '../home/money_format.dart';
+import '../moderation/moderation_screen.dart';
 import '../theme/app_theme.dart';
 import '../widgets/member_badges.dart';
 import '../widgets/photo_placeholder.dart';
@@ -129,12 +130,15 @@ class ProfileScreen extends StatelessWidget {
             if (member.isAdmin) ...[
               const SizedBox(height: 12),
               _AdminRow(
-                onTap: () {
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(const SnackBar(
-                        content: Text('Moderation is coming soon')));
-                },
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => ModerationScreen(
+                      memberStore: memberStore,
+                      listingsStore: listingsStore,
+                      reportStore: reportStore,
+                    ),
+                  ),
+                ),
               ),
             ],
             const SizedBox(height: 24),

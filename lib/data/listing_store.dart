@@ -209,6 +209,10 @@ abstract interface class ListingStore {
   /// so a banned member's listings disappear, CONTEXT: Ban). Returns the
   /// number of listings hidden.
   Future<int> hideAllListingsOf(String sellerId);
+
+  /// Admin: hides one listing (the report action; the rules permit the
+  /// Admin to set status 'hidden' on any listing).
+  Future<void> hideListing(String listingId);
 }
 
 class FirestoreListingsStore implements ListingStore {
@@ -252,6 +256,14 @@ class FirestoreListingsStore implements ListingStore {
         .map((snapshot) => snapshot.docs
             .map((doc) => Listing.fromDoc(doc.id, doc.data()))
             .toList());
+  }
+
+  @override
+  Future<void> hideListing(String listingId) async {
+    await _firestore.collection('listings').doc(listingId).update({
+      'status': 'hidden',
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   @override

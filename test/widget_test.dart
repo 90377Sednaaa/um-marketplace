@@ -361,6 +361,31 @@ class FakeListingsStore implements ListingStore {
   }
 
   @override
+  Future<void> hideListing(String listingId) async {
+    hiddenIds.add(listingId);
+    final index = listings.indexWhere((l) => l.id == listingId);
+    if (index >= 0) {
+      final l = listings[index];
+      listings[index] = Listing(
+        id: l.id,
+        sellerId: l.sellerId,
+        title: l.title,
+        description: l.description,
+        price: l.price,
+        category: l.category,
+        condition: l.condition,
+        sellerDisplayName: l.sellerDisplayName,
+        location: l.location,
+        photos: l.photos,
+        status: 'hidden',
+        createdAt: l.createdAt,
+      );
+    }
+    emitListings();
+    emitMyListings();
+  }
+
+  @override
   Future<int> hideAllListingsOf(String sellerId) async {
     var count = 0;
     for (var i = 0; i < listings.length; i++) {
@@ -1860,6 +1885,194 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  /// Signs in as the Admin (isAdmin via the member doc) and opens the
+  /// Moderation screen from the Profile gate.
+  Future<void> openModeration(
+    WidgetTester tester, {
+    required FakeMemberStore members,
+    required FakeReportStore reports,
+  }) async {
+    final auth = FakeAuthService();
+    final listings = FakeListingsStore();
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      reports: reports,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    members.emit(const Member(
+      uid: 'test-uid',
+      email: 'l.murillo.546842@umindanao.edu.ph',
+      displayName: 'L. Murillo',
+      isAdmin: true,
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Moderation'));
+    await tester.pumpAndSettle();
+    reports.emitOpen();
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('the admin gate opens moderation with live reports',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final members = FakeMemberStore();
+    final reports = FakeReportStore()
+      ..reports.add(Report(
+        id: 'r1',
+        reporterId: 'buyer-1',
+        status: 'open',
+        reason: 'Stolen notes',
+        listingId: 'l1',
+        reportedUid: 'seller-1',
+        createdAt: DateTime(2026, 8, 28, 12),
+      ));
+    await openModeration(tester, members: members, reports: reports);
+
+    expect(find.text('Open reports'), findsOneWidget);
+    expect(find.text('Stolen notes'), findsOneWidget);
+    expect(find.text('Listing: l1'), findsOneWidget);
+    expect(find.text('Hide listing'), findsOneWidget);
+    expect(find.text('Ban user'), findsOneWidget);
+  });
+
+  testWidgets('hiding a listing resolves the report',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final members = FakeMemberStore();
+    final reports = FakeReportStore()
+      ..reports.add(Report(
+        id: 'r1',
+        reporterId: 'buyer-1',
+        status: 'open',
+        reason: 'Stolen notes',
+        listingId: 'l1',
+        reportedUid: 'seller-1',
+        createdAt: DateTime(2026, 8, 28, 12),
+      ));
+    final listings = FakeListingsStore();
+    final auth = FakeAuthService();
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      reports: reports,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    members.emit(const Member(
+      uid: 'test-uid',
+      email: 'l.murillo.546842@umindanao.edu.ph',
+      displayName: 'L. Murillo',
+      isAdmin: true,
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Moderation'));
+    await tester.pumpAndSettle();
+    reports.emitOpen();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Hide listing'));
+    await tester.pumpAndSettle();
+
+    expect(listings.hiddenIds, ['l1']);
+    expect(reports.reports, isEmpty); // resolved, left the inbox
+    expect(find.text('Open reports'), findsOneWidget);
+    expect(find.text('Stolen notes'), findsNothing);
+  });
+
+  testWidgets('banning a user hides their listings and resolves the report',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final members = FakeMemberStore();
+    final reports = FakeReportStore()
+      ..reports.add(Report(
+        id: 'r1',
+        reporterId: 'buyer-1',
+        status: 'open',
+        reason: 'Scams repeatedly',
+        listingId: 'l1',
+        reportedUid: 'seller-1',
+        createdAt: DateTime(2026, 8, 28, 12),
+      ));
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'l1',
+          sellerId: 'seller-1',
+          title: 'Fake notes',
+          description: '',
+          price: 10,
+          category: 'textbooks',
+          condition: 'fair',
+        ),
+      ];
+    final auth = FakeAuthService();
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      reports: reports,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+    members.emit(const Member(
+      uid: 'test-uid',
+      email: 'l.murillo.546842@umindanao.edu.ph',
+      displayName: 'L. Murillo',
+      isAdmin: true,
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Moderation'));
+    await tester.pumpAndSettle();
+    reports.emitOpen();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Ban user'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Ban this member'), findsOneWidget); // confirm
+    await tester.tap(find.text('Ban user').last); // dialog confirm
+    await tester.pumpAndSettle();
+
+    expect(members.bannedUids['seller-1'], isTrue);
+    expect(listings.hiddenIds, contains('l1'));
+    expect(reports.reports, isEmpty);
+  });
+
+  testWidgets('member lookup finds and bans a member',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final members = FakeMemberStore()
+      ..knownMembers['seller-1'] = const Member(
+        uid: 'seller-1',
+        email: 'j.delacruz.000000@umindanao.edu.ph',
+        displayName: 'J. Dela Cruz',
+      );
+    final reports = FakeReportStore();
+    await openModeration(tester, members: members, reports: reports);
+
+    await tester.tap(find.text('Find a member'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'J. Dela');
+    await tester.pumpAndSettle();
+    expect(find.text('J. Dela Cruz'), findsOneWidget);
+
+    await tester.tap(find.text('Ban user'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Ban this member'), findsOneWidget);
+    await tester.tap(find.text('Ban user').last); // dialog confirm
+    await tester.pumpAndSettle();
+    expect(members.bannedUids['seller-1'], isTrue);
+  });
+
   testWidgets('my listings show active and sold rows with pills',
       (WidgetTester tester) async {
     usePortraitPhone(tester);
@@ -1954,7 +2167,7 @@ void main() {
     expect(find.text('Mark as sold'), findsOneWidget); // only b remains active
   });
 
-  testWidgets('the moderation row is admin-only and shows a coming-soon note',
+  testWidgets('the moderation row is admin-only and opens the screen',
       (WidgetTester tester) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
@@ -1983,10 +2196,7 @@ void main() {
 
     await tester.tap(find.text('Moderation'));
     await tester.pumpAndSettle();
-    expect(find.text('Moderation is coming soon'), findsOneWidget);
-
-    await tester.pump(const Duration(seconds: 5));
-    await tester.pumpAndSettle();
+    expect(find.text('Open reports'), findsOneWidget); // the screen
   });
 
   testWidgets('a profile listing row opens the listing detail',
