@@ -9,6 +9,7 @@ import 'data/member_store.dart';
 import 'data/rating_store.dart';
 import 'data/report_store.dart';
 import 'data/notification_store.dart';
+import 'data/messaging_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +23,7 @@ Future<void> main() async {
       ratingStore: FirestoreRatingStore(),
       reportStore: FirestoreReportStore(),
       notificationStore: FirestoreNotificationStore(),
+      messagingService: FirestoreMessagingService(),
     ),
   );
 }

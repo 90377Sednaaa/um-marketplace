@@ -7,6 +7,7 @@ import '../data/member_store.dart';
 import '../data/rating_store.dart';
 import '../data/report_store.dart';
 import '../data/notification_store.dart';
+import '../data/messaging_service.dart';
 import '../home/app_shell.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nbr_button.dart';
@@ -25,6 +26,7 @@ class MemberGate extends StatefulWidget {
     required this.ratingStore,
     required this.reportStore,
     required this.notificationStore,
+    required this.messagingService,
   });
 
   final AuthUser authUser;
@@ -35,6 +37,7 @@ class MemberGate extends StatefulWidget {
   final RatingStore ratingStore;
   final ReportStore reportStore;
   final NotificationStore notificationStore;
+  final MessagingService messagingService;
 
   @override
   State<MemberGate> createState() => _MemberGateState();
@@ -50,6 +53,8 @@ class _MemberGateState extends State<MemberGate> {
     // exist yet; create it (idempotent get-then-set) so the stream follows
     // with the real member. Safe after app restarts too.
     widget.memberStore.ensureMemberAccount(widget.authUser);
+    // Register the device for FCM once the account exists (ADR 0005).
+    widget.messagingService.registerForMember(widget.authUser.uid);
   }
 
   @override
@@ -73,7 +78,10 @@ class _MemberGateState extends State<MemberGate> {
           ratingStore: widget.ratingStore,
           reportStore: widget.reportStore,
           notificationStore: widget.notificationStore,
-          onSignOut: widget.authService.signOut,
+          onSignOut: () async {
+            await widget.messagingService.unregister();
+            await widget.authService.signOut();
+          },
         );
       },
     );

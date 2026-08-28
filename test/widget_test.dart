@@ -9,6 +9,7 @@ import 'package:um_marketplace/chats/chat_thread_screen.dart';
 import 'package:um_marketplace/data/chat_store.dart';
 import 'package:um_marketplace/data/listing_store.dart';
 import 'package:um_marketplace/data/member_store.dart';
+import 'package:um_marketplace/data/messaging_service.dart';
 import 'package:um_marketplace/data/notification_store.dart';
 import 'package:um_marketplace/data/rating_store.dart';
 import 'package:um_marketplace/data/report_store.dart';
@@ -216,6 +217,23 @@ class FakeChatStore implements ChatStore {
     );
     emitMessages(chat.id);
     emitList();
+  }
+}
+
+/// In-memory [MessagingService]: records registration and unregistration
+/// so widget tests never touch the FCM plugin.
+class FakeMessagingService implements MessagingService {
+  final registeredUids = <String>[];
+  int unregisterCalls = 0;
+
+  @override
+  Future<void> registerForMember(String uid) async {
+    registeredUids.add(uid);
+  }
+
+  @override
+  Future<void> unregister() async {
+    unregisterCalls += 1;
   }
 }
 
@@ -469,6 +487,7 @@ Widget _app({
   FakeRatingStore? ratings,
   FakeReportStore? reports,
   FakeNotificationStore? notifications,
+  FakeMessagingService? messaging,
 }) {
   return UmMarketplaceApp(
     authService: auth ?? FakeAuthService(),
@@ -478,6 +497,7 @@ Widget _app({
     ratingStore: ratings ?? FakeRatingStore(),
     reportStore: reports ?? FakeReportStore(),
     notificationStore: notifications ?? FakeNotificationStore(),
+    messagingService: messaging ?? FakeMessagingService(),
   );
 }
 
@@ -2214,6 +2234,50 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Nothing here yet'), findsOneWidget);
+  });
+
+  testWidgets('sign-in registers the device for FCM',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    final messaging = FakeMessagingService();
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      messaging: messaging,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+
+    expect(messaging.registeredUids, ['test-uid']);
+  });
+
+  testWidgets('sign-out unregisters before the auth session ends',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    final messaging = FakeMessagingService();
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      messaging: messaging,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Sign out'));
+    await tester.pumpAndSettle();
+
+    expect(messaging.unregisterCalls, 1);
+    expect(find.text('Sign in with Google'), findsOneWidget);
   });
 
   testWidgets('my listings show active and sold rows with pills',

@@ -8,6 +8,7 @@ import 'data/member_store.dart';
 import 'data/rating_store.dart';
 import 'data/report_store.dart';
 import 'data/notification_store.dart';
+import 'data/messaging_service.dart';
 import 'members/member_gate.dart';
 import 'theme/app_theme.dart';
 
@@ -23,6 +24,7 @@ class UmMarketplaceApp extends StatelessWidget {
     required this.ratingStore,
     required this.reportStore,
     required this.notificationStore,
+    required this.messagingService,
   });
 
   final AuthService authService;
@@ -32,6 +34,7 @@ class UmMarketplaceApp extends StatelessWidget {
   final RatingStore ratingStore;
   final ReportStore reportStore;
   final NotificationStore notificationStore;
+  final MessagingService messagingService;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +50,7 @@ class UmMarketplaceApp extends StatelessWidget {
         ratingStore: ratingStore,
         reportStore: reportStore,
         notificationStore: notificationStore,
+        messagingService: messagingService,
       ),
     );
   }
@@ -64,6 +68,7 @@ class AuthGate extends StatelessWidget {
     required this.ratingStore,
     required this.reportStore,
     required this.notificationStore,
+    required this.messagingService,
   });
 
   final AuthService authService;
@@ -73,6 +78,7 @@ class AuthGate extends StatelessWidget {
   final RatingStore ratingStore;
   final ReportStore reportStore;
   final NotificationStore notificationStore;
+  final MessagingService messagingService;
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +100,7 @@ class AuthGate extends StatelessWidget {
           ratingStore: ratingStore,
           reportStore: reportStore,
           notificationStore: notificationStore,
+          messagingService: messagingService,
         );
       },
     );
