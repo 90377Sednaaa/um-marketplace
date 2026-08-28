@@ -33,6 +33,7 @@ No build/codegen; these are the entire workflow.
 
 - `main` — production, strict UM gate (`lib/auth/auth_service.dart:60,90` `isValidUmStudentEmail` + `firestore.rules:101` `isUmAddress`). Never deploy `firestore.rules.qa` to prod.
 - `qa/bypass` — development workspace (branched from `main`, `kDebugMode`-gated bypass `lib/auth/auth_service.dart:60,90` `hostedDomain: null` + client gate lifted). `flutter run` (debug) any Gmail can QA publish/chat; `flutter build apk --release` stays gated. Extra file `firestore.rules.qa` (relaxed `isUmAddress` → `email.size()>0`) for live Firestore QA — deploy via `copy firestore.rules.qa firestore.rules && firebase deploy --only firestore` and revert with `git checkout main -- firestore.rules && firebase deploy --only firestore` before release. Safe to merge `qa/bypass` → `main` (bypass is debug-only, `firestore.rules` unchanged unless you copy).
+- **Merge/deploy truth:** safe to merge to `main`: `lib/auth/auth_service.dart` (kDebugMode), `firestore.rules.qa`, `AGENTS.md`. **Never** merge a relaxed `firestore.rules` (isQaMember) to `main` nor `firebase deploy --only firestore` while `firestore.rules` is the QA copy — prod must always deploy the strict `firestore.rules:101` `isUmAddress`.
 
 ## Android is the only platform
 
