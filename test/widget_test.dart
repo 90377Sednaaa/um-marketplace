@@ -584,6 +584,100 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  testWidgets('buyer sees the offer affordance and sends a priced offer',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final chats = FakeChatStore();
+    final listings = FakeListingsStore();
+    final members = FakeMemberStore();
+    const listing = Listing(
+      id: 'l1',
+      sellerId: 'seller-1',
+      title: 'Notes',
+      description: '',
+      price: 50,
+      category: 'textbooks',
+      condition: 'good',
+    );
+    await tester.pumpWidget(threadApp(chats, listings, members));
+    await tester.pumpAndSettle();
+    listings.emitListing('l1', listing);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.request_quote_outlined));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, '40');
+    await tester.tap(find.text('Send offer'));
+    await tester.pumpAndSettle();
+
+    expect(chats.messages['l1_buyer-1'], hasLength(1));
+    final offer = chats.messages['l1_buyer-1']!.single;
+    expect(offer.type, 'offer');
+    expect(offer.price, 40.0);
+    expect(find.text('₱40'), findsOneWidget); // rendered offer block
+  });
+
+  testWidgets('offer dialog rejects zero and bad input',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final chats = FakeChatStore();
+    final listings = FakeListingsStore();
+    final members = FakeMemberStore();
+    const listing = Listing(
+      id: 'l1',
+      sellerId: 'seller-1',
+      title: 'Notes',
+      description: '',
+      price: 50,
+      category: 'textbooks',
+      condition: 'good',
+    );
+    await tester.pumpWidget(threadApp(chats, listings, members));
+    await tester.pumpAndSettle();
+    listings.emitListing('l1', listing);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.request_quote_outlined));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Send offer'));
+    await tester.pump();
+    expect(find.text('Enter a price above zero.'), findsOneWidget);
+    expect(chats.messages['l1_buyer-1'] ?? const [], isEmpty);
+
+    await tester.enterText(find.byType(TextField).last, 'potato');
+    await tester.tap(find.text('Send offer'));
+    await tester.pump();
+    expect(find.text('Enter a price above zero.'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).last, '25.5');
+    await tester.tap(find.text('Send offer'));
+    await tester.pump();
+    expect(find.text('Use whole pesos only.'), findsOneWidget);
+  });
+
+  testWidgets('the seller has no offer affordance', (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final chats = FakeChatStore();
+    final listings = FakeListingsStore();
+    final members = FakeMemberStore();
+    const listing = Listing(
+      id: 'l1',
+      sellerId: 'seller-1',
+      title: 'Notes',
+      description: '',
+      price: 50,
+      category: 'textbooks',
+      condition: 'good',
+    );
+    await tester.pumpWidget(
+        threadApp(chats, listings, members, viewerUid: 'seller-1'));
+    await tester.pumpAndSettle();
+    listings.emitListing('l1', listing);
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.request_quote_outlined), findsNothing);
+  });
+
   testWidgets('tapping a listing card opens its detail screen',
       (WidgetTester tester) async {
     usePortraitPhone(tester);

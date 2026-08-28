@@ -5,6 +5,7 @@ import '../data/listing_store.dart';
 import '../data/member_store.dart';
 import '../home/money_format.dart';
 import '../theme/app_theme.dart';
+import '../widgets/offer_price_dialog.dart';
 import '../widgets/photo_placeholder.dart';
 
 /// Chat thread (DESIGN.md screen 6): pinned product snippet, message
@@ -43,6 +44,23 @@ class ChatThreadScreen extends StatelessWidget {
     }
   }
 
+  void _sendOffer(BuildContext context, double price) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await chatStore.sendOffer(chat, senderId: viewerUid, price: price);
+    } on ChatSendException {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+            content: Text("You can't message this member right now")));
+    } catch (_) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+            const SnackBar(content: Text('Couldn\'t send — try again.')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final otherUid = chat.participants.firstWhere((uid) => uid != viewerUid);
@@ -60,6 +78,7 @@ class ChatThreadScreen extends StatelessWidget {
                     return const _ThreadSkeleton();
                   }
                   final active = listing.status == 'active';
+                  final isBuyer = viewerUid == chat.buyerId;
                   return Column(
                     children: [
                       _PinnedListing(listing: listing),
@@ -76,6 +95,14 @@ class ChatThreadScreen extends StatelessWidget {
                         onSend: (text) {
                           if (text.trim().isNotEmpty) _send(context, text.trim());
                         },
+                        onOffer: active && isBuyer
+                            ? () async {
+                                final price =
+                                    await showOfferPriceDialog(context);
+                                if (!context.mounted) return;
+                                if (price != null) _sendOffer(context, price);
+                              }
+                            : null,
                       ),
                     ],
                   );
@@ -398,10 +425,17 @@ class _MessageBubble extends StatelessWidget {
 }
 
 class _Composer extends StatefulWidget {
-  const _Composer({required this.enabled, required this.onSend});
+  const _Composer({
+    required this.enabled,
+    required this.onSend,
+    this.onOffer,
+  });
 
   final bool enabled;
   final ValueChanged<String> onSend;
+
+  /// Buyer-only offer affordance; null hides the gold button.
+  final VoidCallback? onOffer;
 
   @override
   State<_Composer> createState() => _ComposerState();
@@ -459,6 +493,32 @@ class _ComposerState extends State<_Composer> {
             ),
           ),
           const SizedBox(width: 8),
+          if (widget.onOffer != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: GestureDetector(
+                onTap: widget.enabled ? widget.onOffer : null,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 80),
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: UmColors.gold,
+                    border: Border.all(color: UmColors.ink, width: 2),
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: UmColors.ink,
+                        offset: Offset(3, 3),
+                        blurRadius: 0,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.request_quote_outlined,
+                      size: 24, color: UmColors.ink),
+                ),
+              ),
+            ),
           _SendButton(
             enabled: widget.enabled,
             onPressed: () => _submit(_controller.text),
