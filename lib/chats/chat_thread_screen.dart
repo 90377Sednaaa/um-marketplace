@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
+import '../home/listing_detail_screen.dart';
 import '../home/money_format.dart';
 import '../theme/app_theme.dart';
 import '../widgets/offer_price_dialog.dart';
@@ -81,7 +82,13 @@ class ChatThreadScreen extends StatelessWidget {
                   final isBuyer = viewerUid == chat.buyerId;
                   return Column(
                     children: [
-                      _PinnedListing(listing: listing),
+                      _PinnedListing(
+                        listing: listing,
+                        listingsStore: listingsStore,
+                        memberStore: memberStore,
+                        chatStore: chatStore,
+                        viewerUid: viewerUid,
+                      ),
                       if (!active) const _InactiveBanner(),
                       Expanded(
                         child: _MessageList(
@@ -196,67 +203,92 @@ class _ThreadSkeleton extends StatelessWidget {
   }
 }
 
-/// The pinned product card (DESIGN.md screen 6). Tapping to the listing
-/// detail lands in the Chats stage's nav task, when the detail screen
-/// accepts the chat store.
+/// The pinned product card (DESIGN.md screen 6) — tappable to the listing
+/// detail while the listing is active.
 class _PinnedListing extends StatelessWidget {
-  const _PinnedListing({required this.listing});
+  const _PinnedListing({
+    required this.listing,
+    required this.listingsStore,
+    required this.memberStore,
+    required this.chatStore,
+    required this.viewerUid,
+  });
 
   final Listing listing;
+  final ListingStore listingsStore;
+  final MemberStore memberStore;
+  final ChatStore chatStore;
+  final String viewerUid;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: UmColors.surface,
-        border: Border.all(color: UmColors.ink, width: 2),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
-          BoxShadow(color: UmColors.ink, offset: Offset(4, 4), blurRadius: 0),
-        ],
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 64,
-            height: 64,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: listing.photos.isEmpty
-                  ? const PhotoPlaceholder()
-                  : Image.memory(
-                      listing.photos.first,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const PhotoPlaceholder(),
-                    ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  listing.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleLarge,
+    final VoidCallback? onTap = listing.status != 'active'
+        ? null
+        : () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => ListingDetailScreen(
+                  listing: listing,
+                  memberStore: memberStore,
+                  listingsStore: listingsStore,
+                  chatStore: chatStore,
+                  viewerId: viewerUid,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  formatPesos(listing.price),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                    color: UmColors.success,
+              ),
+            );
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: UmColors.surface,
+          border: Border.all(color: UmColors.ink, width: 2),
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: const [
+            BoxShadow(color: UmColors.ink, offset: Offset(4, 4), blurRadius: 0),
+          ],
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 64,
+              height: 64,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: listing.photos.isEmpty
+                    ? const PhotoPlaceholder()
+                    : Image.memory(
+                        listing.photos.first,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const PhotoPlaceholder(),
+                      ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    listing.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Text(
+                    formatPesos(listing.price),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                      color: UmColors.success,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

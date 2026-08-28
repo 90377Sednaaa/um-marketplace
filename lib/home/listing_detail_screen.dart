@@ -1,39 +1,119 @@
 import 'package:flutter/material.dart';
 
+import '../chats/chat_thread_screen.dart';
+import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nbr_button.dart';
+import '../widgets/offer_price_dialog.dart';
 import '../widgets/photo_placeholder.dart';
 import 'money_format.dart';
 
 /// Product detail (DESIGN.md screen 3): hero photo with a count chip,
 /// price block, description, the seller strip (avatar, name, verified
 /// student badge), a safety-notes footer and a sticky Chat + Make an
-/// offer bar. Chats/offers land with the Chats screen — until then both
-/// actions are inert. There is no Buy action anywhere: the app never
-/// handles money (ADR 0002).
+/// offer bar. Chat/offers open the listing's chat (DESIGN.md screen 6).
+/// There is no Buy action anywhere: the app never handles money
+/// (ADR 0002).
 class ListingDetailScreen extends StatelessWidget {
   const ListingDetailScreen({
     super.key,
     required this.listing,
     required this.memberStore,
+    required this.listingsStore,
+    required this.chatStore,
     required this.viewerId,
   });
 
   final Listing listing;
   final MemberStore memberStore;
+  final ListingStore listingsStore;
+  final ChatStore chatStore;
 
   /// The signed-in member's uid — the bar becomes a "this is your
   /// listing" note instead of chat/offer when it equals [Listing.sellerId].
   final String viewerId;
 
-  void _comingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(content: Text('Chats are coming soon')),
+  Future<void> _openChat(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final Chat chat;
+    try {
+      chat = await chatStore.openChatWithBuyer(
+        listing: listing,
+        buyerUid: viewerId,
       );
+    } on ChatOpenException catch (e) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+            content: Text(e.reason == ChatOpenFailure.listingInactive
+                ? 'This listing is no longer available'
+                : "You can't start a chat with this member right now")));
+      return;
+    } catch (_) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+            content: Text('Couldn\'t start the chat — try again.')));
+      return;
+    }
+    if (!context.mounted) return;
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => ChatThreadScreen(
+        chat: chat,
+        viewerUid: viewerId,
+        chatStore: chatStore,
+        memberStore: memberStore,
+        listingsStore: listingsStore,
+      ),
+    ));
+  }
+
+  Future<void> _makeOffer(BuildContext context) async {
+    final price = await showOfferPriceDialog(context);
+    if (!context.mounted || price == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final Chat chat;
+    try {
+      chat = await chatStore.openChatWithBuyer(
+        listing: listing,
+        buyerUid: viewerId,
+      );
+    } on ChatOpenException catch (e) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+            content: Text(e.reason == ChatOpenFailure.listingInactive
+                ? 'This listing is no longer available'
+                : "You can't start a chat with this member right now")));
+      return;
+    } catch (_) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+            content: Text('Couldn\'t start the chat — try again.')));
+      return;
+    }
+    try {
+      await chatStore.sendOffer(chat, senderId: viewerId, price: price);
+    } catch (_) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+            content: Text('Couldn\'t send the offer — try again.')));
+      return;
+    }
+    if (!context.mounted) return;
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => ChatThreadScreen(
+        chat: chat,
+        viewerUid: viewerId,
+        chatStore: chatStore,
+        memberStore: memberStore,
+        listingsStore: listingsStore,
+      ),
+    ));
   }
 
   @override
@@ -65,8 +145,8 @@ class ListingDetailScreen extends StatelessWidget {
               const _OwnListingBar()
             else
               _ActionBar(
-                onChat: () => _comingSoon(context),
-                onOffer: () => _comingSoon(context),
+                onChat: () => _openChat(context),
+                onOffer: () => _makeOffer(context),
               ),
           ],
         ),

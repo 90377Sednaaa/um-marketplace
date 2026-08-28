@@ -822,7 +822,111 @@ void main() {
     expect(find.text('Make an offer'), findsNothing);
   });
 
-  testWidgets('chat and offer actions are inert with a coming-soon note',
+  testWidgets('Chats tab lists conversations with names, previews, and times',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    final chats = FakeChatStore();
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      chats: chats,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Chats'));
+    await tester.pumpAndSettle();
+
+    final chat = sampleChat();
+    chats.chats[chat.id] = chat;
+    chats.emitList();
+    await tester.pumpAndSettle();
+    // The row subscribes to the seller's member doc on that settle — now
+    // the name can arrive without being dropped.
+    members.emit(const Member(
+      uid: 'seller-1',
+      email: 'j.delacruz.000000@umindanao.edu.ph',
+      displayName: 'J. Dela Cruz',
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Conversations'), findsOneWidget);
+    expect(find.text('J. Dela Cruz'), findsOneWidget);
+    expect(find.text('Hi'), findsOneWidget); // last-message preview
+  });
+
+  testWidgets('empty chats show the empty state', (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    final chats = FakeChatStore();
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      chats: chats,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Chats'));
+    await tester.pumpAndSettle();
+
+    chats.emitList(); // empty list
+    await tester.pumpAndSettle();
+    expect(find.textContaining('No conversations yet'), findsOneWidget);
+  });
+
+  testWidgets('tapping a chat row opens the thread',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    final chats = FakeChatStore();
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      chats: chats,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Chats'));
+    await tester.pumpAndSettle();
+
+    final chat = sampleChat();
+    chats.chats[chat.id] = chat;
+    chats.emitList();
+    await tester.pumpAndSettle();
+    members.emit(const Member(
+      uid: 'seller-1',
+      email: 'j.delacruz.000000@umindanao.edu.ph',
+      displayName: 'J. Dela Cruz',
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('J. Dela Cruz'));
+    await tester.pumpAndSettle();
+    listings.emitListing('l1', const Listing(
+      id: 'l1',
+      sellerId: 'seller-1',
+      title: 'Notes',
+      description: '',
+      price: 50,
+      category: 'textbooks',
+      condition: 'good',
+    ));
+    await tester.pumpAndSettle();
+    chats.emitMessages('l1_buyer-1'); // empty: no messages yet
+    await tester.pumpAndSettle();
+    expect(find.text('Say hi — or send an offer.'), findsOneWidget); // thread
+  });
+
+  testWidgets('detail Chat opens the thread; offer sends an offer message',
       (WidgetTester tester) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
@@ -830,8 +934,88 @@ void main() {
     final listings = FakeListingsStore()
       ..listings = [
         const Listing(
-          id: 'a',
-          sellerId: 'seller-uid',
+          id: 'l1',
+          sellerId: 'seller-1',
+          title: 'Dorm lamp',
+          description: 'USB powered.',
+          price: 300,
+          category: 'dorm essentials',
+          condition: 'like new',
+        ),
+      ];
+    final chats = FakeChatStore();
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      chats: chats,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Dorm lamp'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Chat'));
+    await tester.pumpAndSettle();
+
+    // Thread open (chat created via the fake) — feed the listing so the
+    // thread's body builds past the skeleton.
+    expect(chats.chats.containsKey('l1_test-uid'), isTrue);
+    listings.emitListing('l1', const Listing(
+      id: 'l1',
+      sellerId: 'seller-1',
+      title: 'Dorm lamp',
+      description: 'USB powered.',
+      price: 300,
+      category: 'dorm essentials',
+      condition: 'like new',
+    ));
+    await tester.pumpAndSettle();
+    chats.emitMessages('l1_test-uid'); // empty: no messages yet
+    await tester.pumpAndSettle();
+    expect(find.text('Say hi — or send an offer.'), findsOneWidget);
+
+    // Back to detail, then make an offer.
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Make an offer'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, '250');
+    await tester.tap(find.text('Send offer'));
+    await tester.pumpAndSettle();
+    listings.emitListing('l1', const Listing(
+      id: 'l1',
+      sellerId: 'seller-1',
+      title: 'Dorm lamp',
+      description: 'USB powered.',
+      price: 300,
+      category: 'dorm essentials',
+      condition: 'like new',
+    ));
+    await tester.pumpAndSettle();
+    // The offer was sent before this thread existed — replay the current
+    // messages so the freshly-subscribed list renders them.
+    chats.emitMessages('l1_test-uid');
+    await tester.pumpAndSettle();
+
+    expect(chats.messages['l1_test-uid'], hasLength(1));
+    expect(chats.messages['l1_test-uid']!.single.type, 'offer');
+    expect(chats.messages['l1_test-uid']!.single.price, 250.0);
+    expect(find.text('OFFER'), findsOneWidget); // landed in the thread
+  });
+
+  testWidgets('opening a chat against a blocked pair shows a snackbar',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'l1',
+          sellerId: 'seller-1',
           title: 'Dorm lamp',
           description: '',
           price: 300,
@@ -839,26 +1023,71 @@ void main() {
           condition: 'like new',
         ),
       ];
-    await tester
-        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    final chats = FakeChatStore()..failOpen = true;
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      chats: chats,
+    ));
     auth.emit(_student);
-    await tester.pump();
     await tester.pumpAndSettle();
     listings.emitListings();
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Dorm lamp'));
     await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Make an offer'));
-    await tester.pump();
-    expect(find.textContaining('Chats are coming soon'), findsOneWidget);
-
     await tester.tap(find.text('Chat'));
-    await tester.pump();
-    expect(find.textContaining('Chats are coming soon'), findsOneWidget);
+    await tester.pumpAndSettle();
 
-    // Let the snackbar timers expire before the test ends.
+    expect(find.text("You can't start a chat with this member right now"),
+        findsOneWidget);
+    // still on the detail screen
+    expect(find.text('Make an offer'), findsOneWidget);
+
+    // Let the snackbar timer expire.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('opening a chat on a sold listing explains the listing is gone',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'l1',
+          sellerId: 'seller-1',
+          title: 'Dorm lamp',
+          description: '',
+          price: 300,
+          category: 'dorm essentials',
+          condition: 'like new',
+          status: 'sold',
+        ),
+      ];
+    final chats = FakeChatStore()
+      ..failOpen = true
+      ..openFailure = ChatOpenFailure.listingInactive;
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      chats: chats,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Dorm lamp'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Chat'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('This listing is no longer available'), findsOneWidget);
     await tester.pump(const Duration(seconds: 5));
     await tester.pumpAndSettle();
   });

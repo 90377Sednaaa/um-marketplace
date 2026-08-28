@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../chats/chats_screen.dart';
 import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
 import '../theme/app_theme.dart';
-import 'chats_placeholder.dart'; // placeholder Chats tab until the Chats task
 import 'home_screen.dart';
 import 'sell_screen.dart';
 
@@ -58,7 +58,12 @@ class _AppShellState extends State<AppShell> {
                     listingsStore: widget.listingsStore,
                     onPublished: () => setState(() => _index = 0),
                   ),
-                  const ChatPlaceholder(),
+                  ChatsScreen(
+                    viewerUid: widget.member.uid,
+                    chatStore: widget.chatStore,
+                    memberStore: widget.memberStore,
+                    listingsStore: widget.listingsStore,
+                  ),
                 ],
               ),
             ),

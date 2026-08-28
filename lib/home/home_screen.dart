@@ -55,6 +55,8 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (_) => ListingDetailScreen(
           listing: listing,
           memberStore: widget.memberStore,
+          listingsStore: widget.listingsStore,
+          chatStore: widget.chatStore,
           viewerId: widget.member.uid,
         ),
       ),
