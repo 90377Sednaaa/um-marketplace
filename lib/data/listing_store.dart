@@ -105,6 +105,10 @@ abstract interface class ListingStore {
   /// Recent active listings for the Home feed (realtime).
   Stream<List<Listing>> activeListingsStream();
 
+  /// Live single-listing watch (get-then-listen): the thread screen uses
+  /// it for the pinned snippet and the status banner.
+  Stream<Listing?> listingChanges(String id);
+
   /// Publishes a new Listing as the given seller (rules require an
   /// existing, unbanned member account for the seller).
   Future<void> createListing(String sellerId, ListingDraft draft);
@@ -127,6 +131,17 @@ class FirestoreListingsStore implements ListingStore {
         .map((snapshot) => snapshot.docs
             .map((doc) => Listing.fromDoc(doc.id, doc.data()))
             .toList());
+  }
+
+  @override
+  Stream<Listing?> listingChanges(String id) {
+    return _firestore
+        .collection('listings')
+        .doc(id)
+        .snapshots()
+        .map((snapshot) => snapshot.exists
+            ? Listing.fromDoc(snapshot.id, snapshot.data()!)
+            : null);
   }
 
   @override

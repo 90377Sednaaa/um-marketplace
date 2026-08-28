@@ -57,11 +57,20 @@ class FakeMemberStore implements MemberStore {
 
 class FakeListingsStore implements ListingStore {
   final _controller = StreamController<List<Listing>>.broadcast();
+  final _listingControllers = <String, StreamController<Listing?>>{};
   final drafts = <ListingDraft>[];
   List<Listing> listings = [];
 
+  StreamController<Listing?> _listingFor(String id) =>
+      _listingControllers.putIfAbsent(id, StreamController<Listing?>.broadcast);
+
   @override
   Stream<List<Listing>> activeListingsStream() => _controller.stream;
+
+  @override
+  Stream<Listing?> listingChanges(String id) => _listingFor(id).stream;
+
+  void emitListing(String id, Listing? listing) => _listingFor(id).add(listing);
 
   void emitListings() => _controller.add(List.of(listings));
 
