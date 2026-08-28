@@ -408,6 +408,7 @@ Widget _app({
   FakeListingsStore? listings,
   FakeChatStore? chats,
   FakeRatingStore? ratings,
+  FakeReportStore? reports,
 }) {
   return UmMarketplaceApp(
     authService: auth ?? FakeAuthService(),
@@ -415,6 +416,7 @@ Widget _app({
     listingsStore: listings ?? FakeListingsStore(),
     chatStore: chats ?? FakeChatStore(),
     ratingStore: ratings ?? FakeRatingStore(),
+    reportStore: reports ?? FakeReportStore(),
   );
 }
 
@@ -447,6 +449,7 @@ void main() {
     Chat? chat,
     String viewerUid = 'buyer-1',
     FakeRatingStore? ratings,
+    FakeReportStore? reports,
   }) {
     return MaterialApp(
       theme: buildUmTheme(),
@@ -457,6 +460,7 @@ void main() {
         memberStore: members,
         listingsStore: listings,
         ratingStore: ratings ?? FakeRatingStore(),
+        reportStore: reports ?? FakeReportStore(),
       ),
     );
   }
@@ -1782,6 +1786,78 @@ void main() {
 
     expect(find.text('★ 3.0 · 1 trade'), findsOneWidget);
     expect(find.text('★ — · no trades yet'), findsNothing);
+  });
+
+  testWidgets('detail screen submits a listing report',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'l1',
+          sellerId: 'seller-1',
+          title: 'Dorm lamp',
+          description: '',
+          price: 300,
+          category: 'dorm essentials',
+          condition: 'like new',
+          sellerDisplayName: 'J. Dela Cruz',
+        ),
+      ];
+    final reports = FakeReportStore();
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      reports: reports,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Dorm lamp'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.flag_outlined));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'Selling stolen notes');
+    await tester.tap(find.text('Submit report'));
+    await tester.pumpAndSettle();
+
+    expect(reports.submitted, hasLength(1));
+    expect(reports.submitted.single['listingId'], 'l1');
+    expect(reports.submitted.single['reportedUid'], 'seller-1');
+    expect(find.textContaining('Report submitted'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('thread header submits a chat report',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final chats = FakeChatStore();
+    final listings = FakeListingsStore();
+    final members = FakeMemberStore();
+    final reports = FakeReportStore();
+    await tester
+        .pumpWidget(threadApp(chats, listings, members, reports: reports));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.flag_outlined));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'Harassment');
+    await tester.tap(find.text('Submit report'));
+    await tester.pumpAndSettle();
+
+    expect(reports.submitted, hasLength(1));
+    expect(reports.submitted.single['chatId'], 'l1_buyer-1');
+    expect(reports.submitted.single['reportedUid'], 'seller-1');
+
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
   });
 
   testWidgets('my listings show active and sold rows with pills',

@@ -5,6 +5,7 @@ import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
 import '../data/rating_store.dart';
+import '../data/report_store.dart';
 import '../home/app_shell.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nbr_button.dart';
@@ -21,6 +22,7 @@ class MemberGate extends StatefulWidget {
     required this.listingsStore,
     required this.chatStore,
     required this.ratingStore,
+    required this.reportStore,
   });
 
   final AuthUser authUser;
@@ -29,6 +31,7 @@ class MemberGate extends StatefulWidget {
   final ListingStore listingsStore;
   final ChatStore chatStore;
   final RatingStore ratingStore;
+  final ReportStore reportStore;
 
   @override
   State<MemberGate> createState() => _MemberGateState();
@@ -65,6 +68,7 @@ class _MemberGateState extends State<MemberGate> {
           listingsStore: widget.listingsStore,
           chatStore: widget.chatStore,
           ratingStore: widget.ratingStore,
+          reportStore: widget.reportStore,
           onSignOut: widget.authService.signOut,
         );
       },

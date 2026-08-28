@@ -4,6 +4,7 @@ import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
 import '../data/rating_store.dart';
+import '../data/report_store.dart';
 import '../home/relative_time.dart';
 import '../theme/app_theme.dart';
 import 'chat_thread_screen.dart';
@@ -20,6 +21,7 @@ class ChatsScreen extends StatelessWidget {
     required this.memberStore,
     required this.listingsStore,
     required this.ratingStore,
+    required this.reportStore,
   });
 
   final String viewerUid;
@@ -27,6 +29,7 @@ class ChatsScreen extends StatelessWidget {
   final MemberStore memberStore;
   final ListingStore listingsStore;
   final RatingStore ratingStore;
+  final ReportStore reportStore;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +62,7 @@ class ChatsScreen extends StatelessWidget {
                           memberStore: memberStore,
                           listingsStore: listingsStore,
                           ratingStore: ratingStore,
+                          reportStore: reportStore,
                         ),
                       ),
                     ),

@@ -4,6 +4,7 @@ import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
 import '../data/rating_store.dart';
+import '../data/report_store.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nbr_button.dart';
 import 'listing_card.dart';
@@ -22,6 +23,7 @@ class BrowseScreen extends StatefulWidget {
     required this.listingsStore,
     required this.chatStore,
     required this.ratingStore,
+    required this.reportStore,
     this.initialQuery = '',
     this.initialCategory,
   });
@@ -31,6 +33,7 @@ class BrowseScreen extends StatefulWidget {
   final ListingStore listingsStore;
   final ChatStore chatStore;
   final RatingStore ratingStore;
+  final ReportStore reportStore;
   final String initialQuery;
   final String? initialCategory;
 
@@ -65,6 +68,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
           listingsStore: widget.listingsStore,
           chatStore: widget.chatStore,
           ratingStore: widget.ratingStore,
+          reportStore: widget.reportStore,
           viewerId: widget.viewerUid,
         ),
       ),

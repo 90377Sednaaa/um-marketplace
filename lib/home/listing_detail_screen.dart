@@ -5,10 +5,12 @@ import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
 import '../data/rating_store.dart';
+import '../data/report_store.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nbr_button.dart';
 import '../widgets/offer_price_dialog.dart';
 import '../widgets/photo_placeholder.dart';
+import '../widgets/report_dialog.dart';
 import 'money_format.dart';
 
 /// Product detail (DESIGN.md screen 3): hero photo with a count chip,
@@ -25,6 +27,7 @@ class ListingDetailScreen extends StatelessWidget {
     required this.listingsStore,
     required this.chatStore,
     required this.ratingStore,
+    required this.reportStore,
     required this.viewerId,
   });
 
@@ -33,10 +36,41 @@ class ListingDetailScreen extends StatelessWidget {
   final ListingStore listingsStore;
   final ChatStore chatStore;
   final RatingStore ratingStore;
+  final ReportStore reportStore;
 
   /// The signed-in member's uid — the bar becomes a "this is your
   /// listing" note instead of chat/offer when it equals [Listing.sellerId].
   final String viewerId;
+
+  Future<void> _reportListing(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final reason = await showReportDialog(
+      context,
+      title: 'Report listing',
+      description:
+          'This flags the listing for the Admin (ADR 0003). The reporter '
+          'is your verified account.',
+    );
+    if (reason == null || !context.mounted) return;
+    try {
+      await reportStore.submitReport(
+        reporterId: viewerId,
+        reason: reason,
+        listingId: listing.id,
+        reportedUid: listing.sellerId,
+      );
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+            content: Text(
+                'Report submitted — thanks for keeping the marketplace safe.')));
+    } catch (_) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+            content: Text('Couldn\'t submit the report — try again.')));
+    }
+  }
 
   Future<void> _openChat(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
@@ -72,6 +106,7 @@ class ListingDetailScreen extends StatelessWidget {
         memberStore: memberStore,
         listingsStore: listingsStore,
         ratingStore: ratingStore,
+        reportStore: reportStore,
       ),
     ));
   }
@@ -121,6 +156,7 @@ class ListingDetailScreen extends StatelessWidget {
         memberStore: memberStore,
         listingsStore: listingsStore,
         ratingStore: ratingStore,
+        reportStore: reportStore,
       ),
     ));
   }
@@ -132,7 +168,7 @@ class ListingDetailScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            const _DetailHeader(),
+            _DetailHeader(onReport: () => _reportListing(context)),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.all(16),
@@ -164,8 +200,12 @@ class ListingDetailScreen extends StatelessWidget {
   }
 }
 
+/// The shared neubrutalist header band for pushed screens: back arrow and
+/// an optional trailing action (the listing report flag).
 class _DetailHeader extends StatelessWidget {
-  const _DetailHeader();
+  const _DetailHeader({required this.onReport});
+
+  final VoidCallback onReport;
 
   @override
   Widget build(BuildContext context) {
@@ -190,6 +230,16 @@ class _DetailHeader extends StatelessWidget {
               fontWeight: FontWeight.w800,
               fontSize: 16,
               letterSpacing: 1.2,
+              color: UmColors.onPrimary,
+            ),
+          ),
+          const Spacer(),
+          IconButton(
+            onPressed: onReport,
+            tooltip: 'Report listing',
+            icon: const Icon(
+              Icons.flag_outlined,
+              size: 22,
               color: UmColors.onPrimary,
             ),
           ),

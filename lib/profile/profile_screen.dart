@@ -4,6 +4,7 @@ import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
 import '../data/rating_store.dart';
+import '../data/report_store.dart';
 import '../home/listing_detail_screen.dart';
 import '../home/money_format.dart';
 import '../theme/app_theme.dart';
@@ -23,6 +24,7 @@ class ProfileScreen extends StatelessWidget {
     required this.listingsStore,
     required this.chatStore,
     required this.ratingStore,
+    required this.reportStore,
   });
 
   final Member member;
@@ -30,6 +32,7 @@ class ProfileScreen extends StatelessWidget {
   final ListingStore listingsStore;
   final ChatStore chatStore;
   final RatingStore ratingStore;
+  final ReportStore reportStore;
 
   void _openDetail(BuildContext context, Listing listing) {
     Navigator.of(context).push(
@@ -40,6 +43,7 @@ class ProfileScreen extends StatelessWidget {
           listingsStore: listingsStore,
           chatStore: chatStore,
           ratingStore: ratingStore,
+          reportStore: reportStore,
           viewerId: member.uid,
         ),
       ),

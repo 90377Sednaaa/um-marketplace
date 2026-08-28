@@ -4,12 +4,14 @@ import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
 import '../data/rating_store.dart';
+import '../data/report_store.dart';
 import '../home/listing_detail_screen.dart';
 import '../home/money_format.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nbr_button.dart';
 import '../widgets/offer_price_dialog.dart';
 import '../widgets/photo_placeholder.dart';
+import '../widgets/report_dialog.dart';
 
 /// Chat thread (DESIGN.md screen 6): pinned product snippet, message
 /// list (text + offer blocks), composer, and — once the listing is sold —
@@ -24,6 +26,7 @@ class ChatThreadScreen extends StatelessWidget {
     required this.memberStore,
     required this.listingsStore,
     required this.ratingStore,
+    required this.reportStore,
   });
 
   final Chat chat;
@@ -32,6 +35,7 @@ class ChatThreadScreen extends StatelessWidget {
   final MemberStore memberStore;
   final ListingStore listingsStore;
   final RatingStore ratingStore;
+  final ReportStore reportStore;
 
   void _send(BuildContext context, String text) async {
     final messenger = ScaffoldMessenger.of(context);
@@ -67,13 +71,48 @@ class ChatThreadScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _reportChat(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final otherUid = chat.participants.firstWhere((u) => u != viewerUid);
+    final reason = await showReportDialog(
+      context,
+      title: 'Report this chat',
+      description:
+          'This flags the conversation for the Admin (ADR 0003). The '
+          'reporter is your verified account.',
+    );
+    if (reason == null || !context.mounted) return;
+    try {
+      await reportStore.submitReport(
+        reporterId: viewerUid,
+        reason: reason,
+        chatId: chat.id,
+        reportedUid: otherUid,
+      );
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+            content: Text(
+                'Report submitted — thanks for keeping the marketplace safe.')));
+    } catch (_) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(
+            content: Text('Couldn\'t submit the report — try again.')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
-            _ThreadHeader(chat: chat, viewerUid: viewerUid),
+            _ThreadHeader(
+              chat: chat,
+              viewerUid: viewerUid,
+              onReport: () => _reportChat(context),
+            ),
             Expanded(
               child: StreamBuilder<Listing?>(
                 stream: listingsStore.listingChanges(chat.listingId),
@@ -93,6 +132,7 @@ class ChatThreadScreen extends StatelessWidget {
                         chatStore: chatStore,
                         viewerUid: viewerUid,
                         ratingStore: ratingStore,
+                        reportStore: reportStore,
                       ),
                       if (!active) ...[
                         const _InactiveBanner(),
@@ -141,10 +181,12 @@ class _ThreadHeader extends StatelessWidget {
   const _ThreadHeader({
     required this.chat,
     required this.viewerUid,
+    required this.onReport,
   });
 
   final Chat chat;
   final String viewerUid;
+  final VoidCallback onReport;
 
   @override
   Widget build(BuildContext context) {
@@ -176,6 +218,15 @@ class _ThreadHeader extends StatelessWidget {
                 fontSize: 16,
                 color: UmColors.onPrimary,
               ),
+            ),
+          ),
+          IconButton(
+            onPressed: onReport,
+            tooltip: 'Report this chat',
+            icon: const Icon(
+              Icons.flag_outlined,
+              size: 22,
+              color: UmColors.onPrimary,
             ),
           ),
         ],
@@ -227,6 +278,7 @@ class _PinnedListing extends StatelessWidget {
     required this.chatStore,
     required this.viewerUid,
     required this.ratingStore,
+    required this.reportStore,
   });
 
   final Listing listing;
@@ -235,6 +287,7 @@ class _PinnedListing extends StatelessWidget {
   final ChatStore chatStore;
   final String viewerUid;
   final RatingStore ratingStore;
+  final ReportStore reportStore;
 
   @override
   Widget build(BuildContext context) {
@@ -248,6 +301,7 @@ class _PinnedListing extends StatelessWidget {
                   listingsStore: listingsStore,
                   chatStore: chatStore,
                   ratingStore: ratingStore,
+                  reportStore: reportStore,
                   viewerId: viewerUid,
                 ),
               ),

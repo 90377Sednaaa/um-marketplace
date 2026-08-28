@@ -4,6 +4,7 @@ import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
 import '../data/rating_store.dart';
+import '../data/report_store.dart';
 import '../theme/app_theme.dart';
 import '../widgets/member_badges.dart';
 import '../widgets/nbr_button.dart';
@@ -24,6 +25,7 @@ class HomeScreen extends StatefulWidget {
     required this.listingsStore,
     required this.chatStore,
     required this.ratingStore,
+    required this.reportStore,
     required this.onSignOut,
     required this.onSellRequested,
   });
@@ -33,6 +35,7 @@ class HomeScreen extends StatefulWidget {
   final ListingStore listingsStore;
   final ChatStore chatStore;
   final RatingStore ratingStore;
+  final ReportStore reportStore;
   final Future<void> Function() onSignOut;
   final VoidCallback onSellRequested;
 
@@ -63,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
           listingsStore: widget.listingsStore,
           chatStore: widget.chatStore,
           ratingStore: widget.ratingStore,
+          reportStore: widget.reportStore,
           initialQuery: query,
           initialCategory: category,
         ),
@@ -79,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
           listingsStore: widget.listingsStore,
           chatStore: widget.chatStore,
           ratingStore: widget.ratingStore,
+          reportStore: widget.reportStore,
           viewerId: widget.member.uid,
         ),
       ),
