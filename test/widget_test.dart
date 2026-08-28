@@ -170,8 +170,10 @@ class FakeChatStore implements ChatStore {
 
 class FakeListingsStore implements ListingStore {
   final _controller = StreamController<List<Listing>>.broadcast();
+  final _myListingsController = StreamController<List<Listing>>.broadcast();
   final _listingControllers = <String, StreamController<Listing?>>{};
   final drafts = <ListingDraft>[];
+  final soldIds = <String>[];
   List<Listing> listings = [];
 
   StreamController<Listing?> _listingFor(String id) =>
@@ -182,11 +184,41 @@ class FakeListingsStore implements ListingStore {
       _controller.stream;
 
   @override
+  Stream<List<Listing>> myListingsStream(String sellerId) =>
+      _myListingsController.stream;
+
+  @override
   Stream<Listing?> listingChanges(String id) => _listingFor(id).stream;
 
   void emitListing(String id, Listing? listing) => _listingFor(id).add(listing);
 
   void emitListings() => _controller.add(List.of(listings));
+
+  void emitMyListings() => _myListingsController.add(List.of(listings));
+
+  @override
+  Future<void> markSold(String listingId) async {
+    soldIds.add(listingId);
+    final index = listings.indexWhere((l) => l.id == listingId);
+    if (index >= 0) {
+      final l = listings[index];
+      listings[index] = Listing(
+        id: l.id,
+        sellerId: l.sellerId,
+        title: l.title,
+        description: l.description,
+        price: l.price,
+        category: l.category,
+        condition: l.condition,
+        location: l.location,
+        photos: l.photos,
+        status: 'sold',
+        createdAt: l.createdAt,
+      );
+    }
+    emitListings();
+    emitMyListings();
+  }
 
   @override
   Future<void> createListing(String sellerId, ListingDraft draft) async {

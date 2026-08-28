@@ -178,6 +178,11 @@ abstract interface class ListingStore {
   /// a larger window ([kBrowseFetchLimit]) and filters client-side.
   Stream<List<Listing>> activeListingsStream({int limit = 20});
 
+  /// All of the seller's own listings, newest first (realtime) — the
+  /// Profile "my listings" list; the rules let sellers read their own
+  /// sold/hidden rows too.
+  Stream<List<Listing>> myListingsStream(String sellerId);
+
   /// Live single-listing watch (get-then-listen): the thread screen uses
   /// it for the pinned snippet and the status banner.
   Stream<Listing?> listingChanges(String id);
@@ -185,6 +190,10 @@ abstract interface class ListingStore {
   /// Publishes a new Listing as the given seller (rules require an
   /// existing, unbanned member account for the seller).
   Future<void> createListing(String sellerId, ListingDraft draft);
+
+  /// Flips a listing to the terminal 'sold' state (CONTEXT: Sold; the
+  /// rules allow the seller that transition from 'active').
+  Future<void> markSold(String listingId);
 }
 
 class FirestoreListingsStore implements ListingStore {
@@ -215,6 +224,27 @@ class FirestoreListingsStore implements ListingStore {
         .map((snapshot) => snapshot.exists
             ? Listing.fromDoc(snapshot.id, snapshot.data()!)
             : null);
+  }
+
+  @override
+  Stream<List<Listing>> myListingsStream(String sellerId) {
+    return _firestore
+        .collection('listings')
+        .where('sellerId', isEqualTo: sellerId)
+        .orderBy('createdAt', descending: true)
+        .limit(50)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => Listing.fromDoc(doc.id, doc.data()))
+            .toList());
+  }
+
+  @override
+  Future<void> markSold(String listingId) async {
+    await _firestore.collection('listings').doc(listingId).update({
+      'status': 'sold',
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   @override
