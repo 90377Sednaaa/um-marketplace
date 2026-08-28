@@ -554,10 +554,7 @@ void main() {
 
     expect(find.text('Sign in with Google'), findsOneWidget);
     expect(find.text('UM Marketplace'), findsOneWidget);
-    expect(
-      find.textContaining('l.murillo.546842@umindanao.edu.ph'),
-      findsOneWidget,
-    );
+    expect(find.text('Ga'), findsOneWidget);
   });
 
   testWidgets('sign-in creates the member account and lands on home',
