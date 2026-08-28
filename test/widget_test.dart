@@ -9,6 +9,7 @@ import 'package:um_marketplace/chats/chat_thread_screen.dart';
 import 'package:um_marketplace/data/chat_store.dart';
 import 'package:um_marketplace/data/listing_store.dart';
 import 'package:um_marketplace/data/member_store.dart';
+import 'package:um_marketplace/data/notification_store.dart';
 import 'package:um_marketplace/data/rating_store.dart';
 import 'package:um_marketplace/data/report_store.dart';
 import 'package:um_marketplace/home/listing_card.dart';
@@ -215,6 +216,39 @@ class FakeChatStore implements ChatStore {
     );
     emitMessages(chat.id);
     emitList();
+  }
+}
+
+/// In-memory [NotificationStore]: emits the seeded list on demand;
+/// markRead flips the flag and re-emits.
+class FakeNotificationStore implements NotificationStore {
+  final notifications = <AppNotification>[];
+  final _controller = StreamController<List<AppNotification>>.broadcast();
+  final readIds = <String>[];
+
+  @override
+  Stream<List<AppNotification>> notificationsStream(String ownerId) =>
+      _controller.stream;
+
+  void emit() => _controller.add(List.of(notifications));
+
+  @override
+  Future<void> markRead(String id) async {
+    readIds.add(id);
+    final index = notifications.indexWhere((n) => n.id == id);
+    if (index >= 0) {
+      final n = notifications[index];
+      notifications[index] = AppNotification(
+        id: n.id,
+        ownerId: n.ownerId,
+        type: n.type,
+        title: n.title,
+        body: n.body,
+        read: true,
+        createdAt: n.createdAt,
+      );
+    }
+    emit();
   }
 }
 
@@ -434,6 +468,7 @@ Widget _app({
   FakeChatStore? chats,
   FakeRatingStore? ratings,
   FakeReportStore? reports,
+  FakeNotificationStore? notifications,
 }) {
   return UmMarketplaceApp(
     authService: auth ?? FakeAuthService(),
@@ -442,6 +477,7 @@ Widget _app({
     chatStore: chats ?? FakeChatStore(),
     ratingStore: ratings ?? FakeRatingStore(),
     reportStore: reports ?? FakeReportStore(),
+    notificationStore: notifications ?? FakeNotificationStore(),
   );
 }
 
@@ -506,6 +542,7 @@ void main() {
 
   testWidgets('sign-in creates the member account and lands on home',
       (WidgetTester tester) async {
+    usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
@@ -591,6 +628,7 @@ void main() {
 
   testWidgets('bottom nav shows 4 tabs and switches between them',
       (WidgetTester tester) async {
+    usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
@@ -676,6 +714,7 @@ void main() {
 
   testWidgets('publishing from the Sell tab lands back on Home',
       (WidgetTester tester) async {
+    usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
@@ -2073,6 +2112,110 @@ void main() {
     expect(members.bannedUids['seller-1'], isTrue);
   });
 
+  AppNotification note(String id, {String type = 'message', bool read = false}) =>
+      AppNotification(
+        id: id,
+        ownerId: 'test-uid',
+        type: type,
+        title: 'New $type',
+        body: 'Something happened',
+        read: read,
+        createdAt: DateTime(2026, 8, 28, 12),
+      );
+
+  testWidgets('the bell shows the live unread count and opens the center',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    final notifications = FakeNotificationStore()
+      ..notifications.addAll([
+        note('n1'),
+        note('n2'),
+        note('n3', type: 'sold', read: true),
+      ]);
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      notifications: notifications,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    notifications.emit();
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.notifications_outlined), findsOneWidget);
+    expect(find.text('2'), findsOneWidget); // unread gold sticker
+
+    await tester.tap(find.byIcon(Icons.notifications_outlined));
+    await tester.pumpAndSettle();
+    // The center subscribes only on push — replay the stream.
+    notifications.emit();
+    await tester.pumpAndSettle();
+
+    expect(find.text('NOTIFICATIONS'), findsOneWidget);
+    expect(find.text('New message'), findsNWidgets(2));
+    expect(find.text('Something happened'), findsNWidgets(3));
+    expect(find.text('NEW'), findsNWidgets(2)); // unread stickers only
+  });
+
+  testWidgets('tapping an unread row marks it read and clears its sticker',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    final notifications = FakeNotificationStore()
+      ..notifications.addAll([note('n1'), note('n2')]);
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      notifications: notifications,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    notifications.emit();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.notifications_outlined));
+    await tester.pumpAndSettle();
+    notifications.emit();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('New message').first);
+    await tester.pumpAndSettle();
+
+    expect(notifications.readIds, ['n1']);
+    expect(find.text('NEW'), findsOneWidget); // only n2 remains unread
+  });
+
+  testWidgets('the center shows the empty state',
+      (WidgetTester tester) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore();
+    final notifications = FakeNotificationStore();
+    await tester.pumpWidget(_app(
+      auth: auth,
+      members: members,
+      listings: listings,
+      notifications: notifications,
+    ));
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+    notifications.emit(); // empty
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.notifications_outlined));
+    await tester.pumpAndSettle();
+    notifications.emit(); // empty
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Nothing here yet'), findsOneWidget);
+  });
+
   testWidgets('my listings show active and sold rows with pills',
       (WidgetTester tester) async {
     usePortraitPhone(tester);
@@ -2376,6 +2519,7 @@ void main() {
 
   testWidgets('sell flow validates, publishes and records the draft',
       (WidgetTester tester) async {
+    usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();

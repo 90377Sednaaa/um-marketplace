@@ -4,8 +4,10 @@ import '../chats/chats_screen.dart';
 import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
+import '../data/notification_store.dart';
 import '../data/rating_store.dart';
 import '../data/report_store.dart';
+import '../notifications/notification_center_screen.dart';
 import '../profile/profile_screen.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
@@ -23,6 +25,7 @@ class AppShell extends StatefulWidget {
     required this.chatStore,
     required this.ratingStore,
     required this.reportStore,
+    required this.notificationStore,
     required this.onSignOut,
   });
 
@@ -32,6 +35,7 @@ class AppShell extends StatefulWidget {
   final ChatStore chatStore;
   final RatingStore ratingStore;
   final ReportStore reportStore;
+  final NotificationStore notificationStore;
   final Future<void> Function() onSignOut;
 
   @override
@@ -47,7 +51,10 @@ class _AppShellState extends State<AppShell> {
       body: SafeArea(
         child: Column(
           children: [
-            const _BrandBand(),
+            _BrandBand(
+              viewerUid: widget.member.uid,
+              notificationStore: widget.notificationStore,
+            ),
             Expanded(
               child: IndexedStack(
                 index: _index,
@@ -98,23 +105,95 @@ class _AppShellState extends State<AppShell> {
   }
 }
 
+/// The maroon brand band with the notification bell (DESIGN.md screen 1:
+/// "the notification bell lives in the Home app bar, never in the nav")
+/// and its live unread gold sticker.
 class _BrandBand extends StatelessWidget {
-  const _BrandBand();
+  const _BrandBand({
+    required this.viewerUid,
+    required this.notificationStore,
+  });
+
+  final String viewerUid;
+  final NotificationStore notificationStore;
+
+  void _openCenter(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => NotificationCenterScreen(
+          ownerId: viewerUid,
+          notificationStore: notificationStore,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       color: UmColors.primary,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: const Text(
-        'UM MARKETPLACE',
-        style: TextStyle(
-          fontWeight: FontWeight.w800,
-          fontSize: 16,
-          letterSpacing: 1.2,
-          color: UmColors.onPrimary,
-        ),
+      padding: const EdgeInsets.only(left: 16, right: 8, top: 10, bottom: 10),
+      child: Row(
+        children: [
+          const Expanded(
+            child: Text(
+              'UM MARKETPLACE',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+                letterSpacing: 1.2,
+                color: UmColors.onPrimary,
+              ),
+            ),
+          ),
+          StreamBuilder<List<AppNotification>>(
+            stream: notificationStore.notificationsStream(viewerUid),
+            builder: (context, snapshot) {
+              final notifications = snapshot.data;
+              final unread = notifications == null
+                  ? 0
+                  : notifications.where((n) => !n.read).length;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    onPressed: () => _openCenter(context),
+                    tooltip: 'Notifications',
+                    icon: const Icon(
+                      Icons.notifications_outlined,
+                      size: 24,
+                      color: UmColors.onPrimary,
+                    ),
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      top: 2,
+                      right: 2,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: UmColors.gold,
+                          border:
+                              Border.all(color: UmColors.ink, width: 1.5),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          unread > 99 ? '99+' : '$unread',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 10,
+                            color: UmColors.ink,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
     );
   }
