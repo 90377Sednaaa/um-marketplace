@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// UM Marketplace design tokens (DESIGN.md §2).
 abstract final class UmColors {
@@ -16,9 +17,17 @@ abstract final class UmColors {
   static const Color destructive = Color(0xFFDC2626);
 }
 
-/// Light-only theme per DESIGN.md §1; heavy type per §3 (body never
-/// thinner than 400). Neubrutalist surfaces (borders, shadows, press
-/// motion) are applied per-widget via [UmColors] and components.
+/// Neubrutalist shadow tokens (DESIGN.md §4) — hard, blur 0.
+abstract final class UmShadows {
+  static const Offset small = Offset(3, 3);
+  static const Offset card = Offset(4, 4);
+  static const Offset hero = Offset(6, 6);
+}
+
+/// Light-only theme per DESIGN.md §1; Space Grotesk brutal display +
+/// Outfit clean body per §3 (body never thinner than 400).
+/// Neubrutalist surfaces (borders, shadows, press motion) are applied
+/// per-widget via [UmColors]/[UmShadows] and components.
 ThemeData buildUmTheme() {
   final base = ThemeData(useMaterial3: true);
   return base.copyWith(
@@ -34,27 +43,62 @@ ThemeData buildUmTheme() {
       onSurface: UmColors.onSurface,
     ),
     textTheme: base.textTheme.copyWith(
-      headlineMedium: const TextStyle(
+      // Brutal display — Space Grotesk 700-800, tight, uppercase-ready.
+      displayLarge: GoogleFonts.spaceGrotesk(
+        fontWeight: FontWeight.w800,
+        fontSize: 32,
+        height: 1.1,
+        letterSpacing: -0.5,
+        color: UmColors.onSurface,
+      ),
+      headlineMedium: GoogleFonts.spaceGrotesk(
         fontWeight: FontWeight.w800,
         fontSize: 24,
         height: 1.2,
+        letterSpacing: -0.3,
         color: UmColors.onSurface,
       ),
-      titleLarge: const TextStyle(
+      titleLarge: GoogleFonts.spaceGrotesk(
         fontWeight: FontWeight.w700,
         fontSize: 18,
+        height: 1.25,
         color: UmColors.onSurface,
       ),
-      bodyMedium: const TextStyle(
+      titleMedium: GoogleFonts.spaceGrotesk(
+        fontWeight: FontWeight.w700,
+        fontSize: 15,
+        letterSpacing: 0.3,
+        color: UmColors.onSurface,
+      ),
+      // Clean body — Outfit 400-600, airy.
+      bodyMedium: GoogleFonts.outfit(
         fontWeight: FontWeight.w400,
         fontSize: 14.5,
         height: 1.45,
         color: UmColors.onSurface,
       ),
-      labelMedium: const TextStyle(
+      bodySmall: GoogleFonts.outfit(
+        fontWeight: FontWeight.w400,
+        fontSize: 13,
+        height: 1.4,
+        color: UmColors.mutedForeground,
+      ),
+      labelLarge: GoogleFonts.spaceGrotesk(
+        fontWeight: FontWeight.w700,
+        fontSize: 15,
+        letterSpacing: 0.5,
+        color: UmColors.onSurface,
+      ),
+      labelMedium: GoogleFonts.outfit(
         fontWeight: FontWeight.w600,
         fontSize: 13,
         color: UmColors.onSurface,
+      ),
+      labelSmall: GoogleFonts.outfit(
+        fontWeight: FontWeight.w600,
+        fontSize: 11.5,
+        letterSpacing: 0.4,
+        color: UmColors.mutedForeground,
       ),
     ),
   );

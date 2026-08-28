@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../chats/chats_screen.dart';
 import '../data/chat_store.dart';
@@ -14,8 +15,8 @@ import 'home_screen.dart';
 import 'sell_screen.dart';
 
 /// The app shell (DESIGN.md §5): maroon brand band, an IndexedStack of the
-/// four v1 tabs — Home, Sell, Chats, Profile — and the neubrutalist
-/// bottom nav.
+/// four v1 tabs — Home, Sell, Chats, Profile — and the flat brutal
+/// bottom nav (3dp top border, dividers, gold active block).
 class AppShell extends StatefulWidget {
   const AppShell({
     super.key,
@@ -66,7 +67,6 @@ class _AppShellState extends State<AppShell> {
                     chatStore: widget.chatStore,
                     ratingStore: widget.ratingStore,
                     reportStore: widget.reportStore,
-                    onSignOut: widget.onSignOut,
                     onSellRequested: () => setState(() => _index = 1),
                   ),
                   SellScreen(
@@ -90,6 +90,8 @@ class _AppShellState extends State<AppShell> {
                     chatStore: widget.chatStore,
                     ratingStore: widget.ratingStore,
                     reportStore: widget.reportStore,
+                    onSignOut: widget.onSignOut,
+                    onSellRequested: () => setState(() => _index = 1),
                   ),
                 ],
               ),
@@ -136,10 +138,10 @@ class _BrandBand extends StatelessWidget {
       padding: const EdgeInsets.only(left: 16, right: 8, top: 10, bottom: 10),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Text(
               'UM MARKETPLACE',
-              style: TextStyle(
+              style: GoogleFonts.spaceGrotesk(
                 fontWeight: FontWeight.w800,
                 fontSize: 16,
                 letterSpacing: 1.2,
@@ -162,7 +164,7 @@ class _BrandBand extends StatelessWidget {
                     tooltip: 'Notifications',
                     icon: const Icon(
                       Icons.notifications_outlined,
-                      size: 24,
+                      size: 22,
                       color: UmColors.onPrimary,
                     ),
                   ),
@@ -181,7 +183,7 @@ class _BrandBand extends StatelessWidget {
                         ),
                         child: Text(
                           unread > 99 ? '99+' : '$unread',
-                          style: const TextStyle(
+                          style: GoogleFonts.spaceGrotesk(
                             fontWeight: FontWeight.w800,
                             fontSize: 10,
                             color: UmColors.ink,
@@ -199,9 +201,8 @@ class _BrandBand extends StatelessWidget {
   }
 }
 
-/// DESIGN.md §5 bottom navigation: white bar with a 2 dp ink top border;
-/// the active item sits on a `goldSoft` pill with maroon icon + label,
-/// inactive items are `mutedForeground`.
+/// DESIGN.md §5 bottom navigation — flat brutal: white bar, 3dp ink top
+/// border + 2dp vertical dividers, active = gold block with 2dp border.
 class _BottomNav extends StatelessWidget {
   const _BottomNav({required this.index, required this.onSelected});
 
@@ -211,26 +212,34 @@ class _BottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const items = [
-      (label: 'Home', icon: Icons.home_outlined),
-      (label: 'Sell', icon: Icons.add_box_outlined),
-      (label: 'Chats', icon: Icons.chat_bubble_outline),
-      (label: 'Profile', icon: Icons.person_outline),
+      (label: 'HOME', icon: Icons.home),
+      (label: 'SELL', icon: Icons.add_box_outlined),
+      (label: 'CHATS', icon: Icons.chat_bubble_outline),
+      (label: 'PROFILE', icon: Icons.person_outline),
     ];
     return Container(
       decoration: const BoxDecoration(
         color: UmColors.surface,
-        border: Border(top: BorderSide(color: UmColors.ink, width: 2)),
+        border: Border(top: BorderSide(color: UmColors.ink, width: 3)),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
           for (var i = 0; i < items.length; i++)
             Expanded(
-              child: _NavItem(
-                label: items[i].label,
-                icon: items[i].icon,
-                active: i == index,
-                onTap: () => onSelected(i),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    right: i == items.length - 1
+                        ? BorderSide.none
+                        : const BorderSide(color: UmColors.ink, width: 2),
+                  ),
+                ),
+                child: _NavItem(
+                  label: items[i].label,
+                  icon: items[i].icon,
+                  active: i == index,
+                  onTap: () => onSelected(i),
+                ),
               ),
             ),
         ],
@@ -261,7 +270,8 @@ class _NavItemState extends State<_NavItem> {
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.active ? UmColors.primary : UmColors.mutedForeground;
+    final color = widget.active ? UmColors.ink : UmColors.mutedForeground;
+    final bg = widget.active ? UmColors.gold : Colors.transparent;
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
@@ -275,22 +285,28 @@ class _NavItemState extends State<_NavItem> {
           _pressed ? 2 : 0,
           0,
         ),
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
-          color: widget.active ? UmColors.goldSoft : Colors.transparent,
-          borderRadius: BorderRadius.circular(999),
+          color: bg,
+          borderRadius: BorderRadius.circular(8),
+          border: widget.active
+              ? Border.all(color: UmColors.ink, width: 2)
+              : null,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(widget.icon, size: 24, color: color),
+            Icon(widget.icon, size: 22, color: color),
             const SizedBox(height: 2),
             Text(
               widget.label,
-              style: TextStyle(
-                fontWeight: widget.active ? FontWeight.w700 : FontWeight.w600,
-                fontSize: 11,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.spaceGrotesk(
+                fontWeight: FontWeight.w800,
+                fontSize: 10,
+                letterSpacing: 0.8,
                 color: color,
               ),
             ),

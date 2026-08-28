@@ -57,17 +57,17 @@ Rules:
 
 ## 3. Typography
 
-Single family: **Outfit** (geometric sans — chunky enough to hold its own against heavy borders).
+Dual family: **Space Grotesk** (brutal display — tight geometric, holds ink borders) + **Outfit** (clean body — airy for reading). Loaded via `google_fonts`.
 
-| Role | Weight | Size | Notes |
-|---|---|---|---|
-| Display / hero | 800–900 | 32–36 px | Uppercase allowed for promos |
-| Headline | 700 | 24 px | Section titles |
-| Title | 600 | 16–18 px | Card titles, app bar, buttons |
-| Body | 400 | 14–15 px | Descriptions, line-height ≥ 1.45 |
-| Label / caption | 500–600 | 12–13 px | Timestamps, chips, sticker badges |
+| Role | Family | Weight | Size | Notes |
+|---|---|---|---|---|
+| Display / hero | Space Grotesk | 800 | 32–36 px | Uppercase, `letterSpacing -0.5`, promos only |
+| Headline | Space Grotesk | 800 | 24 px | Section titles (`headlineMedium`), `letterSpacing -0.3` |
+| Title / nav / button | Space Grotesk | 700 | 15–18 px | Card titles, app bar, nav labels, buttons (`titleLarge/titleMedium/labelLarge`) |
+| Body | Outfit | 400 | 14–15 px | Descriptions, `line-height ≥ 1.45` (`bodyMedium`) |
+| Label / caption | Outfit | 500–600 | 11–13 px | Timestamps, chips, sticker badges (`labelMedium/labelSmall`) |
 
-Anti-patterns: light/thin weights anywhere; all-caps paragraphs (caps reserved for heroes and small labels).
+Anti-patterns: light/thin weights anywhere; all-caps paragraphs (caps reserved for heroes and nav labels); mixing families outside this table.
 
 ## 4. Borders, shape & spacing
 
@@ -76,7 +76,7 @@ Anti-patterns: light/thin weights anywhere; all-caps paragraphs (caps reserved f
 - **Corner radii:** blocks/cards/buttons 8 dp (near-square, softened for phones) · badges/stickers/chips pill (999). Pure 0 dp is the strict web form — avoid going rounder than 8 dp.
 - **Spacing grid:** 4 dp base; screen padding 16 dp; intra-card gaps 8–12 dp; section gaps 24–32 dp.
 - **Touch targets:** ≥ 48×48 dp with ≥ 8 dp gaps.
-- **Icons:** Material Symbols Rounded (outline), 24 dp, drawn with weight ≥ 500 so they survive next to thick borders. Never emoji as UI icons.
+- **Icons:** Material Icons Rounded, 24 dp default (19 dp inside circle tiles, 32 dp in empty states), rendered with `weight 700` / `fill 1` so strokes stay chunky next to 2 dp ink borders. Never emoji as UI icons. (Phosphor Bold `phosphor_flutter` was tried but `2.1.0` extends final `IconData` and breaks on Flutter `3.47`; revisit when the package migrates to `PhosphorIcon` widget not `IconData`.)
 - **Rotation:** only badges/stickers (-2°/+2°); structural cards stay straight.
 
 ## 5. Core components
@@ -92,7 +92,7 @@ Anti-patterns: light/thin weights anywhere; all-caps paragraphs (caps reserved f
   - Disabled: `muted` fill, `mutedForeground` label, shadow removed entirely (flat = dead).
 - **Badges/stickers:** pill, gold or white fill, 2 dp border, rotated ±2°, may overlap the card edge they annotate.
 - **Verified-student badge:** a gold pill on every seller strip declaring uniform membership — every member passed the UM email gate (ADR 0001), so the badge is a platform marker, not an earned distinction.
-- **Bottom navigation:** white bar, 2 dp ink top border (full-width edge), ≤ 5 items; active item = maroon icon+label sitting on a `goldSoft` pill; inactive `mutedForeground`. v1 ships 4 items — Home, Sell, Chats, Profile (Browse is reached via search, not a tab); the notification bell lives in the Home app bar, never in the nav.
+- **Bottom navigation:** flat brutal bar — white fill, **3 dp ink top border**, full-width, **2 dp vertical dividers** between items (no divider after last), `0` radius on bar; active item = **gold block** `2 dp` ink border `8 dp` radius, `Space Grotesk 800 uppercase 11 px` black label + Material bold icon (`weight 700`); inactive = bare `mutedForeground` icon+label, no pill, no background. ≤ 5 items; v1 ships 4 items — Home, Sell, Chats, Profile (Browse is reached via search, not a tab); the notification bell lives in the Home brand band, never in the nav.
 - **Inputs:** white fill, 2 dp ink border, 3 dp shadow; error state swaps border to red and shows message beside field in red 500-weight.
 - **Empty/error states:** big outline icon in an ink-bordered square, one-line message, single recovery button (primary).
 

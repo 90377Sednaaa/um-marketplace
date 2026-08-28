@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../data/chat_store.dart';
 import '../data/listing_store.dart';
@@ -6,18 +7,14 @@ import '../data/member_store.dart';
 import '../data/rating_store.dart';
 import '../data/report_store.dart';
 import '../theme/app_theme.dart';
-import '../widgets/member_badges.dart';
-import '../widgets/nbr_button.dart';
 import 'browse_screen.dart';
 import 'listing_card.dart';
 import 'listing_detail_screen.dart';
 
-/// Home (DESIGN.md screen 1, milestone cut): member header, a Sell CTA and
-/// the recent-listings feed straight from Firestore. The hero search,
-/// category tiles and notification bell land with the full screen. Hosted
-/// as the first tab of the AppShell — the shell owns the brand band and
-/// the Sell CTA switches tabs instead of pushing a route.
-class HomeScreen extends StatefulWidget {
+/// Home (DESIGN.md screen 1): hero search + popular searches + category
+/// tiles + recent listings feed. Lean — no member card, no Sell/SignOut
+/// (those live on Profile + BottomNav only, per brutal declutter).
+class HomeScreen extends StatelessWidget {
   const HomeScreen({
     super.key,
     required this.member,
@@ -26,8 +23,7 @@ class HomeScreen extends StatefulWidget {
     required this.chatStore,
     required this.ratingStore,
     required this.reportStore,
-    required this.onSignOut,
-    required this.onSellRequested,
+    this.onSellRequested,
   });
 
   final Member member;
@@ -36,37 +32,18 @@ class HomeScreen extends StatefulWidget {
   final ChatStore chatStore;
   final RatingStore ratingStore;
   final ReportStore reportStore;
-  final Future<void> Function() onSignOut;
-  final VoidCallback onSellRequested;
+  final VoidCallback? onSellRequested;
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  bool _signingOut = false;
-
-  Future<void> _signOut() async {
-    setState(() => _signingOut = true);
-    try {
-      await widget.onSignOut();
-    } finally {
-      if (mounted) setState(() => _signingOut = false);
-    }
-  }
-
-  void _openSell() => widget.onSellRequested();
-
-  void _openBrowse({String query = '', String? category}) {
+  void _openBrowse(BuildContext context, {String query = '', String? category}) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => BrowseScreen(
-          viewerUid: widget.member.uid,
-          memberStore: widget.memberStore,
-          listingsStore: widget.listingsStore,
-          chatStore: widget.chatStore,
-          ratingStore: widget.ratingStore,
-          reportStore: widget.reportStore,
+          viewerUid: member.uid,
+          memberStore: memberStore,
+          listingsStore: listingsStore,
+          chatStore: chatStore,
+          ratingStore: ratingStore,
+          reportStore: reportStore,
           initialQuery: query,
           initialCategory: category,
         ),
@@ -74,17 +51,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _openDetail(Listing listing) {
+  void _openDetail(BuildContext context, Listing listing) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => ListingDetailScreen(
           listing: listing,
-          memberStore: widget.memberStore,
-          listingsStore: widget.listingsStore,
-          chatStore: widget.chatStore,
-          ratingStore: widget.ratingStore,
-          reportStore: widget.reportStore,
-          viewerId: widget.member.uid,
+          memberStore: memberStore,
+          listingsStore: listingsStore,
+          chatStore: chatStore,
+          ratingStore: ratingStore,
+          reportStore: reportStore,
+          viewerId: member.uid,
         ),
       ),
     );
@@ -95,39 +72,13 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: SafeArea(
         child: StreamBuilder<List<Listing>>(
-          stream: widget.listingsStore.activeListingsStream(),
+          stream: listingsStore.activeListingsStream(),
           builder: (context, snapshot) {
             final listings = snapshot.data;
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                _MemberCard(member: widget.member),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: NbrButton(
-                        label: 'Sell something',
-                        icon: const Icon(
-                          Icons.add,
-                          size: 20,
-                          color: UmColors.onPrimary,
-                        ),
-                        onPressed: _openSell,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    NbrButton(
-                      label:
-                          _signingOut ? 'Signing out…' : 'Sign out',
-                      fill: UmColors.surface,
-                      labelColor: UmColors.ink,
-                      onPressed: _signingOut ? null : _signOut,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                _HeroSearchBar(onTap: () => _openBrowse()),
+                _HeroSearchBar(onTap: () => _openBrowse(context)),
                 const SizedBox(height: 14),
                 Wrap(
                   spacing: 8,
@@ -136,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     for (final term in kPopularSearches)
                       _PopularSearchChip(
                         label: term,
-                        onTap: () => _openBrowse(query: term),
+                        onTap: () => _openBrowse(context, query: term),
                       ),
                   ],
                 ),
@@ -146,9 +97,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     for (final category in kListingCategories)
                       Expanded(
                         child: _CategoryTile(
-                          icon: _categoryIcons[category] ?? Icons.sell_outlined,
+                          icon: _categoryIcons[category] ??
+                              Icons.sell_outlined,
                           label: category,
-                          onTap: () => _openBrowse(category: category),
+                          onTap: () =>
+                              _openBrowse(context, category: category),
                         ),
                       ),
                   ],
@@ -162,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (listings == null)
                   const _FeedSkeleton()
                 else if (listings.isEmpty)
-                  const _EmptyFeed()
+                  _EmptyFeed(onSellRequested: onSellRequested)
                 else
                   GridView.builder(
                     shrinkWrap: true,
@@ -179,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       final listing = listings[index];
                       return ListingCard(
                         listing: listing,
-                        onTap: () => _openDetail(listing),
+                        onTap: () => _openDetail(context, listing),
                       );
                     },
                   ),
@@ -187,73 +140,6 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
         ),
-      ),
-    );
-  }
-}
-
-class _MemberCard extends StatelessWidget {
-  const _MemberCard({required this.member});
-
-  final Member member;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: UmColors.surface,
-        border: Border.all(color: UmColors.ink, width: 2),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
-          BoxShadow(
-            color: UmColors.ink,
-            offset: Offset(4, 4),
-            blurRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: UmColors.gold,
-                child: Text(
-                  member.displayName.isEmpty
-                      ? '?'
-                      : member.displayName[0].toUpperCase(),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 18,
-                    color: UmColors.ink,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(member.displayName,
-                        style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: 2),
-                    Text(
-                      member.email,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: UmColors.mutedForeground,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          MemberBadges(member: member),
-        ],
       ),
     );
   }
@@ -288,7 +174,9 @@ class _FeedSkeleton extends StatelessWidget {
 }
 
 class _EmptyFeed extends StatelessWidget {
-  const _EmptyFeed();
+  const _EmptyFeed({this.onSellRequested});
+
+  final VoidCallback? onSellRequested;
 
   @override
   Widget build(BuildContext context) {
@@ -298,20 +186,89 @@ class _EmptyFeed extends StatelessWidget {
         color: UmColors.surface,
         border: Border.all(color: UmColors.ink, width: 2),
         borderRadius: BorderRadius.circular(8),
+        boxShadow: const [
+          BoxShadow(
+            color: UmColors.ink,
+            offset: UmShadows.card,
+            blurRadius: 0,
+          ),
+        ],
       ),
       child: Column(
         children: [
-          const Icon(
-            Icons.storefront_outlined,
-            size: 48,
-            color: UmColors.mutedForeground,
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: UmColors.surface,
+              border: Border.all(color: UmColors.ink, width: 2),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: const [
+                BoxShadow(
+                  color: UmColors.ink,
+                  offset: UmShadows.small,
+                  blurRadius: 0,
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.storefront_outlined,
+              size: 28,
+              color: UmColors.ink,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
-            'No listings yet — be the first to post one!',
+            'NO LISTINGS YET',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: GoogleFonts.spaceGrotesk(
+              fontWeight: FontWeight.w800,
+              fontSize: 14,
+              letterSpacing: 0.8,
+              color: UmColors.onSurface,
+            ),
           ),
+          const SizedBox(height: 6),
+          Text(
+            'Be the first to post one!',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: UmColors.mutedForeground,
+                ),
+          ),
+          if (onSellRequested != null) ...[
+            const SizedBox(height: 16),
+            // CTA is intentionally brutal gold; icon uses Phosphor bold.
+            // Keep label Space Grotesk via NbrButton internally.
+            GestureDetector(
+              onTap: onSellRequested,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: UmColors.gold,
+                  border: Border.all(color: UmColors.ink, width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.add,
+                        size: 16, color: UmColors.ink),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Sell something',
+                      style: GoogleFonts.spaceGrotesk(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        color: UmColors.ink,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -326,8 +283,8 @@ const List<String> kPopularSearches = [
   'Extension cord',
 ];
 
-/// Maroon-outline icons for the fixed category tiles (DESIGN.md §5 —
-/// category tiles carry a maroon icon inside a goldSoft circle).
+/// Brutal icons for the fixed category tiles — Phosphor bold inside
+/// goldSoft circle, ink-bordered square tile.
 const Map<String, IconData> _categoryIcons = {
   'textbooks': Icons.menu_book_outlined,
   'gadgets': Icons.devices_outlined,
@@ -337,8 +294,8 @@ const Map<String, IconData> _categoryIcons = {
 };
 
 /// The hero search bar (DESIGN.md §5): pill, white fill, 3 dp ink border,
-/// 4 dp hard shadow, leading search icon. It is a tappable entry point —
-/// typing happens on the Browse screen so results update live.
+/// 4 dp hard shadow, leading search icon. Tappable entry — typing happens
+/// on Browse so results update live.
 class _HeroSearchBar extends StatelessWidget {
   const _HeroSearchBar({required this.onTap});
 
@@ -358,14 +315,15 @@ class _HeroSearchBar extends StatelessWidget {
           boxShadow: const [
             BoxShadow(
               color: UmColors.ink,
-              offset: Offset(4, 4),
+              offset: UmShadows.card,
               blurRadius: 0,
             ),
           ],
         ),
         child: Row(
           children: [
-            const Icon(Icons.search, size: 24, color: UmColors.ink),
+            const Icon(Icons.search,
+                size: 20, color: UmColors.ink),
             const SizedBox(width: 10),
             Text(
               'Search textbooks, gadgets…',
@@ -399,7 +357,7 @@ class _PopularSearchChip extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: const TextStyle(
+          style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             fontSize: 12,
             color: UmColors.onSurface,
@@ -411,7 +369,7 @@ class _PopularSearchChip extends StatelessWidget {
 }
 
 /// A category tile (DESIGN.md §5): ink-bordered square with a goldSoft
-/// circle carrying a maroon icon; tap opens Browse pre-filtered.
+/// circle carrying a bold Phosphor icon; tap opens Browse pre-filtered.
 class _CategoryTile extends StatelessWidget {
   const _CategoryTile({
     required this.icon,
@@ -442,7 +400,7 @@ class _CategoryTile extends StatelessWidget {
                 boxShadow: const [
                   BoxShadow(
                     color: UmColors.ink,
-                    offset: Offset(3, 3),
+                    offset: UmShadows.small,
                     blurRadius: 0,
                   ),
                 ],
@@ -464,8 +422,8 @@ class _CategoryTile extends StatelessWidget {
               label,
               maxLines: 2,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
+              style: GoogleFonts.spaceGrotesk(
+                fontWeight: FontWeight.w700,
                 fontSize: 10,
                 height: 1.15,
                 color: UmColors.onSurface,

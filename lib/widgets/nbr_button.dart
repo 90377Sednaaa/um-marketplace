@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_theme.dart';
 
@@ -47,8 +48,8 @@ class _NbrButtonState extends State<NbrButton> {
       duration: const Duration(milliseconds: 80),
       curve: Curves.linear,
       transform: Matrix4.translationValues(
-        _pressed ? 0 : 4,
-        _pressed ? 0 : 4,
+        _pressed ? 0 : UmShadows.card.dx,
+        _pressed ? 0 : UmShadows.card.dy,
         0,
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -67,9 +68,10 @@ class _NbrButtonState extends State<NbrButton> {
           ],
           Text(
             widget.label,
-            style: TextStyle(
+            style: GoogleFonts.spaceGrotesk(
               fontWeight: FontWeight.w700,
               fontSize: 15,
+              letterSpacing: 0.3,
               color: labelColor,
             ),
           ),

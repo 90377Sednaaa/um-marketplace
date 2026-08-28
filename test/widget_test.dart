@@ -575,10 +575,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(members.ensuredUids, ['test-uid']);
-    expect(find.text('L. Murillo'), findsOneWidget);
-    expect(find.text('Verified UM student'), findsOneWidget);
     expect(find.text('Recent listings'), findsOneWidget);
     expect(find.text('Sign in with Google'), findsNothing);
+    // Member identity now lives on Profile only (brutal declutter).
+    await tester.tap(find.text('PROFILE'));
+    await tester.pumpAndSettle();
+    expect(find.text('L. Murillo'), findsOneWidget);
+    expect(find.text('Verified UM student'), findsOneWidget);
   });
 
   testWidgets('a banned member is shown the banned screen (ADR 0003)',
@@ -662,22 +665,22 @@ void main() {
     auth.emit(_student);
     await tester.pumpAndSettle();
 
-    expect(find.text('Home'), findsOneWidget);
-    expect(find.text('Sell'), findsOneWidget);
-    expect(find.text('Chats'), findsOneWidget);
-    expect(find.text('Profile'), findsOneWidget);
+    expect(find.text('HOME'), findsOneWidget);
+    expect(find.text('SELL'), findsOneWidget);
+    expect(find.text('CHATS'), findsOneWidget);
+    expect(find.text('PROFILE'), findsOneWidget);
     expect(find.text('Recent listings'), findsOneWidget);
 
-    await tester.tap(find.text('Chats'));
+    await tester.tap(find.text('CHATS'));
     await tester.pumpAndSettle();
     expect(find.text('Conversations'), findsOneWidget);
     expect(find.text('Recent listings'), findsNothing);
 
-    await tester.tap(find.text('Sell'));
+    await tester.tap(find.text('SELL'));
     await tester.pumpAndSettle();
     expect(find.text('Title — e.g. Calculus 201 textbook'), findsOneWidget);
 
-    await tester.tap(find.text('Profile'));
+    await tester.tap(find.text('PROFILE'));
     await tester.pumpAndSettle();
     expect(find.text('My listings'), findsOneWidget);
     expect(find.text('Title — e.g. Calculus 201 textbook'), findsNothing);
@@ -700,7 +703,7 @@ void main() {
     listings.emitListings();
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Sell something'));
+    await tester.tap(find.text('SELL'));
     await tester.pumpAndSettle();
 
     expect(find.text('Title — e.g. Calculus 201 textbook'), findsOneWidget);
@@ -721,12 +724,12 @@ void main() {
     auth.emit(_student);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Sell'));
+    await tester.tap(find.text('SELL'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).at(0), 'Half-finished draft');
-    await tester.tap(find.text('Home'));
+    await tester.tap(find.text('HOME'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Sell'));
+    await tester.tap(find.text('SELL'));
     await tester.pumpAndSettle();
 
     expect(find.text('Half-finished draft'), findsOneWidget);
@@ -748,7 +751,7 @@ void main() {
     auth.emit(_student);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Sell'));
+    await tester.tap(find.text('SELL'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.byType(TextField).at(0));
     await tester.enterText(find.byType(TextField).at(0), 'Tab publish');
@@ -1138,7 +1141,7 @@ void main() {
     ));
     auth.emit(_student);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Chats'));
+    await tester.tap(find.text('CHATS'));
     await tester.pumpAndSettle();
 
     final chat = sampleChat(buyerId: 'test-uid');
@@ -1165,7 +1168,7 @@ void main() {
     ));
     auth.emit(_student);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Chats'));
+    await tester.tap(find.text('CHATS'));
     await tester.pumpAndSettle();
 
     chats.emitList(); // empty list
@@ -1188,7 +1191,7 @@ void main() {
     ));
     auth.emit(_student);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Chats'));
+    await tester.tap(find.text('CHATS'));
     await tester.pumpAndSettle();
 
     final chat = sampleChat(buyerId: 'test-uid');
@@ -1659,7 +1662,7 @@ void main() {
     auth.emit(_student);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Profile'));
+    await tester.tap(find.text('PROFILE'));
     await tester.pumpAndSettle();
     listings.emitMyListings(); // empty: nothing listed yet
     await tester.pumpAndSettle();
@@ -1863,7 +1866,7 @@ void main() {
     ));
     auth.emit(_student);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Profile'));
+    await tester.tap(find.text('PROFILE'));
     await tester.pumpAndSettle();
     ratings.emitRatingsFor('test-uid');
     await tester.pumpAndSettle();
@@ -1961,7 +1964,7 @@ void main() {
     ));
     auth.emit(_student);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Profile'));
+    await tester.tap(find.text('PROFILE'));
     await tester.pumpAndSettle();
     members.emit(const Member(
       uid: 'test-uid',
@@ -2023,7 +2026,7 @@ void main() {
     ));
     auth.emit(_student);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Profile'));
+    await tester.tap(find.text('PROFILE'));
     await tester.pumpAndSettle();
     members.emit(const Member(
       uid: 'test-uid',
@@ -2081,7 +2084,7 @@ void main() {
     ));
     auth.emit(_student);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Profile'));
+    await tester.tap(find.text('PROFILE'));
     await tester.pumpAndSettle();
     members.emit(const Member(
       uid: 'test-uid',
@@ -2273,6 +2276,10 @@ void main() {
     listings.emitListings();
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('PROFILE'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Sign out'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();
 
@@ -2313,7 +2320,7 @@ void main() {
     auth.emit(_student);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Profile'));
+    await tester.tap(find.text('PROFILE'));
     await tester.pumpAndSettle();
     listings.emitMyListings();
     await tester.pumpAndSettle();
@@ -2356,7 +2363,7 @@ void main() {
     auth.emit(_student);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Profile'));
+    await tester.tap(find.text('PROFILE'));
     await tester.pumpAndSettle();
     listings.emitMyListings();
     await tester.pumpAndSettle();
@@ -2386,7 +2393,7 @@ void main() {
     auth.emit(_student);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Profile'));
+    await tester.tap(find.text('PROFILE'));
     await tester.pumpAndSettle();
     // Ordinary member: no moderation row (ADR 0003).
     expect(find.text('Moderation'), findsNothing);
@@ -2429,7 +2436,7 @@ void main() {
     auth.emit(_student);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Profile'));
+    await tester.tap(find.text('PROFILE'));
     await tester.pumpAndSettle();
     listings.emitMyListings();
     await tester.pumpAndSettle();
@@ -2593,7 +2600,7 @@ void main() {
     await tester.pump();
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Sell something'));
+    await tester.tap(find.text('SELL'));
     await tester.pumpAndSettle();
 
     // Invalid publish surfaces the first problem.
@@ -2635,6 +2642,10 @@ void main() {
     listings.emitListings();
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('PROFILE'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Sign out'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Sign out'));
     await tester.pumpAndSettle();
 

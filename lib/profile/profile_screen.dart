@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../data/chat_store.dart';
 import '../data/listing_store.dart';
@@ -10,14 +11,14 @@ import '../home/money_format.dart';
 import '../moderation/moderation_screen.dart';
 import '../theme/app_theme.dart';
 import '../widgets/member_badges.dart';
+import '../widgets/nbr_button.dart';
 import '../widgets/photo_placeholder.dart';
 
 /// Profile (DESIGN.md screen 7): member identity with the trust badges,
 /// the live rating summary (average + trade count, ADR 0004), my listings
 /// with the terminal mark-Sold, and — for the Admin only — the gate to
-/// Moderation (ADR 0003; the screen itself lands with the Moderation
-/// stage). Settings land with the notification stage.
-class ProfileScreen extends StatelessWidget {
+/// Moderation (ADR 0003). Sign out lives here only (brutal declutter).
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({
     super.key,
     required this.member,
@@ -26,6 +27,8 @@ class ProfileScreen extends StatelessWidget {
     required this.chatStore,
     required this.ratingStore,
     required this.reportStore,
+    required this.onSignOut,
+    this.onSellRequested,
   });
 
   final Member member;
@@ -34,18 +37,36 @@ class ProfileScreen extends StatelessWidget {
   final ChatStore chatStore;
   final RatingStore ratingStore;
   final ReportStore reportStore;
+  final Future<void> Function() onSignOut;
+  final VoidCallback? onSellRequested;
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  bool _signingOut = false;
+
+  Future<void> _signOut() async {
+    setState(() => _signingOut = true);
+    try {
+      await widget.onSignOut();
+    } finally {
+      if (mounted) setState(() => _signingOut = false);
+    }
+  }
 
   void _openDetail(BuildContext context, Listing listing) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => ListingDetailScreen(
           listing: listing,
-          memberStore: memberStore,
-          listingsStore: listingsStore,
-          chatStore: chatStore,
-          ratingStore: ratingStore,
-          reportStore: reportStore,
-          viewerId: member.uid,
+          memberStore: widget.memberStore,
+          listingsStore: widget.listingsStore,
+          chatStore: widget.chatStore,
+          ratingStore: widget.ratingStore,
+          reportStore: widget.reportStore,
+          viewerId: widget.member.uid,
         ),
       ),
     );
@@ -60,9 +81,10 @@ class ProfileScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           side: const BorderSide(color: UmColors.ink, width: 2),
         ),
-        title: const Text(
+        title: Text(
           'Mark as sold?',
-          style: TextStyle(fontWeight: FontWeight.w800, color: UmColors.onSurface),
+          style: GoogleFonts.spaceGrotesk(
+              fontWeight: FontWeight.w800, color: UmColors.onSurface),
         ),
         content: Text(
           '"${listing.title}" leaves the marketplace, stops appearing in '
@@ -73,9 +95,9 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(
+              style: GoogleFonts.outfit(
                 color: UmColors.ink,
                 fontWeight: FontWeight.w600,
               ),
@@ -83,9 +105,9 @@ class ProfileScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(
+            child: Text(
               'Mark as sold',
-              style: TextStyle(
+              style: GoogleFonts.outfit(
                 color: UmColors.primary,
                 fontWeight: FontWeight.w700,
               ),
@@ -96,7 +118,7 @@ class ProfileScreen extends StatelessWidget {
     );
     if (confirmed != true || !context.mounted) return;
     try {
-      await listingsStore.markSold(listing.id);
+      await widget.listingsStore.markSold(listing.id);
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context)
@@ -114,10 +136,10 @@ class ProfileScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            _IdentityCard(member: member),
+            _IdentityCard(member: widget.member),
             const SizedBox(height: 12),
             StreamBuilder<List<Rating>>(
-              stream: ratingStore.ratingsFor(member.uid),
+              stream: widget.ratingStore.ratingsFor(widget.member.uid),
               builder: (context, snapshot) {
                 final ratings = snapshot.data;
                 return _RatingCard(
@@ -127,20 +149,64 @@ class ProfileScreen extends StatelessWidget {
                 );
               },
             ),
-            if (member.isAdmin) ...[
+            if (widget.member.isAdmin) ...[
               const SizedBox(height: 12),
               _AdminRow(
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => ModerationScreen(
-                      memberStore: memberStore,
-                      listingsStore: listingsStore,
-                      reportStore: reportStore,
+                      memberStore: widget.memberStore,
+                      listingsStore: widget.listingsStore,
+                      reportStore: widget.reportStore,
                     ),
                   ),
                 ),
               ),
             ],
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: _signingOut ? null : _signOut,
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: UmColors.surface,
+                  border: Border.all(color: UmColors.ink, width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: const [
+                    BoxShadow(
+                        color: UmColors.ink,
+                        offset: UmShadows.card,
+                        blurRadius: 0),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.logout, size: 22, color: UmColors.ink),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _signingOut ? 'Signing out…' : 'Sign out',
+                        style: GoogleFonts.spaceGrotesk(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                          color: UmColors.ink,
+                        ),
+                      ),
+                    ),
+                    if (_signingOut)
+                      const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: UmColors.ink),
+                      )
+                    else
+                      const Icon(Icons.chevron_right,
+                          size: 18, color: UmColors.ink),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 24),
             Text(
               'My listings',
@@ -148,7 +214,8 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             StreamBuilder<List<Listing>>(
-              stream: listingsStore.myListingsStream(member.uid),
+              stream:
+                  widget.listingsStore.myListingsStream(widget.member.uid),
               builder: (context, snapshot) {
                 final listings = snapshot.data;
                 if (listings == null) return const _MyListingsSkeleton();
@@ -159,20 +226,63 @@ class ProfileScreen extends StatelessWidget {
                       color: UmColors.surface,
                       border: Border.all(color: UmColors.ink, width: 2),
                       borderRadius: BorderRadius.circular(8),
+                      boxShadow: const [
+                        BoxShadow(
+                            color: UmColors.ink,
+                            offset: UmShadows.card,
+                            blurRadius: 0),
+                      ],
                     ),
                     child: Column(
                       children: [
-                        const Icon(
-                          Icons.sell_outlined,
-                          size: 48,
-                          color: UmColors.mutedForeground,
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: UmColors.surface,
+                            border:
+                                Border.all(color: UmColors.ink, width: 2),
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: const [
+                              BoxShadow(
+                                  color: UmColors.ink,
+                                  offset: UmShadows.small,
+                                  blurRadius: 0),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.sell_outlined,
+                            size: 28,
+                            color: UmColors.ink,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'You haven\'t listed anything yet — tap Sell to '
-                          'post your first item!',
+                          'NO LISTINGS',
+                          style: GoogleFonts.spaceGrotesk(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            letterSpacing: 0.8,
+                            color: UmColors.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'You haven\'t listed anything yet.',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium,
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: UmColors.mutedForeground,
+                                  ),
+                        ),
+                        const SizedBox(height: 16),
+                        NbrButton(
+                          label: 'Sell something',
+                          icon: const Icon(Icons.add,
+                              size: 18, color: UmColors.ink),
+                          fill: UmColors.gold,
+                          labelColor: UmColors.ink,
+                          onPressed: widget.onSellRequested,
                         ),
                       ],
                     ),
@@ -186,16 +296,16 @@ class ProfileScreen extends StatelessWidget {
                         child: _MyListingRow(
                           listing: listing,
                           onTap: () => _openDetail(context, listing),
-                          onMarkSold:
-                              listing.status == 'active'
-                                  ? () => _confirmMarkSold(context, listing)
-                                  : null,
+                          onMarkSold: listing.status == 'active'
+                              ? () => _confirmMarkSold(context, listing)
+                              : null,
                         ),
                       ),
                   ],
                 );
               },
             ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -217,7 +327,8 @@ class _IdentityCard extends StatelessWidget {
         border: Border.all(color: UmColors.ink, width: 2),
         borderRadius: BorderRadius.circular(8),
         boxShadow: const [
-          BoxShadow(color: UmColors.ink, offset: Offset(4, 4), blurRadius: 0),
+          BoxShadow(
+              color: UmColors.ink, offset: UmShadows.card, blurRadius: 0),
         ],
       ),
       child: Column(
@@ -232,7 +343,7 @@ class _IdentityCard extends StatelessWidget {
                   member.displayName.isEmpty
                       ? '?'
                       : member.displayName[0].toUpperCase(),
-                  style: const TextStyle(
+                  style: GoogleFonts.spaceGrotesk(
                     fontWeight: FontWeight.w800,
                     fontSize: 21,
                     color: UmColors.ink,
@@ -285,7 +396,8 @@ class _RatingCard extends StatelessWidget {
         border: Border.all(color: UmColors.ink, width: 2),
         borderRadius: BorderRadius.circular(8),
         boxShadow: const [
-          BoxShadow(color: UmColors.ink, offset: Offset(3, 3), blurRadius: 0),
+          BoxShadow(
+              color: UmColors.ink, offset: UmShadows.small, blurRadius: 0),
         ],
       ),
       child: Row(
@@ -327,7 +439,8 @@ class _AdminRow extends StatelessWidget {
           border: Border.all(color: UmColors.ink, width: 2),
           borderRadius: BorderRadius.circular(8),
           boxShadow: const [
-            BoxShadow(color: UmColors.ink, offset: Offset(3, 3), blurRadius: 0),
+            BoxShadow(
+                color: UmColors.ink, offset: UmShadows.small, blurRadius: 0),
           ],
         ),
         child: Row(
@@ -343,7 +456,8 @@ class _AdminRow extends StatelessWidget {
                   ?.copyWith(fontSize: 15),
             ),
             const Spacer(),
-            const Icon(Icons.chevron_right, size: 22, color: UmColors.ink),
+            const Icon(Icons.chevron_right,
+                size: 22, color: UmColors.ink),
           ],
         ),
       ),
@@ -374,7 +488,8 @@ class _MyListingRow extends StatelessWidget {
           border: Border.all(color: UmColors.ink, width: 2),
           borderRadius: BorderRadius.circular(8),
           boxShadow: const [
-            BoxShadow(color: UmColors.ink, offset: Offset(3, 3), blurRadius: 0),
+            BoxShadow(
+                color: UmColors.ink, offset: UmShadows.card, blurRadius: 0),
           ],
         ),
         child: Row(
@@ -402,10 +517,9 @@ class _MyListingRow extends StatelessWidget {
                     listing.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style:
-                        Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontSize: 15,
-                            ),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontSize: 15,
+                        ),
                   ),
                   const SizedBox(height: 3),
                   Text(
@@ -418,7 +532,7 @@ class _MyListingRow extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     formatPesos(listing.price),
-                    style: const TextStyle(
+                    style: GoogleFonts.spaceGrotesk(
                       fontWeight: FontWeight.w800,
                       fontSize: 15,
                       color: UmColors.success,
@@ -437,9 +551,9 @@ class _MyListingRow extends StatelessWidget {
                   border: Border.all(color: UmColors.ink, width: 2),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: const Text(
+                child: Text(
                   'SOLD',
-                  style: TextStyle(
+                  style: GoogleFonts.spaceGrotesk(
                     fontWeight: FontWeight.w800,
                     fontSize: 11,
                     letterSpacing: 1,
@@ -491,8 +605,8 @@ class _MarkSoldButtonState extends State<_MarkSoldButton> {
             duration: const Duration(milliseconds: 80),
             curve: Curves.linear,
             transform: Matrix4.translationValues(
-              _pressed ? 0 : 3,
-              _pressed ? 0 : 3,
+              _pressed ? 0 : UmShadows.card.dx,
+              _pressed ? 0 : UmShadows.card.dy,
               0,
             ),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -503,7 +617,7 @@ class _MarkSoldButtonState extends State<_MarkSoldButton> {
             ),
             child: Text(
               'Mark as sold',
-              style: TextStyle(
+              style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w600,
                 fontSize: 12,
                 color: enabled ? UmColors.ink : UmColors.mutedForeground,

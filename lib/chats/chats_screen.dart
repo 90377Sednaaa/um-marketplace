@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
 import '../data/rating_store.dart';
 import '../data/report_store.dart';
+import '../home/browse_screen.dart';
 import '../home/relative_time.dart';
 import '../theme/app_theme.dart';
+import '../widgets/nbr_button.dart';
 import 'chat_thread_screen.dart';
 
-/// Conversation list (DESIGN.md screen 6, first half): the shell's brand
+/// Conversation list (DESIGN.md screen 6): the shell's brand
 /// band serves as the header; the body starts with a 'Conversations'
-/// section title. No unread markers in v1 (deferred to the notification
-/// stage, ADR 0005).
+/// section title. Empty state is brutal with CTA to Browse.
 class ChatsScreen extends StatelessWidget {
   const ChatsScreen({
     super.key,
@@ -31,6 +33,21 @@ class ChatsScreen extends StatelessWidget {
   final RatingStore ratingStore;
   final ReportStore reportStore;
 
+  void _openBrowse(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => BrowseScreen(
+          viewerUid: viewerUid,
+          memberStore: memberStore,
+          listingsStore: listingsStore,
+          chatStore: chatStore,
+          ratingStore: ratingStore,
+          reportStore: reportStore,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,7 +57,9 @@ class ChatsScreen extends StatelessWidget {
           builder: (context, snapshot) {
             final chats = snapshot.data;
             if (chats == null) return const _ChatsSkeleton();
-            if (chats.isEmpty) return const _ChatsEmpty();
+            if (chats.isEmpty) {
+              return _ChatsEmpty(onBrowse: () => _openBrowse(context));
+            }
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -105,7 +124,7 @@ class _ChatRow extends StatelessWidget {
             boxShadow: const [
               BoxShadow(
                 color: UmColors.ink,
-                offset: Offset(4, 4),
+                offset: UmShadows.card,
                 blurRadius: 0,
               ),
             ],
@@ -118,7 +137,7 @@ class _ChatRow extends StatelessWidget {
                     otherName.isEmpty ? UmColors.muted : UmColors.gold,
                 child: Text(
                   otherName.isEmpty ? '?' : otherName[0].toUpperCase(),
-                  style: TextStyle(
+                  style: GoogleFonts.spaceGrotesk(
                     fontWeight: FontWeight.w800,
                     fontSize: 17,
                     color: otherName.isEmpty
@@ -202,7 +221,9 @@ class _ChatsSkeleton extends StatelessWidget {
 }
 
 class _ChatsEmpty extends StatelessWidget {
-  const _ChatsEmpty();
+  const _ChatsEmpty({required this.onBrowse});
+
+  final VoidCallback onBrowse;
 
   @override
   Widget build(BuildContext context) {
@@ -220,19 +241,63 @@ class _ChatsEmpty extends StatelessWidget {
             color: UmColors.surface,
             border: Border.all(color: UmColors.ink, width: 2),
             borderRadius: BorderRadius.circular(8),
+            boxShadow: const [
+              BoxShadow(
+                color: UmColors.ink,
+                offset: UmShadows.card,
+                blurRadius: 0,
+              ),
+            ],
           ),
           child: Column(
             children: [
-              const Icon(
-                Icons.forum_outlined,
-                size: 48,
-                color: UmColors.mutedForeground,
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: UmColors.surface,
+                  border: Border.all(color: UmColors.ink, width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: UmColors.ink,
+                      offset: UmShadows.small,
+                      blurRadius: 0,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.forum_outlined,
+                  size: 28,
+                  color: UmColors.ink,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
+                'NO CONVERSATIONS',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.spaceGrotesk(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                  letterSpacing: 0.8,
+                  color: UmColors.onSurface,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
                 'No conversations yet — tap Chat on a listing to start one.',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: UmColors.mutedForeground,
+                    ),
+              ),
+              const SizedBox(height: 16),
+              NbrButton(
+                label: 'Browse listings',
+                icon: const Icon(Icons.search, size: 18, color: UmColors.ink),
+                fill: UmColors.gold,
+                labelColor: UmColors.ink,
+                onPressed: onBrowse,
               ),
             ],
           ),
