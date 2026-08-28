@@ -70,6 +70,9 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: onSellRequested == null
+          ? null
+          : _BrutalFab(onTap: onSellRequested!),
       body: SafeArea(
         child: StreamBuilder<List<Listing>>(
           stream: listingsStore.activeListingsStream(),
@@ -93,6 +96,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     for (final category in kListingCategories)
                       Expanded(
@@ -275,6 +279,55 @@ class _EmptyFeed extends StatelessWidget {
   }
 }
 
+class _BrutalFab extends StatefulWidget {
+  const _BrutalFab({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  State<_BrutalFab> createState() => _BrutalFabState();
+}
+
+class _BrutalFabState extends State<_BrutalFab> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 80),
+        curve: Curves.linear,
+        transform: Matrix4.translationValues(
+          _pressed ? 2 : 0,
+          _pressed ? 2 : 0,
+          0,
+        ),
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          color: UmColors.gold,
+          border: Border.all(color: UmColors.ink, width: 2),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: _pressed
+              ? null
+              : const [
+                  BoxShadow(
+                    color: UmColors.ink,
+                    offset: UmShadows.card,
+                    blurRadius: 0,
+                  ),
+                ],
+        ),
+        child: const Icon(Icons.add, size: 28, color: UmColors.ink),
+      ),
+    );
+  }
+}
+
 /// Static v1 popular searches (DESIGN.md screen 1 — "static chips in v1").
 const List<String> kPopularSearches = [
   'Statistics notes',
@@ -295,35 +348,53 @@ const Map<String, IconData> _categoryIcons = {
 
 /// The hero search bar (DESIGN.md §5): pill, white fill, 3 dp ink border,
 /// 4 dp hard shadow, leading search icon. Tappable entry — typing happens
-/// on Browse so results update live.
-class _HeroSearchBar extends StatelessWidget {
+/// on Browse so results update live. Press translates onto shadow.
+class _HeroSearchBar extends StatefulWidget {
   const _HeroSearchBar({required this.onTap});
 
   final VoidCallback onTap;
 
   @override
+  State<_HeroSearchBar> createState() => _HeroSearchBarState();
+}
+
+class _HeroSearchBarState extends State<_HeroSearchBar> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 80),
+        curve: Curves.linear,
+        transform: Matrix4.translationValues(
+          _pressed ? 2 : 0,
+          _pressed ? 2 : 0,
+          0,
+        ),
         height: 50,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           color: UmColors.surface,
           border: Border.all(color: UmColors.ink, width: 3),
           borderRadius: BorderRadius.circular(999),
-          boxShadow: const [
-            BoxShadow(
-              color: UmColors.ink,
-              offset: UmShadows.card,
-              blurRadius: 0,
-            ),
-          ],
+          boxShadow: _pressed
+              ? null
+              : const [
+                  BoxShadow(
+                    color: UmColors.ink,
+                    offset: UmShadows.card,
+                    blurRadius: 0,
+                  ),
+                ],
         ),
         child: Row(
           children: [
-            const Icon(Icons.search,
-                size: 20, color: UmColors.ink),
+            const Icon(Icons.search, size: 20, color: UmColors.ink),
             const SizedBox(width: 10),
             Text(
               'Search textbooks, gadgets…',
@@ -369,8 +440,9 @@ class _PopularSearchChip extends StatelessWidget {
 }
 
 /// A category tile (DESIGN.md §5): ink-bordered square with a goldSoft
-/// circle carrying a bold Phosphor icon; tap opens Browse pre-filtered.
-class _CategoryTile extends StatelessWidget {
+/// circle carrying a bold icon; tap opens Browse pre-filtered. Brutal press
+/// translates onto its shadow.
+class _CategoryTile extends StatefulWidget {
   const _CategoryTile({
     required this.icon,
     required this.label,
@@ -382,28 +454,47 @@ class _CategoryTile extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_CategoryTile> createState() => _CategoryTileState();
+}
+
+class _CategoryTileState extends State<_CategoryTile> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 80),
+              curve: Curves.linear,
+              transform: Matrix4.translationValues(
+                _pressed ? 2 : 0,
+                _pressed ? 2 : 0,
+                0,
+              ),
               width: 48,
               height: 48,
               decoration: BoxDecoration(
                 color: UmColors.surface,
                 border: Border.all(color: UmColors.ink, width: 2),
                 borderRadius: BorderRadius.circular(8),
-                boxShadow: const [
-                  BoxShadow(
-                    color: UmColors.ink,
-                    offset: UmShadows.small,
-                    blurRadius: 0,
-                  ),
-                ],
+                boxShadow: _pressed
+                    ? null
+                    : const [
+                        BoxShadow(
+                          color: UmColors.ink,
+                          offset: UmShadows.small,
+                          blurRadius: 0,
+                        ),
+                      ],
               ),
               child: Center(
                 child: Container(
@@ -413,20 +504,25 @@ class _CategoryTile extends StatelessWidget {
                     color: UmColors.goldSoft,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, size: 19, color: UmColors.primary),
+                  child: Icon(widget.icon,
+                      size: 19, color: UmColors.primary),
                 ),
               ),
             ),
             const SizedBox(height: 6),
-            Text(
-              label,
-              maxLines: 2,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.spaceGrotesk(
-                fontWeight: FontWeight.w700,
-                fontSize: 10,
-                height: 1.15,
-                color: UmColors.onSurface,
+            SizedBox(
+              height: 24,
+              child: Text(
+                widget.label,
+                maxLines: 2,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.spaceGrotesk(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 10,
+                  height: 1.15,
+                  color: UmColors.onSurface,
+                ),
               ),
             ),
           ],

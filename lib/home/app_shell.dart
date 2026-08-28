@@ -134,21 +134,47 @@ class _BrandBand extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: UmColors.primary,
-      padding: const EdgeInsets.only(left: 16, right: 8, top: 10, bottom: 10),
+      decoration: const BoxDecoration(
+        color: UmColors.primary,
+        border: Border(bottom: BorderSide(color: UmColors.ink, width: 3)),
+        boxShadow: [
+          BoxShadow(
+            color: UmColors.ink,
+            offset: Offset(0, 4),
+            blurRadius: 0,
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.only(left: 16, right: 8, top: 12, bottom: 12),
       child: Row(
         children: [
           Expanded(
-            child: Text(
-              'UM MARKETPLACE',
-              style: GoogleFonts.spaceGrotesk(
-                fontWeight: FontWeight.w800,
-                fontSize: 16,
-                letterSpacing: 1.2,
-                color: UmColors.onPrimary,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: UmColors.surface,
+                border: Border.all(color: UmColors.ink, width: 2),
+                borderRadius: BorderRadius.circular(6),
+                boxShadow: const [
+                  BoxShadow(
+                    color: UmColors.ink,
+                    offset: UmShadows.small,
+                    blurRadius: 0,
+                  ),
+                ],
+              ),
+              child: Text(
+                'UM MARKETPLACE',
+                style: GoogleFonts.spaceGrotesk(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 15,
+                  letterSpacing: 1.4,
+                  color: UmColors.ink,
+                ),
               ),
             ),
           ),
+          const SizedBox(width: 12),
           StreamBuilder<List<AppNotification>>(
             stream: notificationStore.notificationsStream(viewerUid),
             builder: (context, snapshot) {
@@ -159,24 +185,16 @@ class _BrandBand extends StatelessWidget {
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  IconButton(
-                    onPressed: () => _openCenter(context),
-                    tooltip: 'Notifications',
-                    icon: const Icon(
-                      Icons.notifications_outlined,
-                      size: 22,
-                      color: UmColors.onPrimary,
-                    ),
-                  ),
+                  _BellButton(onTap: () => _openCenter(context)),
                   if (unread > 0)
                     Positioned(
-                      top: 2,
-                      right: 2,
+                      top: -6,
+                      right: -6,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: UmColors.gold,
+                          color: UmColors.destructive,
                           border:
                               Border.all(color: UmColors.ink, width: 1.5),
                           borderRadius: BorderRadius.circular(999),
@@ -186,7 +204,7 @@ class _BrandBand extends StatelessWidget {
                           style: GoogleFonts.spaceGrotesk(
                             fontWeight: FontWeight.w800,
                             fontSize: 10,
-                            color: UmColors.ink,
+                            color: UmColors.onPrimary,
                           ),
                         ),
                       ),
@@ -196,6 +214,59 @@ class _BrandBand extends StatelessWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BellButton extends StatefulWidget {
+  const _BellButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  State<_BellButton> createState() => _BellButtonState();
+}
+
+class _BellButtonState extends State<_BellButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 80),
+        curve: Curves.linear,
+        transform: Matrix4.translationValues(
+          _pressed ? 2 : 0,
+          _pressed ? 2 : 0,
+          0,
+        ),
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: UmColors.gold,
+          border: Border.all(color: UmColors.ink, width: 2),
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: _pressed
+              ? null
+              : const [
+                  BoxShadow(
+                    color: UmColors.ink,
+                    offset: UmShadows.small,
+                    blurRadius: 0,
+                  ),
+                ],
+        ),
+        child: const Icon(
+          Icons.notifications_outlined,
+          size: 22,
+          color: UmColors.ink,
+        ),
       ),
     );
   }
@@ -290,8 +361,17 @@ class _NavItemState extends State<_NavItem> {
         decoration: BoxDecoration(
           color: bg,
           borderRadius: BorderRadius.circular(8),
-          border: widget.active
-              ? Border.all(color: UmColors.ink, width: 2)
+          border: Border.all(
+              color: widget.active ? UmColors.ink : Colors.transparent,
+              width: 2),
+          boxShadow: widget.active && !_pressed
+              ? const [
+                  BoxShadow(
+                    color: UmColors.ink,
+                    offset: UmShadows.small,
+                    blurRadius: 0,
+                  ),
+                ]
               : null,
         ),
         child: Column(

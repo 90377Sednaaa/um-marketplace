@@ -258,6 +258,7 @@ class _SellScreenState extends State<SellScreen> {
                         const SizedBox(height: 16),
                         NbrButton(
                           label: _busy ? 'Publishing…' : 'Publish listing',
+                          stretch: true,
                           onPressed: _busy ? null : _publish,
                         ),
                       ],

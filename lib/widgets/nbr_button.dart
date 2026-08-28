@@ -79,27 +79,37 @@ class _NbrButtonState extends State<NbrButton> {
       ),
     );
 
+    final stack = Stack(
+      children: [
+        // Hard offset shadow: sits behind the face, uncovered when the
+        // face translates away at rest (disabled buttons have no shadow).
+        if (enabled)
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: UmColors.ink,
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        face,
+      ],
+    );
+
+    // When not stretching, the button hugs its label — wrap in Align so a
+    // parent Column with crossAxisAlignment.stretch doesn't force the shadow
+    // to fill the parent width (which causes the huge-shadow artefact in
+    // Image 3). When stretching, expand to fill the parent.
+    final child = widget.stretch
+        ? SizedBox(width: double.infinity, child: stack)
+        : Align(alignment: Alignment.center, child: stack);
+
     return GestureDetector(
       onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
       onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
       onTapCancel: enabled ? () => setState(() => _pressed = false) : null,
       onTap: widget.onPressed,
-      child: Stack(
-        children: [
-          // Hard offset shadow: sits behind the face, uncovered when the
-          // face translates away at rest (disabled buttons have no shadow).
-          if (enabled)
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: UmColors.ink,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          face,
-        ],
-      ),
+      child: child,
     );
   }
 }
