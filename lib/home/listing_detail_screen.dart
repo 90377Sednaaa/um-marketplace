@@ -142,8 +142,7 @@ class ListingDetailScreen extends StatelessWidget {
                   _ListingBody(listing: listing),
                   const SizedBox(height: 16),
                   _SellerStrip(
-                    sellerId: listing.sellerId,
-                    memberStore: memberStore,
+                    listing: listing,
                     ratingStore: ratingStore,
                   ),
                   const SizedBox(height: 16),
@@ -376,20 +375,18 @@ class _Pill extends StatelessWidget {
 /// The seller strip (DESIGN.md screen 3): avatar, display name, the
 /// verified-student badge (a platform marker — every member passed the UM
 /// email gate, ADR 0001) and the live rating line (average + trade count,
-/// ADR 0004).
+/// ADR 0004). The name is the listing's denormalized public name (ADR
+/// 0007) — no cross-member read, which the rules deny by design.
 class _SellerStrip extends StatelessWidget {
-  const _SellerStrip({
-    required this.sellerId,
-    required this.memberStore,
-    required this.ratingStore,
-  });
+  const _SellerStrip({required this.listing, required this.ratingStore});
 
-  final String sellerId;
-  final MemberStore memberStore;
+  final Listing listing;
   final RatingStore ratingStore;
 
   @override
   Widget build(BuildContext context) {
+    final name = listing.sellerDisplayName;
+    final shownName = name.isEmpty ? 'UM student' : name;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -404,114 +401,73 @@ class _SellerStrip extends StatelessWidget {
           ),
         ],
       ),
-      child: StreamBuilder<Member?>(
-        stream: memberStore.memberChanges(sellerId),
-        builder: (context, snapshot) {
-          final seller = snapshot.data;
-          if (seller == null) return const _SellerFallback();
-          return Row(
-            children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: UmColors.gold,
-                child: Text(
-                  seller.displayName.isEmpty
-                      ? '?'
-                      : seller.displayName[0].toUpperCase(),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 17,
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 22,
+            backgroundColor: name.isEmpty ? UmColors.muted : UmColors.gold,
+            child: Text(
+              name.isEmpty ? '?' : name[0].toUpperCase(),
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 17,
+                color: name.isEmpty ? UmColors.mutedForeground : UmColors.ink,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  shownName,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 4),
+                StreamBuilder<List<Rating>>(
+                  stream: ratingStore.ratingsFor(listing.sellerId),
+                  builder: (context, snapshot) {
+                    final ratings = snapshot.data;
+                    return Text(
+                      ratings == null
+                          ? '★ — · no trades yet'
+                          : ratingSummaryText(ratings),
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: UmColors.mutedForeground,
+                          ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: UmColors.goldSoft,
+              border: Border.all(color: UmColors.ink, width: 2),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.verified_user, size: 14, color: UmColors.ink),
+                SizedBox(width: 5),
+                Text(
+                  'Verified UM student',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
                     color: UmColors.ink,
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      seller.displayName,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 4),
-                    StreamBuilder<List<Rating>>(
-                      stream: ratingStore.ratingsFor(seller.uid),
-                      builder: (context, snapshot) {
-                        final ratings = snapshot.data;
-                        return Text(
-                          ratings == null
-                              ? '★ — · no trades yet'
-                              : ratingSummaryText(ratings),
-                          style: Theme.of(context).textTheme.labelMedium
-                              ?.copyWith(color: UmColors.mutedForeground),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: UmColors.goldSoft,
-                  border: Border.all(color: UmColors.ink, width: 2),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.verified_user, size: 14, color: UmColors.ink),
-                    SizedBox(width: 5),
-                    Text(
-                      'Verified UM student',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
-                        color: UmColors.ink,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-/// Shown while the seller document streams in (and as a stand-in if it is
-/// ever missing) — sellers always exist for real listings because the
-/// create rule requires a member account, so this is a load state.
-class _SellerFallback extends StatelessWidget {
-  const _SellerFallback();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const CircleAvatar(
-          radius: 22,
-          backgroundColor: UmColors.muted,
-          child: Text(
-            '?',
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              fontSize: 17,
-              color: UmColors.mutedForeground,
+              ],
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          'UM student',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -69,12 +69,11 @@ class ChatThreadScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final otherUid = chat.participants.firstWhere((uid) => uid != viewerUid);
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
-            _ThreadHeader(otherUid: otherUid, memberStore: memberStore),
+            _ThreadHeader(chat: chat, viewerUid: viewerUid),
             Expanded(
               child: StreamBuilder<Listing?>(
                 stream: listingsStore.listingChanges(chat.listingId),
@@ -139,13 +138,19 @@ class ChatThreadScreen extends StatelessWidget {
 }
 
 class _ThreadHeader extends StatelessWidget {
-  const _ThreadHeader({required this.otherUid, required this.memberStore});
+  const _ThreadHeader({
+    required this.chat,
+    required this.viewerUid,
+  });
 
-  final String otherUid;
-  final MemberStore memberStore;
+  final Chat chat;
+  final String viewerUid;
 
   @override
   Widget build(BuildContext context) {
+    final otherName =
+        viewerUid == chat.buyerId ? chat.sellerName : chat.buyerName;
+    final shownName = otherName.isEmpty ? 'Chat' : otherName;
     return Container(
       width: double.infinity,
       color: UmColors.primary,
@@ -162,21 +167,15 @@ class _ThreadHeader extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: StreamBuilder<Member?>(
-              stream: memberStore.memberChanges(otherUid),
-              builder: (context, snapshot) {
-                final name = snapshot.data?.displayName ?? 'Chat';
-                return Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                    color: UmColors.onPrimary,
-                  ),
-                );
-              },
+            child: Text(
+              shownName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+                color: UmColors.onPrimary,
+              ),
             ),
           ),
         ],

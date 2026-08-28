@@ -50,7 +50,6 @@ class ChatsScreen extends StatelessWidget {
                   _ChatRow(
                     chat: chat,
                     viewerUid: viewerUid,
-                    memberStore: memberStore,
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => ChatThreadScreen(
@@ -77,18 +76,18 @@ class _ChatRow extends StatelessWidget {
   const _ChatRow({
     required this.chat,
     required this.viewerUid,
-    required this.memberStore,
     required this.onTap,
   });
 
   final Chat chat;
   final String viewerUid;
-  final MemberStore memberStore;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final otherUid = chat.participants.firstWhere((uid) => uid != viewerUid);
+    final otherName =
+        viewerUid == chat.buyerId ? chat.sellerName : chat.buyerName;
+    final shownName = otherName.isEmpty ? 'UM student' : otherName;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GestureDetector(
@@ -109,44 +108,31 @@ class _ChatRow extends StatelessWidget {
           ),
           child: Row(
             children: [
-              StreamBuilder<Member?>(
-                stream: memberStore.memberChanges(otherUid),
-                builder: (context, snapshot) {
-                  final member = snapshot.data;
-                  return CircleAvatar(
-                    radius: 22,
-                    backgroundColor:
-                        member == null ? UmColors.muted : UmColors.gold,
-                    child: Text(
-                      member == null || member.displayName.isEmpty
-                          ? '?'
-                          : member.displayName[0].toUpperCase(),
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 17,
-                        color: member == null
-                            ? UmColors.mutedForeground
-                            : UmColors.ink,
-                      ),
-                    ),
-                  );
-                },
+              CircleAvatar(
+                radius: 22,
+                backgroundColor:
+                    otherName.isEmpty ? UmColors.muted : UmColors.gold,
+                child: Text(
+                  otherName.isEmpty ? '?' : otherName[0].toUpperCase(),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 17,
+                    color: otherName.isEmpty
+                        ? UmColors.mutedForeground
+                        : UmColors.ink,
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    StreamBuilder<Member?>(
-                      stream: memberStore.memberChanges(otherUid),
-                      builder: (context, snapshot) {
-                        return Text(
-                          snapshot.data?.displayName ?? 'UM student',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleLarge,
-                        );
-                      },
+                    Text(
+                      shownName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 3),
                     Text(

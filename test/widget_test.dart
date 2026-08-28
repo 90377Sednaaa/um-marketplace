@@ -434,6 +434,8 @@ void main() {
         sellerId: 'seller-1',
         buyerId: buyerId,
         participants: {'seller-1', buyerId},
+        buyerName: 'B. One',
+        sellerName: 'J. Dela Cruz',
         lastMessagePreview: 'Hi',
         lastMessageAt: DateTime(2026, 8, 28, 12),
       );
@@ -710,6 +712,7 @@ void main() {
     expect(find.text('₱180'), findsOneWidget);
     expect(find.text('Hi there!'), findsOneWidget);
     expect(find.text('Still available?'), findsOneWidget);
+    expect(find.text('J. Dela Cruz'), findsOneWidget); // header from chat doc
   });
 
   testWidgets('thread composer sends a text message',
@@ -933,7 +936,7 @@ void main() {
     expect(find.text('Make an offer'), findsOneWidget);
   });
 
-  testWidgets('the seller strip resolves the member with trust cues',
+  testWidgets('the seller strip shows the document name and trust cues',
       (WidgetTester tester) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
@@ -948,6 +951,7 @@ void main() {
           price: 300,
           category: 'dorm essentials',
           condition: 'like new',
+          sellerDisplayName: 'J. Dela Cruz',
         ),
       ];
     await tester
@@ -960,19 +964,13 @@ void main() {
 
     await tester.tap(find.text('Dorm lamp'));
     await tester.pumpAndSettle();
-    members.emit(const Member(
-      uid: 'seller-uid',
-      email: 'j.delacruz.000000@umindanao.edu.ph',
-      displayName: 'J. Dela Cruz',
-    ));
-    await tester.pumpAndSettle();
 
     expect(find.text('J. Dela Cruz'), findsOneWidget);
     expect(find.text('Verified UM student'), findsOneWidget);
     expect(find.text('★ — · no trades yet'), findsOneWidget);
   });
 
-  testWidgets('a missing seller document falls back to a generic name',
+  testWidgets('an unnamed seller still shows the safe fallback',
       (WidgetTester tester) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
@@ -1001,7 +999,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('UM student'), findsOneWidget);
-    expect(find.text('Verified UM student'), findsNothing);
+    expect(find.text('Verified UM student'), findsOneWidget); // platform badge
   });
 
   testWidgets('viewing your own listing hides the chat/offer bar',
@@ -1055,21 +1053,13 @@ void main() {
     await tester.tap(find.text('Chats'));
     await tester.pumpAndSettle();
 
-    final chat = sampleChat();
+    final chat = sampleChat(buyerId: 'test-uid');
     chats.chats[chat.id] = chat;
     chats.emitList();
     await tester.pumpAndSettle();
-    // The row subscribes to the seller's member doc on that settle — now
-    // the name can arrive without being dropped.
-    members.emit(const Member(
-      uid: 'seller-1',
-      email: 'j.delacruz.000000@umindanao.edu.ph',
-      displayName: 'J. Dela Cruz',
-    ));
-    await tester.pumpAndSettle();
 
     expect(find.text('Conversations'), findsOneWidget);
-    expect(find.text('J. Dela Cruz'), findsOneWidget);
+    expect(find.text('J. Dela Cruz'), findsOneWidget); // document name
     expect(find.text('Hi'), findsOneWidget); // last-message preview
   });
 
@@ -1113,15 +1103,9 @@ void main() {
     await tester.tap(find.text('Chats'));
     await tester.pumpAndSettle();
 
-    final chat = sampleChat();
+    final chat = sampleChat(buyerId: 'test-uid');
     chats.chats[chat.id] = chat;
     chats.emitList();
-    await tester.pumpAndSettle();
-    members.emit(const Member(
-      uid: 'seller-1',
-      email: 'j.delacruz.000000@umindanao.edu.ph',
-      displayName: 'J. Dela Cruz',
-    ));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('J. Dela Cruz'));
@@ -1136,7 +1120,7 @@ void main() {
       condition: 'good',
     ));
     await tester.pumpAndSettle();
-    chats.emitMessages('l1_buyer-1'); // empty: no messages yet
+    chats.emitMessages('l1_test-uid'); // empty: no messages yet
     await tester.pumpAndSettle();
     expect(find.text('Say hi — or send an offer.'), findsOneWidget); // thread
   });
