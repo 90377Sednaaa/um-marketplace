@@ -35,6 +35,17 @@ class ModerationScreen extends StatelessWidget {
   final String viewerId;
 
   Future<void> _hideListing(BuildContext context, Report report) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => _ConfirmDialog(
+        title: 'Hide this listing?',
+        body: 'The listing will be removed from the marketplace and the report '
+            'will be cleared. This hides the content but does not ban the user.',
+        confirmLabel: 'Hide listing',
+        isDestructive: true,
+      ),
+    );
+    if (ok != true || !context.mounted) return;
     try {
       if (report.listingId != null) {
         await listingsStore.hideListing(report.listingId!);
@@ -44,7 +55,7 @@ class ModerationScreen extends StatelessWidget {
       await showBrutalSuccessDialog(
         context,
         title: 'Listing hidden',
-        message: 'Listing hidden.',
+        message: 'Listing hidden and report cleared.',
       );
     } catch (_) {
       if (!context.mounted) return;
@@ -52,6 +63,36 @@ class ModerationScreen extends StatelessWidget {
         context,
         title: 'Hide failed',
         message: 'Couldn\'t hide the listing — try again.',
+      );
+    }
+  }
+
+  Future<void> _dismissReport(BuildContext context, Report report) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => _ConfirmDialog(
+        title: 'Dismiss this report?',
+        body: 'Mark this report as spam or not actionable. The listing stays '
+            'and the report will be cleared without hiding or banning.',
+        confirmLabel: 'Dismiss',
+        isDestructive: false,
+      ),
+    );
+    if (ok != true || !context.mounted) return;
+    try {
+      await reportStore.resolveReport(report.id);
+      if (!context.mounted) return;
+      await showBrutalSuccessDialog(
+        context,
+        title: 'Report dismissed',
+        message: 'Report dismissed as spam.',
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Dismiss failed',
+        message: 'Couldn\'t dismiss the report — try again.',
       );
     }
   }
@@ -199,6 +240,8 @@ class ModerationScreen extends StatelessWidget {
                                     ? () => _viewListing(
                                         context, report.listingId!)
                                     : null,
+                                onDismiss: () =>
+                                    _dismissReport(context, report),
                               ),
                             ),
                         ],
@@ -232,6 +275,7 @@ class _ReportCard extends StatelessWidget {
     required this.onHide,
     required this.onBan,
     required this.onView,
+    required this.onDismiss,
   });
 
   final Report report;
@@ -239,6 +283,7 @@ class _ReportCard extends StatelessWidget {
   final VoidCallback? onHide;
   final VoidCallback? onBan;
   final VoidCallback? onView;
+  final VoidCallback onDismiss;
 
   @override
   Widget build(BuildContext context) {
@@ -328,6 +373,13 @@ class _ReportCard extends StatelessWidget {
                   icon: LucideIcons.ban500,
                   onTap: onBan!,
                 ),
+              _ActionPill(
+                label: 'Dismiss',
+                fill: UmColors.surface,
+                labelColor: UmColors.mutedForeground,
+                icon: LucideIcons.x500,
+                onTap: onDismiss,
+              ),
             ],
           ),
         ],
@@ -643,11 +695,13 @@ class _ConfirmDialog extends StatelessWidget {
     required this.title,
     required this.body,
     required this.confirmLabel,
+    this.isDestructive = true,
   });
 
   final String title;
   final String body;
   final String confirmLabel;
+  final bool isDestructive;
 
   @override
   Widget build(BuildContext context) {
@@ -677,8 +731,8 @@ class _ConfirmDialog extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(true),
           child: Text(
             confirmLabel,
-            style: const TextStyle(
-              color: UmColors.destructive,
+            style: TextStyle(
+              color: isDestructive ? UmColors.destructive : UmColors.primary,
               fontWeight: FontWeight.w700,
             ),
           ),

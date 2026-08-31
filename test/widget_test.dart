@@ -2058,6 +2058,9 @@ void main() {
 
     await tester.tap(find.text('Hide listing'));
     await tester.pumpAndSettle();
+    expect(find.text('Hide this listing?'), findsOneWidget);
+    await tester.tap(find.text('Hide listing').last);
+    await tester.pumpAndSettle();
 
     expect(listings.hiddenIds, ['l1']);
     expect(reports.reports, isEmpty); // resolved, left the inbox
