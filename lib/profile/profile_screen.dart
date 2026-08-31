@@ -89,8 +89,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         content: Text(
           '"${listing.title}" leaves the marketplace, stops appearing in '
-          'search, and its chats close to new messages (ADR 0002 — the '
-          'deal already happened in person). This cannot be undone.',
+          'search, and its chats close to new messages — the '
+          'deal already happened in person. This cannot be undone.',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         actions: [

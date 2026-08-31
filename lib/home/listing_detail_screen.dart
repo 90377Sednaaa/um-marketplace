@@ -48,7 +48,7 @@ class ListingDetailScreen extends StatelessWidget {
       context,
       title: 'Report listing',
       description:
-          'This flags the listing for the Admin (ADR 0003). The reporter '
+          'This flags the listing for the Admin. The reporter '
           'is your verified account.',
     );
     if (reason == null || !context.mounted) return;
@@ -578,7 +578,7 @@ class _SafetyTips extends StatelessWidget {
           _tip(
             context,
             Icons.payments_outlined,
-            'No payments happen inside the app (ADR 0002).',
+            'No payments happen inside the app.',
           ),
         ],
       ),

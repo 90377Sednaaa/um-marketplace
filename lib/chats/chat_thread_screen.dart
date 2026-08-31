@@ -84,7 +84,7 @@ class ChatThreadScreen extends StatelessWidget {
       context,
       title: 'Report this chat',
       description:
-          'This flags the conversation for the Admin (ADR 0003). The '
+          'This flags the conversation for the Admin. The '
           'reporter is your verified account.',
     );
     if (reason == null || !context.mounted) return;
@@ -864,8 +864,8 @@ class _RateDialogState extends State<_RateDialog> {
             ),
             const SizedBox(height: 6),
             Text(
-              'One honest score for a deal that already happened in person '
-              '(ADR 0002/0004). It becomes part of their public ★ average.',
+              'One honest score for a deal that already happened in person. '
+              'It becomes part of their public ★ average.',
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium

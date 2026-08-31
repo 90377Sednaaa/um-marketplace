@@ -254,8 +254,8 @@ class BannedScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Your membership was reviewed by the Admin '
-                          '(ADR 0003). If you believe this is a mistake, '
+                          'Your membership was reviewed by the Admin. '
+                          'If you believe this is a mistake, '
                           'reach out through your university.',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyMedium

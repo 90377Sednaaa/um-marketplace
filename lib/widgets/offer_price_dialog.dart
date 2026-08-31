@@ -70,7 +70,7 @@ class _OfferPriceDialogState extends State<_OfferPriceDialog> {
             const SizedBox(height: 6),
             Text(
               'Your offer lands on the thread as an offer message. '
-              'No money moves in the app (ADR 0002).',
+              'No money moves in the app.',
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
