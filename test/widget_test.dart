@@ -472,6 +472,15 @@ class FakeListingsStore implements ListingStore {
   Future<void> createListing(String sellerId, ListingDraft draft) async {
     drafts.add(draft);
   }
+
+  @override
+  Future<Listing?> fetchListing(String id) async {
+    try {
+      return listings.firstWhere((l) => l.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
 }
 
 const _student = AuthUser(

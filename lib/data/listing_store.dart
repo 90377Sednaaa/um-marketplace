@@ -218,6 +218,9 @@ abstract interface class ListingStore {
   /// Admin: hides one listing (the report action; the rules permit the
   /// Admin to set status 'hidden' on any listing).
   Future<void> hideListing(String listingId);
+
+  /// One-shot fetch for moderation view.
+  Future<Listing?> fetchListing(String id);
 }
 
 class FirestoreListingsStore implements ListingStore {
@@ -306,5 +309,12 @@ class FirestoreListingsStore implements ListingStore {
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  @override
+  Future<Listing?> fetchListing(String id) async {
+    final doc = await _firestore.collection('listings').doc(id).get();
+    final data = doc.data();
+    return data == null ? null : Listing.fromDoc(doc.id, data);
   }
 }

@@ -104,7 +104,34 @@ class FirestoreMemberStore implements MemberStore {
     final doc = _firestore.collection('members').doc(authUser.uid);
     final existing = await doc.get();
     final data = existing.exists ? existing.data() : null;
-    if (data != null) return Member.fromDoc(authUser.uid, data);
+    if (data != null) {
+      final existingName = (data['displayName'] as String?) ?? '';
+      // Sync to full Google name if the stored name is still the
+      // abbreviated "L. Murillo" form. This migrates existing members
+      // to the full name without a manual backfill.
+      if (existingName != authUser.displayName &&
+          authUser.displayName.isNotEmpty) {
+        final isAbbreviated = RegExp(r'^[A-Z]\.\s+[A-Z][a-z]+$')
+                .hasMatch(existingName) ||
+            existingName.length < authUser.displayName.length;
+        if (isAbbreviated) {
+          try {
+            await doc.update({
+              'displayName': authUser.displayName,
+              'updatedAt': FieldValue.serverTimestamp(),
+            });
+            final updated = await doc.get();
+            final updatedData = updated.data();
+            if (updatedData != null) {
+              return Member.fromDoc(authUser.uid, updatedData);
+            }
+          } catch (_) {
+            // Best-effort — fall through to existing.
+          }
+        }
+      }
+      return Member.fromDoc(authUser.uid, data);
+    }
 
     // Shape must satisfy the member create rule: email == Google-verified
     // token email, isAdmin computed from the address, banned false, empty

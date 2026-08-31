@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
+import '../data/rating_store.dart';
 import '../data/report_store.dart';
+import '../home/listing_detail_screen.dart';
 import '../home/relative_time.dart';
 import '../theme/app_theme.dart';
 import '../widgets/brutal_app_bar.dart';
@@ -19,11 +22,17 @@ class ModerationScreen extends StatelessWidget {
     required this.memberStore,
     required this.listingsStore,
     required this.reportStore,
+    required this.chatStore,
+    required this.ratingStore,
+    required this.viewerId,
   });
 
   final MemberStore memberStore;
   final ListingStore listingsStore;
   final ReportStore reportStore;
+  final ChatStore chatStore;
+  final RatingStore ratingStore;
+  final String viewerId;
 
   Future<void> _hideListing(BuildContext context, Report report) async {
     try {
@@ -79,6 +88,42 @@ class ModerationScreen extends StatelessWidget {
         context,
         title: 'Ban failed',
         message: 'Couldn\'t ban the member — try again.',
+      );
+    }
+  }
+
+  Future<void> _viewListing(BuildContext context, String listingId) async {
+    try {
+      final listing = await listingsStore.fetchListing(listingId);
+      if (listing == null) {
+        if (!context.mounted) return;
+        await showBrutalErrorDialog(
+          context,
+          title: 'Not found',
+          message: 'Listing not found — it may have been removed.',
+        );
+        return;
+      }
+      if (!context.mounted) return;
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => ListingDetailScreen(
+            listing: listing,
+            memberStore: memberStore,
+            listingsStore: listingsStore,
+            chatStore: chatStore,
+            ratingStore: ratingStore,
+            reportStore: reportStore,
+            viewerId: viewerId,
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      await showBrutalErrorDialog(
+        context,
+        title: 'Failed',
+        message: 'Could not open listing — try again.',
       );
     }
   }
@@ -150,6 +195,10 @@ class ModerationScreen extends StatelessWidget {
                                     ? () =>
                                         _banMember(context, report)
                                     : null,
+                                onView: report.listingId != null
+                                    ? () => _viewListing(
+                                        context, report.listingId!)
+                                    : null,
                               ),
                             ),
                         ],
@@ -182,12 +231,14 @@ class _ReportCard extends StatelessWidget {
     required this.memberStore,
     required this.onHide,
     required this.onBan,
+    required this.onView,
   });
 
   final Report report;
   final MemberStore memberStore;
   final VoidCallback? onHide;
   final VoidCallback? onBan;
+  final VoidCallback? onView;
 
   @override
   Widget build(BuildContext context) {
@@ -249,22 +300,32 @@ class _ReportCard extends StatelessWidget {
             },
           ),
           const SizedBox(height: 12),
-          Row(
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
             children: [
+              if (onView != null)
+                _ActionPill(
+                  label: 'View listing',
+                  fill: UmColors.goldSoft,
+                  labelColor: UmColors.ink,
+                  icon: LucideIcons.eye500,
+                  onTap: onView!,
+                ),
               if (onHide != null)
                 _ActionPill(
                   label: 'Hide listing',
                   fill: UmColors.surface,
                   labelColor: UmColors.ink,
+                  icon: LucideIcons.eyeOff500,
                   onTap: onHide!,
                 ),
-              if (onHide != null && onBan != null)
-                const SizedBox(width: 10),
               if (onBan != null)
                 _ActionPill(
                   label: 'Ban user',
                   fill: UmColors.destructive,
                   labelColor: UmColors.onPrimary,
+                  icon: LucideIcons.ban500,
                   onTap: onBan!,
                 ),
             ],
@@ -281,12 +342,14 @@ class _ActionPill extends StatefulWidget {
     required this.fill,
     required this.labelColor,
     required this.onTap,
+    this.icon,
   });
 
   final String label;
   final Color fill;
   final Color labelColor;
   final VoidCallback onTap;
+  final IconData? icon;
 
   @override
   State<_ActionPill> createState() => _ActionPillState();
@@ -326,13 +389,22 @@ class _ActionPillState extends State<_ActionPill> {
               border: Border.all(color: UmColors.ink, width: 2),
               borderRadius: BorderRadius.circular(999),
             ),
-            child: Text(
-              widget.label,
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
-                color: widget.labelColor,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (widget.icon != null) ...[
+                  Icon(widget.icon, size: 14, color: widget.labelColor),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  widget.label,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                    color: widget.labelColor,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
