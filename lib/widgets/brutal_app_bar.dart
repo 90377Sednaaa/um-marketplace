@@ -5,12 +5,12 @@ import '../theme/app_theme.dart';
 
 /// Modernized Neo Brutalism AppBar for pushed screens:
 ///
-/// White surface, 3dp ink bottom border + hard shadow, brutal back
-/// button (42dp square, 2dp border, 3dp shadow) and a gold pill
-/// title with ink border. Keeps the SAME text strings ('LISTING',
+/// Maroon (UM primary) to add color against the mostly-white canvas —
+/// 3dp ink bottom border + hard shadow, brutal white back button
+/// (40dp square, 2dp border, 3dp shadow) and a gold pill title with
+/// ink border. Keeps the SAME text strings ('LISTING',
 /// 'NOTIFICATIONS', 'MODERATION') so existing widget tests still find
-/// them via `find.text`, but the visual is now card-like, not a bare
-/// maroon strip.
+/// them via `find.text`.
 class BrutalAppBar extends StatelessWidget {
   const BrutalAppBar({
     super.key,
@@ -32,7 +32,7 @@ class BrutalAppBar extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
-        color: UmColors.surface,
+        color: UmColors.primary,
         border: Border(bottom: BorderSide(color: UmColors.ink, width: 3)),
         boxShadow: [
           BoxShadow(
