@@ -139,7 +139,20 @@ class _SellScreenState extends State<SellScreen> {
           photos: List.of(_photos),
         ),
       );
-      if (mounted) widget.onPublished();
+      if (!mounted) return;
+      // Clear the form so a fresh listing starts blank.
+      _title.clear();
+      _price.clear();
+      _location.clear();
+      _description.clear();
+      setState(() {
+        _category = null;
+        _condition = 'good';
+        _photos.clear();
+        _error = null;
+        _pickFailed = false;
+      });
+      widget.onPublished();
     } catch (_) {
       if (mounted) {
         await showBrutalErrorDialog(

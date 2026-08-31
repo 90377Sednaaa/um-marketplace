@@ -114,9 +114,11 @@ class FirebaseAuthService implements AuthService {
   AuthUser? _toAuthUser(User? user) {
     if (user == null) return null;
     final email = (user.email ?? '').trim().toLowerCase();
+    final googleName = (user.displayName ?? '').trim();
+    final fallbackFromEmail = displayNameFromUmEmail(email);
     final displayName = isValidUmStudentEmail(email)
-        ? displayNameFromUmEmail(email)
-        : (user.displayName ?? email);
+        ? (googleName.isNotEmpty ? googleName : fallbackFromEmail)
+        : (googleName.isNotEmpty ? googleName : email);
     return AuthUser(
       uid: user.uid,
       email: email,

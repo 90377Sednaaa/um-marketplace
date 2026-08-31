@@ -54,12 +54,13 @@ class _ReportDialogState extends State<_ReportDialog> {
         borderRadius: BorderRadius.circular(8),
         side: const BorderSide(color: UmColors.ink, width: 2),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             Text(
               widget.title,
               style: const TextStyle(
@@ -113,16 +114,18 @@ class _ReportDialogState extends State<_ReportDialog> {
                     fill: UmColors.surface,
                     labelColor: UmColors.ink,
                     stretch: true,
-                    onPressed: () => Navigator.of(context).pop(false),
+                    compact: true,
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: NbrButton(
                     label: 'Submit report',
                     fill: UmColors.gold,
                     labelColor: UmColors.ink,
                     stretch: true,
+                    compact: true,
                     onPressed: _submit,
                   ),
                 ),
@@ -131,6 +134,7 @@ class _ReportDialogState extends State<_ReportDialog> {
           ],
         ),
       ),
+    ),
     );
   }
 }

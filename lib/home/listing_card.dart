@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../data/listing_store.dart';
 import '../theme/app_theme.dart';
 import '../widgets/photo_placeholder.dart';
 import 'money_format.dart';
 
-/// The product card (DESIGN.md §5): white fill, 2 dp ink border, 8 dp
-/// radius, 4 dp hard shadow; photo top (4:3), price in green weight 800,
-/// category chip in `goldSoft`, condition/location captions.
-///
-/// With an [onTap] the card becomes interactive and gains the mechanical
-/// press (DESIGN.md §1/§7): it translates onto its shadow on tap-down and
-/// snaps back on release, so every tap has visible press feedback.
+/// The product card (DESIGN.md §5) — polished brutal edition:
+/// white fill, 2 dp ink border, 4 dp hard shadow; photo top (4:3),
+/// price in green weight 800, category chip in `goldSoft`, condition/
+/// location as pill + icon caption. Press translates onto shadow.
 class ListingCard extends StatefulWidget {
   const ListingCard({super.key, required this.listing, this.onTap});
 
@@ -29,10 +27,6 @@ class _ListingCardState extends State<ListingCard> {
   Widget build(BuildContext context) {
     final enabled = widget.onTap != null;
     final listing = widget.listing;
-    final captionStyle = Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: UmColors.mutedForeground,
-          fontSize: 11.5,
-        );
 
     final face = AnimatedContainer(
       duration: const Duration(milliseconds: 80),
@@ -46,45 +40,114 @@ class _ListingCardState extends State<ListingCard> {
       decoration: BoxDecoration(
         color: UmColors.surface,
         border: Border.all(color: UmColors.ink, width: 2),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AspectRatio(
             aspectRatio: 4 / 3,
-            child: listing.photos.isEmpty
-                ? const PhotoPlaceholder()
-                : Image.memory(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (listing.photos.isEmpty)
+                  const PhotoPlaceholder()
+                else
+                  Image.memory(
                     listing.photos.first,
                     fit: BoxFit.cover,
                     errorBuilder: (_, _, _) => const PhotoPlaceholder(),
                   ),
+                // Photo count badge when 2 images.
+                if (listing.photos.length > 1)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: UmColors.surface,
+                        border: Border.all(color: UmColors.ink, width: 1.5),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.collections_outlined,
+                              size: 12, color: UmColors.ink),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${listing.photos.length}',
+                            style: GoogleFonts.spaceGrotesk(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 11,
+                              color: UmColors.ink,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                // Subtle top gradient for legibility if we ever overlay text.
+                if (listing.status == 'sold')
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Transform.rotate(
+                      angle: -0.04,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: UmColors.gold,
+                          border: Border.all(color: UmColors.ink, width: 1.5),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          'SOLD',
+                          style: GoogleFonts.spaceGrotesk(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 10,
+                            letterSpacing: 0.8,
+                            color: UmColors.ink,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
           Padding(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.fromLTRB(12, 11, 12, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   formatPesos(listing.price),
-                  style: const TextStyle(
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.spaceGrotesk(
                     fontWeight: FontWeight.w800,
-                    fontSize: 16,
+                    fontSize: 17,
                     color: UmColors.success,
+                    letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 Text(
                   listing.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  style: GoogleFonts.spaceGrotesk(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    height: 1.25,
+                    color: UmColors.onSurface,
+                  ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 9),
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
@@ -92,7 +155,7 @@ class _ListingCardState extends State<ListingCard> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
+                          horizontal: 9, vertical: 4),
                       decoration: BoxDecoration(
                         color: UmColors.goldSoft,
                         border: Border.all(color: UmColors.ink, width: 1.5),
@@ -100,22 +163,54 @@ class _ListingCardState extends State<ListingCard> {
                       ),
                       child: Text(
                         listing.category,
-                        style:
-                            Theme.of(context).textTheme.labelMedium?.copyWith(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: UmColors.ink,
-                                ),
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                          color: UmColors.ink,
+                        ),
                       ),
                     ),
-                    Text(
-                      [
-                        if (listing.condition.isNotEmpty) listing.condition,
-                        if (listing.location?.isNotEmpty ?? false)
-                          listing.location!,
-                      ].join(' · '),
-                      style: captionStyle,
-                    ),
+                    if (listing.condition.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: UmColors.surface,
+                          border: Border.all(
+                              color: UmColors.ink.withValues(alpha: 0.85),
+                              width: 1.2),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          listing.condition,
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 11,
+                            color: UmColors.mutedForeground,
+                          ),
+                        ),
+                      ),
+                    if (listing.location?.isNotEmpty ?? false)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.place_outlined,
+                              size: 11, color: UmColors.mutedForeground),
+                          const SizedBox(width: 2),
+                          Flexible(
+                            child: Text(
+                              listing.location!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.outfit(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 11,
+                                color: UmColors.mutedForeground,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ],
@@ -132,14 +227,12 @@ class _ListingCardState extends State<ListingCard> {
       onTap: widget.onTap,
       child: Stack(
         children: [
-          // Hard offset shadow behind the face, uncovered while the card
-          // sits translated at rest (disabled cards have no shadow).
           if (enabled)
             Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: UmColors.ink,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),

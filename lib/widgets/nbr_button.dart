@@ -16,6 +16,7 @@ class NbrButton extends StatefulWidget {
     this.fill = UmColors.primary,
     this.labelColor = UmColors.onPrimary,
     this.stretch = false,
+    this.compact = false,
   });
 
   final String label;
@@ -31,6 +32,10 @@ class NbrButton extends StatefulWidget {
   /// bars) instead of hugging its label.
   final bool stretch;
 
+  /// Compact reduces padding + font so two buttons fit in a dialog row
+  /// without a 9 px overflow on narrow phones.
+  final bool compact;
+
   @override
   State<NbrButton> createState() => _NbrButtonState();
 }
@@ -44,6 +49,9 @@ class _NbrButtonState extends State<NbrButton> {
     final fill = enabled ? widget.fill : UmColors.muted;
     final labelColor = enabled ? widget.labelColor : UmColors.mutedForeground;
 
+    final horizontal = widget.compact ? 14.0 : 20.0;
+    final vertical = widget.compact ? 12.0 : 14.0;
+    final fontSize = widget.compact ? 14.0 : 15.0;
     final face = AnimatedContainer(
       duration: const Duration(milliseconds: 80),
       curve: Curves.linear,
@@ -52,7 +60,7 @@ class _NbrButtonState extends State<NbrButton> {
         _pressed ? 0 : UmShadows.card.dy,
         0,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: EdgeInsets.symmetric(horizontal: horizontal, vertical: vertical),
       decoration: BoxDecoration(
         color: fill,
         border: Border.all(color: UmColors.ink, width: 2),
@@ -64,15 +72,22 @@ class _NbrButtonState extends State<NbrButton> {
         children: [
           if (widget.icon != null) ...[
             widget.icon!,
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
           ],
-          Text(
-            widget.label,
-            style: GoogleFonts.spaceGrotesk(
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
-              letterSpacing: 0.3,
-              color: labelColor,
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                widget.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.spaceGrotesk(
+                  fontWeight: FontWeight.w700,
+                  fontSize: fontSize,
+                  letterSpacing: 0.3,
+                  color: labelColor,
+                ),
+              ),
             ),
           ),
         ],
