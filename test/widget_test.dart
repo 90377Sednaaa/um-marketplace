@@ -1597,7 +1597,7 @@ void main() {
     expect(find.text('Mechanical keyboard'), findsOneWidget);
   });
 
-  testWidgets('popular search chips open Browse pre-filled',
+  testWidgets('home shows hero search and category tiles, quick searches removed',
       (WidgetTester tester) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
@@ -1630,22 +1630,31 @@ void main() {
     listings.emitListings();
     await tester.pumpAndSettle();
 
-    // Chips render before the feed grid, so `.first` is the entry chip.
-    await tester.tap(find.text('Statistics notes').first);
+    // Quick search chips removed — only hero search + category tiles remain.
+    expect(find.text('Statistics notes'), findsOneWidget); // only the listing card
+    expect(find.text('Electric fan'), findsNothing);
+    expect(find.text('Airpods'), findsNothing);
+    // Hero search still opens Browse.
+    await tester.tap(find.byIcon(LucideIcons.search500).first);
     await tester.pumpAndSettle();
     listings.emitListings();
     await tester.pumpAndSettle();
-
-    // Browse opened with the query pre-filled (field + card both show it);
-    // the matching card is the one in the results grid.
+    expect(find.text('BROWSE'), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    // Category tiles still open Browse pre-filtered.
+    await tester.tap(find.text('gadgets').first);
+    await tester.pumpAndSettle();
+    listings.emitListings();
+    await tester.pumpAndSettle();
+    expect(find.text('Dorm lamp'), findsNothing);
     expect(
       find.descendant(
         of: find.byType(ListingCard),
         matching: find.text('Statistics notes'),
       ),
-      findsOneWidget,
+      findsNothing,
     );
-    expect(find.text('Dorm lamp'), findsNothing);
   });
 
   testWidgets('profile shows member identity and the rating placeholder',

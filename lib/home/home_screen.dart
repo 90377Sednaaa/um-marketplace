@@ -12,8 +12,8 @@ import 'browse_screen.dart';
 import 'listing_card.dart';
 import 'listing_detail_screen.dart';
 
-/// Home (DESIGN.md screen 1): hero search + popular searches + category
-/// tiles + recent listings feed. Lean — no member card, no Sell/SignOut
+/// Home (DESIGN.md screen 1): hero search + category tiles + recent
+/// listings feed. Lean — no member card, no Sell/SignOut
 /// (those live on Profile + BottomNav only, per brutal declutter).
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
@@ -83,19 +83,7 @@ class HomeScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               children: [
                 _HeroSearchBar(onTap: () => _openBrowse(context)),
-                const SizedBox(height: 14),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final term in kPopularSearches)
-                      _PopularSearchChip(
-                        label: term,
-                        onTap: () => _openBrowse(context, query: term),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -329,15 +317,7 @@ class _BrutalFabState extends State<_BrutalFab> {
   }
 }
 
-/// Static v1 popular searches (DESIGN.md screen 1 — "static chips in v1").
-const List<String> kPopularSearches = [
-  'Statistics notes',
-  'Electric fan',
-  'Airpods',
-  'Extension cord',
-];
-
-/// Brutal icons for the fixed category tiles — Phosphor bold inside
+/// Brutal icons for the fixed category tiles — Lucide bold inside
 /// goldSoft circle, ink-bordered square tile.
 const Map<String, IconData> _categoryIcons = {
   'textbooks': LucideIcons.bookOpen500,
@@ -404,36 +384,6 @@ class _HeroSearchBarState extends State<_HeroSearchBar> {
                   ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PopularSearchChip extends StatelessWidget {
-  const _PopularSearchChip({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: UmColors.surface,
-          border: Border.all(color: UmColors.ink, width: 1.5),
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-            color: UmColors.onSurface,
-          ),
         ),
       ),
     );

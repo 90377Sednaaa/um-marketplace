@@ -7,6 +7,7 @@ import '../data/member_store.dart';
 import '../data/rating_store.dart';
 import '../data/report_store.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brutal_app_bar.dart';
 import '../widgets/nbr_button.dart';
 import 'listing_card.dart';
 import 'listing_detail_screen.dart';
@@ -117,32 +118,9 @@ class _BrowseScreenState extends State<BrowseScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              width: double.infinity,
-              color: UmColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    tooltip: 'Back',
-                    icon: const Icon(
-                      LucideIcons.arrowLeft500,
-                      size: 24,
-                      color: UmColors.onPrimary,
-                    ),
-                  ),
-                  const Text(
-                    'BROWSE',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 16,
-                      letterSpacing: 1.2,
-                      color: UmColors.onPrimary,
-                    ),
-                  ),
-                ],
-              ),
+            const BrutalAppBar(
+              title: 'BROWSE',
+              leadingIcon: LucideIcons.search500,
             ),
             Expanded(
               child: StreamBuilder<List<Listing>>(
