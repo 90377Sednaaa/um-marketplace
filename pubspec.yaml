@@ -43,6 +43,7 @@ dependencies:
   firebase_messaging: ^16.6.0
   google_fonts: ^6.2.1
   flutter_svg: ^2.2.1
+  card_stack_swiper: ^1.1.2
 
 dev_dependencies:
   flutter_test:

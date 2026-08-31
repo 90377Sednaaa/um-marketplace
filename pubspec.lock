@@ -33,6 +33,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+  card_stack_swiper:
+    dependency: "direct main"
+    description:
+      name: card_stack_swiper
+      sha256: "6103471e05cc54c512e6161e020dcb0f59859af2238f374c4c1c4d4160b90ae1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.2"
   characters:
     dependency: transitive
     description:

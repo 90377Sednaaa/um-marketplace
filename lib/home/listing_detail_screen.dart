@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:card_stack_swiper/card_stack_swiper.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -273,20 +274,9 @@ class _PhotoHero extends StatefulWidget {
 }
 
 class _PhotoHeroState extends State<_PhotoHero> {
-  late final PageController _controller;
+  final CardStackSwiperController _swiperController =
+      CardStackSwiperController();
   int _index = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = PageController();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   void _openFullscreen(int initial) {
     showDialog<void>(
@@ -300,6 +290,12 @@ class _PhotoHeroState extends State<_PhotoHero> {
   }
 
   @override
+  void dispose() {
+    _swiperController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final photos = widget.listing.photos;
     return AspectRatio(
@@ -309,7 +305,7 @@ class _PhotoHeroState extends State<_PhotoHero> {
         decoration: BoxDecoration(
           color: UmColors.muted,
           border: Border.all(color: UmColors.ink, width: 2),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           boxShadow: const [
             BoxShadow(
               color: UmColors.ink,
@@ -323,71 +319,115 @@ class _PhotoHeroState extends State<_PhotoHero> {
           children: [
             if (photos.isEmpty)
               const PhotoPlaceholder()
-            else ...[
-              // Stacked peek for 2 photos — behind card offset so the
-              // stack reads as "cards piled like a dating deck".
-              if (photos.length == 2)
-                Positioned.fill(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 10, left: 10),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: UmColors.ink, width: 2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Opacity(
-                        opacity: 0.88,
-                        child: Image.memory(
-                          photos[1 - _index],
+            else if (photos.length == 1)
+              GestureDetector(
+                onTap: () => _openFullscreen(0),
+                child: Image.memory(
+                  photos.first,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => const PhotoPlaceholder(),
+                ),
+              )
+            else
+              // card_stack_swiper: dating-app stack, swipe left/right to
+              // cycle through the listing's photos. Requested via
+              // card_stack_swiper: ^1.1.2.
+              CardStackSwiper(
+                controller: _swiperController,
+                cardsCount: photos.length,
+                initialIndex: _index,
+                isLoop: true,
+                maxAngle: 18,
+                threshold: 40,
+                backCardOffset: const Offset(14, 10),
+                backCardScale: 0.92,
+                backCardAngle: 0.06,
+                allowedSwipeDirection: const AllowedSwipeDirection.only(
+                  left: true,
+                  right: true,
+                  up: false,
+                  down: false,
+                ),
+                onSwipe: (previousIndex, currentIndex, direction) {
+                  if (currentIndex != null) {
+                    setState(() => _index = currentIndex);
+                  }
+                  return true;
+                },
+                onPressed: (index) => _openFullscreen(index),
+                cardBuilder: (context, index, horizontalPercentage,
+                    verticalPercentage) {
+                  // Brutal card: ink border + 8dp radius, image cover.
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: UmColors.surface,
+                      border: Border.all(color: UmColors.ink, width: 2),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: UmColors.ink,
+                          offset: Offset(3, 3),
+                          blurRadius: 0,
+                        ),
+                      ],
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.memory(
+                          photos[index],
                           fit: BoxFit.cover,
                           errorBuilder: (_, _, _) =>
                               const PhotoPlaceholder(),
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-              PageView.builder(
-                controller: _controller,
-                itemCount: photos.length,
-                onPageChanged: (i) => setState(() => _index = i),
-                itemBuilder: (context, i) {
-                  return GestureDetector(
-                    onTap: () => _openFullscreen(i),
-                    child: Image.memory(
-                      photos[i],
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const PhotoPlaceholder(),
+                        // Tap hint — subtle eye icon bottom-right.
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: UmColors.surface.withValues(alpha: 0.92),
+                              border:
+                                  Border.all(color: UmColors.ink, width: 1.5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.zoom_out_map,
+                                size: 14, color: UmColors.ink),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },
               ),
-              if (photos.length > 1)
-                Positioned(
-                  bottom: 12,
-                  left: 0,
-                  right: 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      for (int i = 0; i < photos.length; i++)
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 3),
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: i == _index
-                                ? UmColors.gold
-                                : UmColors.surface,
-                            border: Border.all(
-                                color: UmColors.ink, width: 1.5),
-                            shape: BoxShape.circle,
-                          ),
+            // Dots for 2-image listings — stay readable over swiper.
+            if (photos.length > 1)
+              Positioned(
+                bottom: 12,
+                left: 0,
+                right: 0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (int i = 0; i < photos.length; i++)
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color:
+                              i == _index ? UmColors.gold : UmColors.surface,
+                          border:
+                              Border.all(color: UmColors.ink, width: 1.5),
+                          shape: BoxShape.circle,
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
+              ),
+            if (photos.isNotEmpty)
               Positioned(
                 top: 10,
                 right: 10,
@@ -409,7 +449,6 @@ class _PhotoHeroState extends State<_PhotoHero> {
                   ),
                 ),
               ),
-            ],
             if (widget.listing.status == 'sold')
               Positioned(
                 top: 12,
