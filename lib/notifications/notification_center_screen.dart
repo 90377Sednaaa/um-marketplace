@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/notification_store.dart';
 import '../home/relative_time.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brutal_app_bar.dart';
 
 /// Notification center (DESIGN.md screen 8): pushed from the Home bell;
 /// lists the member's notifications with unread rows marked by a gold
@@ -24,32 +25,9 @@ class NotificationCenterScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              width: double.infinity,
-              color: UmColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    tooltip: 'Back',
-                    icon: const Icon(
-                      Icons.arrow_back,
-                      size: 24,
-                      color: UmColors.onPrimary,
-                    ),
-                  ),
-                  const Text(
-                    'NOTIFICATIONS',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 16,
-                      letterSpacing: 1.2,
-                      color: UmColors.onPrimary,
-                    ),
-                  ),
-                ],
-              ),
+            const BrutalAppBar(
+              title: 'NOTIFICATIONS',
+              leadingIcon: Icons.notifications_outlined,
             ),
             Expanded(
               child: StreamBuilder<List<AppNotification>>(

@@ -11,6 +11,7 @@ import '../data/member_store.dart';
 import '../data/rating_store.dart';
 import '../data/report_store.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brutal_app_bar.dart';
 import '../widgets/brutal_dialog.dart';
 import '../widgets/nbr_button.dart';
 import '../widgets/offer_price_dialog.dart';
@@ -215,8 +216,9 @@ class ListingDetailScreen extends StatelessWidget {
   }
 }
 
-/// The shared neubrutalist header band for pushed screens: back arrow and
-/// an optional trailing action (the listing report flag).
+/// Modernized neo-brutal header for the listing detail — white surface
+/// with ink border + hard shadow, gold pill title, brutal icon buttons.
+/// Keeps the same 'LISTING' string for tests.
 class _DetailHeader extends StatelessWidget {
   const _DetailHeader({required this.onReport});
 
@@ -224,41 +226,14 @@ class _DetailHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      color: UmColors.primary,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () => Navigator.of(context).maybePop(),
-            tooltip: 'Back',
-            icon: const Icon(
-              Icons.arrow_back,
-              size: 24,
-              color: UmColors.onPrimary,
-            ),
-          ),
-          const Text(
-            'LISTING',
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              fontSize: 16,
-              letterSpacing: 1.2,
-              color: UmColors.onPrimary,
-            ),
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: onReport,
-            tooltip: 'Report listing',
-            icon: const Icon(
-              Icons.flag_outlined,
-              size: 22,
-              color: UmColors.onPrimary,
-            ),
-          ),
-        ],
+    return BrutalAppBar(
+      title: 'LISTING',
+      leadingIcon: Icons.inventory_2_outlined,
+      trailing: BrutalIconButton(
+        icon: Icons.flag_outlined,
+        tooltip: 'Report listing',
+        fill: UmColors.goldSoft,
+        onTap: onReport,
       ),
     );
   }

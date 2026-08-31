@@ -5,6 +5,7 @@ import '../data/member_store.dart';
 import '../data/report_store.dart';
 import '../home/relative_time.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brutal_app_bar.dart';
 import '../widgets/brutal_dialog.dart';
 
 /// Moderation (DESIGN.md screen 9, ADR 0003): the single Admin's console
@@ -87,32 +88,9 @@ class ModerationScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              width: double.infinity,
-              color: UmColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    tooltip: 'Back',
-                    icon: const Icon(
-                      Icons.arrow_back,
-                      size: 24,
-                      color: UmColors.onPrimary,
-                    ),
-                  ),
-                  const Text(
-                    'MODERATION',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 16,
-                      letterSpacing: 1.2,
-                      color: UmColors.onPrimary,
-                    ),
-                  ),
-                ],
-              ),
+            const BrutalAppBar(
+              title: 'MODERATION',
+              leadingIcon: Icons.admin_panel_settings_outlined,
             ),
             Expanded(
               child: ListView(
