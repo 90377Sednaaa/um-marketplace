@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_theme.dart';
@@ -40,7 +41,7 @@ Future<void> showBrutalErrorDialog(
                     border: Border.all(color: UmColors.ink, width: 2),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Icon(Icons.priority_high,
+                  child: const Icon(LucideIcons.triangleAlert300,
                       size: 20, color: UmColors.onPrimary),
                 ),
                 const SizedBox(width: 10),
@@ -119,7 +120,7 @@ Future<void> showBrutalSuccessDialog(
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child:
-                      const Icon(Icons.check, size: 20, color: UmColors.onPrimary),
+                      const Icon(LucideIcons.check300, size: 20, color: UmColors.onPrimary),
                 ),
                 const SizedBox(width: 10),
                 Expanded(

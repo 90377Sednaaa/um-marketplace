@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_theme.dart';
@@ -46,7 +47,7 @@ class BrutalAppBar extends StatelessWidget {
       child: Row(
         children: [
           BrutalIconButton(
-            icon: Icons.arrow_back,
+            icon: LucideIcons.arrowLeft300,
             tooltip: 'Back',
             onTap: onBack ?? () => Navigator.of(context).maybePop(),
           ),

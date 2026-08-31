@@ -44,6 +44,7 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_svg: ^2.2.1
   card_stack_swiper: ^1.1.2
+  lucide_icons_flutter: ^3.1.17
 
 dev_dependencies:
   flutter_test:

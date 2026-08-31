@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../data/chat_store.dart';
@@ -183,7 +184,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.logout, size: 22, color: UmColors.ink),
+                    const Icon(LucideIcons.logOut300, size: 22, color: UmColors.ink),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -203,7 +204,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             strokeWidth: 2, color: UmColors.ink),
                       )
                     else
-                      const Icon(Icons.chevron_right,
+                      const Icon(LucideIcons.chevronRight300,
                           size: 18, color: UmColors.ink),
                   ],
                 ),
@@ -253,7 +254,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ],
                           ),
                           child: const Icon(
-                            Icons.sell_outlined,
+                            LucideIcons.tag300,
                             size: 28,
                             color: UmColors.ink,
                           ),
@@ -280,7 +281,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 16),
                         NbrButton(
                           label: 'Sell something',
-                          icon: const Icon(Icons.add,
+                          icon: const Icon(LucideIcons.plus300,
                               size: 18, color: UmColors.ink),
                           fill: UmColors.gold,
                           labelColor: UmColors.ink,
@@ -405,7 +406,7 @@ class _RatingCard extends StatelessWidget {
       child: Row(
         children: [
           const Icon(
-            Icons.star_outline,
+            LucideIcons.star300,
             size: 22,
             color: UmColors.mutedForeground,
           ),
@@ -447,7 +448,7 @@ class _AdminRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.admin_panel_settings_outlined,
+            const Icon(LucideIcons.shieldCheck300,
                 size: 22, color: UmColors.ink),
             const SizedBox(width: 10),
             Text(
@@ -458,7 +459,7 @@ class _AdminRow extends StatelessWidget {
                   ?.copyWith(fontSize: 15),
             ),
             const Spacer(),
-            const Icon(Icons.chevron_right,
+            const Icon(LucideIcons.chevronRight300,
                 size: 22, color: UmColors.ink),
           ],
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../data/listing_store.dart';
@@ -74,7 +75,7 @@ class _ListingCardState extends State<ListingCard> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.collections_outlined,
+                          const Icon(LucideIcons.images300,
                               size: 12, color: UmColors.ink),
                           const SizedBox(width: 3),
                           Text(
@@ -194,7 +195,7 @@ class _ListingCardState extends State<ListingCard> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.place_outlined,
+                          const Icon(LucideIcons.mapPin300,
                               size: 11, color: UmColors.mutedForeground),
                           const SizedBox(width: 2),
                           Flexible(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../auth/auth_service.dart';
 import '../data/chat_store.dart';
@@ -242,7 +243,7 @@ class BannedScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         const Icon(
-                          Icons.block,
+                          LucideIcons.ban300,
                           size: 44,
                           color: UmColors.destructive,
                         ),

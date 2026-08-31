@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../data/chat_store.dart';
 import '../data/listing_store.dart';
@@ -212,7 +213,7 @@ class _ThreadHeader extends StatelessWidget {
             onPressed: () => Navigator.of(context).maybePop(),
             tooltip: 'Back',
             icon: const Icon(
-              Icons.arrow_back,
+              LucideIcons.arrowLeft300,
               size: 24,
               color: UmColors.onPrimary,
             ),
@@ -233,7 +234,7 @@ class _ThreadHeader extends StatelessWidget {
             onPressed: onReport,
             tooltip: 'Report this chat',
             icon: const Icon(
-              Icons.flag_outlined,
+              LucideIcons.flag300,
               size: 22,
               color: UmColors.onPrimary,
             ),
@@ -389,7 +390,7 @@ class _InactiveBanner extends StatelessWidget {
       ),
       child: const Row(
         children: [
-          Icon(Icons.lock_outline, size: 18, color: UmColors.ink),
+          Icon(LucideIcons.lock300, size: 18, color: UmColors.ink),
           SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -626,7 +627,7 @@ class _ComposerState extends State<_Composer> {
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.request_quote_outlined,
+                  child: const Icon(LucideIcons.handCoins300,
                       size: 24, color: UmColors.ink),
                 ),
               ),
@@ -679,7 +680,7 @@ class _SendButton extends StatelessWidget {
               : null,
         ),
         child: Icon(
-          Icons.send,
+          LucideIcons.send300,
           size: 22,
           color: enabled ? UmColors.onPrimary : UmColors.mutedForeground,
         ),
@@ -778,7 +779,7 @@ class _RatingPromptState extends State<_RatingPrompt> {
       child: Row(
         children: [
           Icon(
-            Icons.star_outline,
+            LucideIcons.star300,
             size: 20,
             color: alreadyRated ? UmColors.mutedForeground : UmColors.ink,
           ),
@@ -880,7 +881,7 @@ class _RateDialogState extends State<_RateDialog> {
                     key: Key('rate-star-$star'),
                     onPressed: () => setState(() => _stars = star),
                     icon: Icon(
-                      star <= _stars ? Icons.star : Icons.star_border,
+                      star <= _stars ? LucideIcons.star300 : LucideIcons.star300,
                       size: 34,
                       color: star <= _stars
                           ? UmColors.gold

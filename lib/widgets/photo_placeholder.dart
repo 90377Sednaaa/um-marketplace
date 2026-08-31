@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../theme/app_theme.dart';
 
@@ -14,7 +15,7 @@ class PhotoPlaceholder extends StatelessWidget {
       color: UmColors.muted,
       alignment: Alignment.center,
       child: const Icon(
-        Icons.image_not_supported_outlined,
+        LucideIcons.imageOff300,
         size: 32,
         color: UmColors.mutedForeground,
       ),

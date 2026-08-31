@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../data/chat_store.dart';
 import '../data/listing_store.dart';
@@ -126,7 +127,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
                     onPressed: () => Navigator.of(context).maybePop(),
                     tooltip: 'Back',
                     icon: const Icon(
-                      Icons.arrow_back,
+                      LucideIcons.arrowLeft300,
                       size: 24,
                       color: UmColors.onPrimary,
                     ),
@@ -175,7 +176,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
                               setState(() => _query = value),
                           decoration: InputDecoration(
                             hintText: 'Search textbooks, gadgets…',
-                            prefixIcon: const Icon(Icons.search,
+                            prefixIcon: const Icon(LucideIcons.search300,
                                 color: UmColors.ink),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
@@ -207,7 +208,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
                         children: [
                           NbrButton(
                             label: 'Filters',
-                            icon: const Icon(Icons.tune,
+                            icon: const Icon(LucideIcons.slidersHorizontal300,
                                 size: 20, color: UmColors.ink),
                             fill: UmColors.surface,
                             labelColor: UmColors.ink,
@@ -347,7 +348,7 @@ class _BrowseEmpty extends StatelessWidget {
       child: Column(
         children: [
           const Icon(
-            Icons.search_off,
+            LucideIcons.searchX300,
             size: 48,
             color: UmColors.mutedForeground,
           ),

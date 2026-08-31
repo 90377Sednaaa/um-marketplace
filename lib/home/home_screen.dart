@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../data/chat_store.dart';
@@ -102,7 +103,7 @@ class HomeScreen extends StatelessWidget {
                       Expanded(
                         child: _CategoryTile(
                           icon: _categoryIcons[category] ??
-                              Icons.sell_outlined,
+                              LucideIcons.tag300,
                           label: category,
                           onTap: () =>
                               _openBrowse(context, category: category),
@@ -216,7 +217,7 @@ class _EmptyFeed extends StatelessWidget {
               ],
             ),
             child: const Icon(
-              Icons.storefront_outlined,
+              LucideIcons.store300,
               size: 28,
               color: UmColors.ink,
             ),
@@ -257,7 +258,7 @@ class _EmptyFeed extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.add,
+                    const Icon(LucideIcons.plus300,
                         size: 16, color: UmColors.ink),
                     const SizedBox(width: 8),
                     Text(
@@ -322,7 +323,7 @@ class _BrutalFabState extends State<_BrutalFab> {
                   ),
                 ],
         ),
-        child: const Icon(Icons.add, size: 28, color: UmColors.ink),
+        child: const Icon(LucideIcons.plus300, size: 28, color: UmColors.ink),
       ),
     );
   }
@@ -339,11 +340,11 @@ const List<String> kPopularSearches = [
 /// Brutal icons for the fixed category tiles — Phosphor bold inside
 /// goldSoft circle, ink-bordered square tile.
 const Map<String, IconData> _categoryIcons = {
-  'textbooks': Icons.menu_book_outlined,
-  'gadgets': Icons.devices_outlined,
-  'org merch': Icons.emoji_events_outlined,
-  'dorm essentials': Icons.bed_outlined,
-  'review materials': Icons.edit_note_outlined,
+  'textbooks': LucideIcons.bookOpen300,
+  'gadgets': LucideIcons.smartphone300,
+  'org merch': LucideIcons.award300,
+  'dorm essentials': LucideIcons.bed300,
+  'review materials': LucideIcons.notebookPen300,
 };
 
 /// The hero search bar (DESIGN.md §5): pill, white fill, 3 dp ink border,
@@ -394,7 +395,7 @@ class _HeroSearchBarState extends State<_HeroSearchBar> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.search, size: 20, color: UmColors.ink),
+            const Icon(LucideIcons.search300, size: 20, color: UmColors.ink),
             const SizedBox(width: 10),
             Text(
               'Search textbooks, gadgets…',

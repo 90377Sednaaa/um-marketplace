@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../data/notification_store.dart';
 import '../home/relative_time.dart';
@@ -27,7 +28,7 @@ class NotificationCenterScreen extends StatelessWidget {
           children: [
             const BrutalAppBar(
               title: 'NOTIFICATIONS',
-              leadingIcon: Icons.notifications_outlined,
+              leadingIcon: LucideIcons.bell300,
             ),
             Expanded(
               child: StreamBuilder<List<AppNotification>>(
@@ -45,7 +46,7 @@ class NotificationCenterScreen extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(
-                              Icons.notifications_none,
+                              LucideIcons.bellOff300,
                               size: 48,
                               color: UmColors.mutedForeground,
                             ),
@@ -94,10 +95,10 @@ class _NotificationRow extends StatelessWidget {
   final VoidCallback? onTap;
 
   static const Map<String, IconData> _typeIcons = {
-    'offer': Icons.request_quote_outlined,
-    'message': Icons.chat_bubble_outline,
-    'sold': Icons.sell_outlined,
-    'rating': Icons.star_outline,
+    'offer': LucideIcons.handCoins300,
+    'message': LucideIcons.messageCircle300,
+    'sold': LucideIcons.tag300,
+    'rating': LucideIcons.star300,
   };
 
   @override
@@ -129,7 +130,7 @@ class _NotificationRow extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                _typeIcons[notification.type] ?? Icons.notifications_outlined,
+                _typeIcons[notification.type] ?? LucideIcons.bell300,
                 size: 20,
                 color: UmColors.primary,
               ),

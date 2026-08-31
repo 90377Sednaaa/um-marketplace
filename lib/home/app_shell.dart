@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../chats/chats_screen.dart';
@@ -263,7 +264,7 @@ class _BellButtonState extends State<_BellButton> {
                 ],
         ),
         child: const Icon(
-          Icons.notifications_outlined,
+          LucideIcons.bell300,
           size: 22,
           color: UmColors.ink,
         ),
@@ -283,10 +284,10 @@ class _BottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const items = [
-      (label: 'HOME', icon: Icons.home),
-      (label: 'SELL', icon: Icons.add_box_outlined),
-      (label: 'CHATS', icon: Icons.chat_bubble_outline),
-      (label: 'PROFILE', icon: Icons.person_outline),
+      (label: 'HOME', icon: LucideIcons.house300),
+      (label: 'SELL', icon: LucideIcons.squarePlus300),
+      (label: 'CHATS', icon: LucideIcons.messageCircle300),
+      (label: 'PROFILE', icon: LucideIcons.user300),
     ];
     return Container(
       decoration: const BoxDecoration(

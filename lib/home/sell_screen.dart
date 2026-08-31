@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
@@ -442,7 +443,7 @@ class _PhotoGrid extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (_, _, _) => Container(
                       color: UmColors.muted,
-                      child: const Icon(Icons.broken_image_outlined,
+                      child: const Icon(LucideIcons.imageOff300,
                           color: UmColors.mutedForeground),
                     ),
                   ),
@@ -459,7 +460,7 @@ class _PhotoGrid extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
-                        Icons.close,
+                        LucideIcons.x300,
                         size: 14,
                         color: UmColors.onPrimary,
                       ),
@@ -480,7 +481,7 @@ class _PhotoGrid extends StatelessWidget {
                 border: Border.all(color: UmColors.ink, width: 2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.add_a_photo_outlined,
+              child: const Icon(LucideIcons.camera300,
                   size: 26, color: UmColors.ink),
             ),
           ),

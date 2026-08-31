@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../data/member_store.dart';
 import '../theme/app_theme.dart';
@@ -28,7 +29,7 @@ class MemberBadges extends StatelessWidget {
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.verified_user, size: 16, color: UmColors.ink),
+              Icon(LucideIcons.badgeCheck300, size: 16, color: UmColors.ink),
               SizedBox(width: 6),
               Text(
                 'Verified UM student',

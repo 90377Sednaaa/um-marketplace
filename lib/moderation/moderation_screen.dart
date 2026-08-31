@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
@@ -90,7 +91,7 @@ class ModerationScreen extends StatelessWidget {
           children: [
             const BrutalAppBar(
               title: 'MODERATION',
-              leadingIcon: Icons.admin_panel_settings_outlined,
+              leadingIcon: LucideIcons.shieldCheck300,
             ),
             Expanded(
               child: ListView(
@@ -120,7 +121,7 @@ class ModerationScreen extends StatelessWidget {
                           child: Column(
                             children: [
                               const Icon(
-                                Icons.verified_outlined,
+                                LucideIcons.badgeCheck300,
                                 size: 44,
                                 color: UmColors.mutedForeground,
                               ),
@@ -373,7 +374,7 @@ class _MemberSearchState extends State<_MemberSearch> {
           onChanged: (value) => setState(() => _prefix = value.trim()),
           decoration: InputDecoration(
             hintText: 'Display name…',
-            prefixIcon: const Icon(Icons.search, color: UmColors.ink),
+            prefixIcon: const Icon(LucideIcons.search300, color: UmColors.ink),
             filled: true,
             fillColor: UmColors.surface,
             contentPadding:

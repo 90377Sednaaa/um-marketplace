@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:card_stack_swiper/card_stack_swiper.dart';
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../chats/chat_thread_screen.dart';
@@ -228,9 +229,9 @@ class _DetailHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return BrutalAppBar(
       title: 'LISTING',
-      leadingIcon: Icons.inventory_2_outlined,
+      leadingIcon: LucideIcons.package300,
       trailing: BrutalIconButton(
-        icon: Icons.flag_outlined,
+        icon: LucideIcons.flag300,
         tooltip: 'Report listing',
         fill: UmColors.goldSoft,
         onTap: onReport,
@@ -368,7 +369,7 @@ class _PhotoHeroState extends State<_PhotoHero> {
                                   Border.all(color: UmColors.ink, width: 1.5),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.zoom_out_map,
+                            child: const Icon(LucideIcons.expand300,
                                 size: 14, color: UmColors.ink),
                           ),
                         ),
@@ -520,7 +521,7 @@ class _FullscreenGalleryState extends State<_FullscreenGallery> {
                   border: Border.all(color: UmColors.ink, width: 2),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: const Icon(Icons.close, color: UmColors.ink),
+                child: const Icon(LucideIcons.x300, color: UmColors.ink),
               ),
             ),
           ),
@@ -660,7 +661,7 @@ class _ListingBody extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.place_outlined,
+                          const Icon(LucideIcons.mapPin300,
                               size: 12, color: UmColors.mutedForeground),
                           const SizedBox(width: 4),
                           Text(
@@ -704,7 +705,7 @@ class _ListingBody extends StatelessWidget {
                       border: Border.all(color: UmColors.ink, width: 1.5),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Icon(Icons.notes_outlined,
+                    child: const Icon(LucideIcons.fileText300,
                         size: 16, color: UmColors.ink),
                   ),
                   const SizedBox(width: 8),
@@ -849,7 +850,7 @@ class _SellerStrip extends StatelessWidget {
                         return Row(
                           children: [
                             Icon(
-                              hasRatings ? Icons.star : Icons.star_outline,
+                              hasRatings ? LucideIcons.star300 : LucideIcons.star300,
                               size: 13,
                               color: hasRatings
                                   ? UmColors.gold
@@ -895,7 +896,7 @@ class _SellerStrip extends StatelessWidget {
                     color: UmColors.gold,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.verified_user,
+                  child: const Icon(LucideIcons.badgeCheck300,
                       size: 12, color: UmColors.ink),
                 ),
                 const SizedBox(width: 6),
@@ -948,7 +949,7 @@ class _SafetyTips extends StatelessWidget {
                   border: Border.all(color: UmColors.ink, width: 1.5),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Icon(Icons.shield_outlined,
+                child: const Icon(LucideIcons.shield300,
                     size: 16, color: UmColors.onPrimary),
               ),
               const SizedBox(width: 8),
@@ -965,19 +966,19 @@ class _SafetyTips extends StatelessWidget {
           const SizedBox(height: 14),
           _tip(
             context,
-            Icons.location_on_outlined,
+            LucideIcons.mapPin300,
             'Meet in public campus spots — library, cafeterias, guarded gates.',
           ),
           const SizedBox(height: 10),
           _tip(
             context,
-            Icons.visibility_outlined,
+            LucideIcons.eye300,
             'Inspect the item before handing anything over.',
           ),
           const SizedBox(height: 10),
           _tip(
             context,
-            Icons.payments_outlined,
+            LucideIcons.wallet300,
             'No payments happen inside the app.',
           ),
         ],
@@ -1042,7 +1043,7 @@ class _OwnListingBar extends StatelessWidget {
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.inventory_2_outlined, size: 18, color: UmColors.ink),
+              Icon(LucideIcons.package300, size: 18, color: UmColors.ink),
               SizedBox(width: 6),
               Text(
                 'This is your listing',
@@ -1084,7 +1085,7 @@ class _ActionBar extends StatelessWidget {
             child: NbrButton(
               label: 'Chat',
               icon: const Icon(
-                Icons.chat_bubble_outline,
+                LucideIcons.messageCircle300,
                 size: 20,
                 color: UmColors.ink,
               ),
@@ -1099,7 +1100,7 @@ class _ActionBar extends StatelessWidget {
             child: NbrButton(
               label: 'Make an offer',
               icon: const Icon(
-                Icons.request_quote_outlined,
+                LucideIcons.handCoins300,
                 size: 20,
                 color: UmColors.ink,
               ),

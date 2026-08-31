@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../data/chat_store.dart';
@@ -267,7 +268,7 @@ class _ChatsEmpty extends StatelessWidget {
                   ],
                 ),
                 child: const Icon(
-                  Icons.forum_outlined,
+                  LucideIcons.messagesSquare300,
                   size: 28,
                   color: UmColors.ink,
                 ),
@@ -294,7 +295,7 @@ class _ChatsEmpty extends StatelessWidget {
               const SizedBox(height: 16),
               NbrButton(
                 label: 'Browse listings',
-                icon: const Icon(Icons.search, size: 18, color: UmColors.ink),
+                icon: const Icon(LucideIcons.search300, size: 18, color: UmColors.ink),
                 fill: UmColors.gold,
                 labelColor: UmColors.ink,
                 onPressed: onBrowse,

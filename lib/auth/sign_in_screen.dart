@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -270,7 +271,7 @@ class _SignInCard extends StatelessWidget {
                       border: Border.all(color: UmColors.ink, width: 2),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Icon(Icons.verified_user,
+                    child: const Icon(LucideIcons.badgeCheck300,
                         size: 18, color: UmColors.ink),
                   ),
                   const SizedBox(width: 10),
@@ -353,9 +354,9 @@ class _TrustStickers extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const items = [
-      (icon: Icons.menu_book_outlined, label: 'Textbooks'),
-      (icon: Icons.devices_outlined, label: 'Gadgets'),
-      (icon: Icons.bed_outlined, label: 'Dorm'),
+      (icon: LucideIcons.bookOpen300, label: 'Textbooks'),
+      (icon: LucideIcons.smartphone300, label: 'Gadgets'),
+      (icon: LucideIcons.bed300, label: 'Dorm'),
     ];
     return Row(
       children: [
