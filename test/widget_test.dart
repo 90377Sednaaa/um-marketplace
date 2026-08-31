@@ -825,7 +825,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), 'Tara, swap meet?');
-    await tester.tap(find.byIcon(LucideIcons.send300));
+    await tester.tap(find.byIcon(LucideIcons.send500));
     await tester.pumpAndSettle();
 
     expect(find.text('Tara, swap meet?'), findsOneWidget);
@@ -856,7 +856,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('This listing is no longer active'), findsOneWidget);
-    await tester.tap(find.byIcon(LucideIcons.send300));
+    await tester.tap(find.byIcon(LucideIcons.send500));
     expect(chats.messages['l1_buyer-1'] ?? const [], isEmpty);
   });
 
@@ -881,7 +881,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), 'Hello?');
-    await tester.tap(find.byIcon(LucideIcons.send300));
+    await tester.tap(find.byIcon(LucideIcons.send500));
     await tester.pumpAndSettle();
 
     expect(find.text("You can't message this member right now"), findsOneWidget);
@@ -911,7 +911,7 @@ void main() {
     listings.emitListing('l1', listing);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(LucideIcons.handCoins300));
+    await tester.tap(find.byIcon(LucideIcons.handCoins500));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, '40');
     await tester.tap(find.text('Send offer'));
@@ -944,7 +944,7 @@ void main() {
     listings.emitListing('l1', listing);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(LucideIcons.handCoins300));
+    await tester.tap(find.byIcon(LucideIcons.handCoins500));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Send offer'));
     await tester.pump();
@@ -982,7 +982,7 @@ void main() {
     listings.emitListing('l1', listing);
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(LucideIcons.handCoins300), findsNothing);
+    expect(find.byIcon(LucideIcons.handCoins500), findsNothing);
   });
 
   testWidgets('tapping a listing card opens its detail screen',
@@ -1422,7 +1422,7 @@ void main() {
     listings.emitListings();
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(LucideIcons.search300));
+    await tester.tap(find.byIcon(LucideIcons.search500));
     await tester.pumpAndSettle();
     // Browse subscribed only on push — broadcast streams don't replay, so
     // re-emit the seeded listings after settling.
@@ -1473,7 +1473,7 @@ void main() {
     await tester.pumpAndSettle();
     listings.emitListings();
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(LucideIcons.search300));
+    await tester.tap(find.byIcon(LucideIcons.search500));
     await tester.pumpAndSettle();
     listings.emitListings();
     await tester.pumpAndSettle();
@@ -1531,7 +1531,7 @@ void main() {
     await tester.pumpAndSettle();
     listings.emitListings();
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(LucideIcons.search300));
+    await tester.tap(find.byIcon(LucideIcons.search500));
     await tester.pumpAndSettle();
     listings.emitListings();
     await tester.pumpAndSettle();
@@ -1583,7 +1583,7 @@ void main() {
     await tester.pumpAndSettle();
     listings.emitListings();
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(LucideIcons.search300));
+    await tester.tap(find.byIcon(LucideIcons.search500));
     await tester.pumpAndSettle();
     listings.emitListings();
     await tester.pumpAndSettle();
@@ -1905,7 +1905,7 @@ void main() {
 
     await tester.tap(find.text('Dorm lamp'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(LucideIcons.flag300));
+    await tester.tap(find.byIcon(LucideIcons.flag500));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'Selling stolen notes');
     await tester.tap(find.text('Submit report'));
@@ -1931,7 +1931,7 @@ void main() {
         .pumpWidget(threadApp(chats, listings, members, reports: reports));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(LucideIcons.flag300));
+    await tester.tap(find.byIcon(LucideIcons.flag500));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'Harassment');
     await tester.tap(find.text('Submit report'));
@@ -2167,10 +2167,10 @@ void main() {
     notifications.emit();
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(LucideIcons.bell300), findsOneWidget);
+    expect(find.byIcon(LucideIcons.bell500), findsOneWidget);
     expect(find.text('2'), findsOneWidget); // unread gold sticker
 
-    await tester.tap(find.byIcon(LucideIcons.bell300));
+    await tester.tap(find.byIcon(LucideIcons.bell500));
     await tester.pumpAndSettle();
     // The center subscribes only on push — replay the stream.
     notifications.emit();
@@ -2200,7 +2200,7 @@ void main() {
     await tester.pumpAndSettle();
     notifications.emit();
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(LucideIcons.bell300));
+    await tester.tap(find.byIcon(LucideIcons.bell500));
     await tester.pumpAndSettle();
     notifications.emit();
     await tester.pumpAndSettle();
@@ -2229,7 +2229,7 @@ void main() {
     await tester.pumpAndSettle();
     notifications.emit(); // empty
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(LucideIcons.bell300));
+    await tester.tap(find.byIcon(LucideIcons.bell500));
     await tester.pumpAndSettle();
     notifications.emit(); // empty
     await tester.pumpAndSettle();
@@ -2511,7 +2511,7 @@ void main() {
     await tester.pumpAndSettle();
     listings.emitListings();
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(LucideIcons.search300));
+    await tester.tap(find.byIcon(LucideIcons.search500));
     await tester.pumpAndSettle();
     listings.emitListings();
     await tester.pumpAndSettle();
@@ -2550,7 +2550,7 @@ void main() {
     await tester.tap(find.text('Old notes'));
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(LucideIcons.imageOff300), findsOneWidget);
+    expect(find.byIcon(LucideIcons.imageOff500), findsOneWidget);
     expect(find.text('1/2'), findsNothing);
   });
 

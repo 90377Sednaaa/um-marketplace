@@ -443,7 +443,7 @@ class _PhotoGrid extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (_, _, _) => Container(
                       color: UmColors.muted,
-                      child: const Icon(LucideIcons.imageOff300,
+                      child: const Icon(LucideIcons.imageOff500,
                           color: UmColors.mutedForeground),
                     ),
                   ),
@@ -460,7 +460,7 @@ class _PhotoGrid extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
-                        LucideIcons.x300,
+                        LucideIcons.x500,
                         size: 14,
                         color: UmColors.onPrimary,
                       ),
@@ -481,7 +481,7 @@ class _PhotoGrid extends StatelessWidget {
                 border: Border.all(color: UmColors.ink, width: 2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(LucideIcons.camera300,
+              child: const Icon(LucideIcons.camera500,
                   size: 26, color: UmColors.ink),
             ),
           ),

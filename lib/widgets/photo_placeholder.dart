@@ -15,7 +15,7 @@ class PhotoPlaceholder extends StatelessWidget {
       color: UmColors.muted,
       alignment: Alignment.center,
       child: const Icon(
-        LucideIcons.imageOff300,
+        LucideIcons.imageOff500,
         size: 32,
         color: UmColors.mutedForeground,
       ),

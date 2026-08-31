@@ -28,7 +28,7 @@ class NotificationCenterScreen extends StatelessWidget {
           children: [
             const BrutalAppBar(
               title: 'NOTIFICATIONS',
-              leadingIcon: LucideIcons.bell300,
+              leadingIcon: LucideIcons.bell500,
             ),
             Expanded(
               child: StreamBuilder<List<AppNotification>>(
@@ -46,7 +46,7 @@ class NotificationCenterScreen extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(
-                              LucideIcons.bellOff300,
+                              LucideIcons.bellOff500,
                               size: 48,
                               color: UmColors.mutedForeground,
                             ),
@@ -95,10 +95,10 @@ class _NotificationRow extends StatelessWidget {
   final VoidCallback? onTap;
 
   static const Map<String, IconData> _typeIcons = {
-    'offer': LucideIcons.handCoins300,
-    'message': LucideIcons.messageCircle300,
-    'sold': LucideIcons.tag300,
-    'rating': LucideIcons.star300,
+    'offer': LucideIcons.handCoins500,
+    'message': LucideIcons.messageCircle500,
+    'sold': LucideIcons.tag500,
+    'rating': LucideIcons.star500,
   };
 
   @override
@@ -130,7 +130,7 @@ class _NotificationRow extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                _typeIcons[notification.type] ?? LucideIcons.bell300,
+                _typeIcons[notification.type] ?? LucideIcons.bell500,
                 size: 20,
                 color: UmColors.primary,
               ),

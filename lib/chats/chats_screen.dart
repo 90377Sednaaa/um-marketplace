@@ -268,7 +268,7 @@ class _ChatsEmpty extends StatelessWidget {
                   ],
                 ),
                 child: const Icon(
-                  LucideIcons.messagesSquare300,
+                  LucideIcons.messagesSquare500,
                   size: 28,
                   color: UmColors.ink,
                 ),
@@ -295,7 +295,7 @@ class _ChatsEmpty extends StatelessWidget {
               const SizedBox(height: 16),
               NbrButton(
                 label: 'Browse listings',
-                icon: const Icon(LucideIcons.search300, size: 18, color: UmColors.ink),
+                icon: const Icon(LucideIcons.search500, size: 18, color: UmColors.ink),
                 fill: UmColors.gold,
                 labelColor: UmColors.ink,
                 onPressed: onBrowse,

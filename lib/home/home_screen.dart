@@ -103,7 +103,7 @@ class HomeScreen extends StatelessWidget {
                       Expanded(
                         child: _CategoryTile(
                           icon: _categoryIcons[category] ??
-                              LucideIcons.tag300,
+                              LucideIcons.tag500,
                           label: category,
                           onTap: () =>
                               _openBrowse(context, category: category),
@@ -217,7 +217,7 @@ class _EmptyFeed extends StatelessWidget {
               ],
             ),
             child: const Icon(
-              LucideIcons.store300,
+              LucideIcons.store500,
               size: 28,
               color: UmColors.ink,
             ),
@@ -258,7 +258,7 @@ class _EmptyFeed extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(LucideIcons.plus300,
+                    const Icon(LucideIcons.plus500,
                         size: 16, color: UmColors.ink),
                     const SizedBox(width: 8),
                     Text(
@@ -323,7 +323,7 @@ class _BrutalFabState extends State<_BrutalFab> {
                   ),
                 ],
         ),
-        child: const Icon(LucideIcons.plus300, size: 28, color: UmColors.ink),
+        child: const Icon(LucideIcons.plus500, size: 28, color: UmColors.ink),
       ),
     );
   }
@@ -340,11 +340,11 @@ const List<String> kPopularSearches = [
 /// Brutal icons for the fixed category tiles — Phosphor bold inside
 /// goldSoft circle, ink-bordered square tile.
 const Map<String, IconData> _categoryIcons = {
-  'textbooks': LucideIcons.bookOpen300,
-  'gadgets': LucideIcons.smartphone300,
-  'org merch': LucideIcons.award300,
-  'dorm essentials': LucideIcons.bed300,
-  'review materials': LucideIcons.notebookPen300,
+  'textbooks': LucideIcons.bookOpen500,
+  'gadgets': LucideIcons.smartphone500,
+  'org merch': LucideIcons.award500,
+  'dorm essentials': LucideIcons.bed500,
+  'review materials': LucideIcons.notebookPen500,
 };
 
 /// The hero search bar (DESIGN.md §5): pill, white fill, 3 dp ink border,
@@ -395,7 +395,7 @@ class _HeroSearchBarState extends State<_HeroSearchBar> {
         ),
         child: Row(
           children: [
-            const Icon(LucideIcons.search300, size: 20, color: UmColors.ink),
+            const Icon(LucideIcons.search500, size: 20, color: UmColors.ink),
             const SizedBox(width: 10),
             Text(
               'Search textbooks, gadgets…',

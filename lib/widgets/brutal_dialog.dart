@@ -41,7 +41,7 @@ Future<void> showBrutalErrorDialog(
                     border: Border.all(color: UmColors.ink, width: 2),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Icon(LucideIcons.triangleAlert300,
+                  child: const Icon(LucideIcons.triangleAlert500,
                       size: 20, color: UmColors.onPrimary),
                 ),
                 const SizedBox(width: 10),
@@ -120,7 +120,7 @@ Future<void> showBrutalSuccessDialog(
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child:
-                      const Icon(LucideIcons.check300, size: 20, color: UmColors.onPrimary),
+                      const Icon(LucideIcons.check500, size: 20, color: UmColors.onPrimary),
                 ),
                 const SizedBox(width: 10),
                 Expanded(

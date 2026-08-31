@@ -47,7 +47,7 @@ class BrutalAppBar extends StatelessWidget {
       child: Row(
         children: [
           BrutalIconButton(
-            icon: LucideIcons.arrowLeft300,
+            icon: LucideIcons.arrowLeft500,
             tooltip: 'Back',
             onTap: onBack ?? () => Navigator.of(context).maybePop(),
           ),

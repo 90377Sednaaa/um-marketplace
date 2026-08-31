@@ -91,7 +91,7 @@ class ModerationScreen extends StatelessWidget {
           children: [
             const BrutalAppBar(
               title: 'MODERATION',
-              leadingIcon: LucideIcons.shieldCheck300,
+              leadingIcon: LucideIcons.shieldCheck500,
             ),
             Expanded(
               child: ListView(
@@ -121,7 +121,7 @@ class ModerationScreen extends StatelessWidget {
                           child: Column(
                             children: [
                               const Icon(
-                                LucideIcons.badgeCheck300,
+                                LucideIcons.badgeCheck500,
                                 size: 44,
                                 color: UmColors.mutedForeground,
                               ),
@@ -374,7 +374,7 @@ class _MemberSearchState extends State<_MemberSearch> {
           onChanged: (value) => setState(() => _prefix = value.trim()),
           decoration: InputDecoration(
             hintText: 'Display name…',
-            prefixIcon: const Icon(LucideIcons.search300, color: UmColors.ink),
+            prefixIcon: const Icon(LucideIcons.search500, color: UmColors.ink),
             filled: true,
             fillColor: UmColors.surface,
             contentPadding:

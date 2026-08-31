@@ -229,9 +229,9 @@ class _DetailHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return BrutalAppBar(
       title: 'LISTING',
-      leadingIcon: LucideIcons.package300,
+      leadingIcon: LucideIcons.package500,
       trailing: BrutalIconButton(
-        icon: LucideIcons.flag300,
+        icon: LucideIcons.flag500,
         tooltip: 'Report listing',
         fill: UmColors.goldSoft,
         onTap: onReport,
@@ -369,7 +369,7 @@ class _PhotoHeroState extends State<_PhotoHero> {
                                   Border.all(color: UmColors.ink, width: 1.5),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(LucideIcons.expand300,
+                            child: const Icon(LucideIcons.expand500,
                                 size: 14, color: UmColors.ink),
                           ),
                         ),
@@ -521,7 +521,7 @@ class _FullscreenGalleryState extends State<_FullscreenGallery> {
                   border: Border.all(color: UmColors.ink, width: 2),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: const Icon(LucideIcons.x300, color: UmColors.ink),
+                child: const Icon(LucideIcons.x500, color: UmColors.ink),
               ),
             ),
           ),
@@ -661,7 +661,7 @@ class _ListingBody extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(LucideIcons.mapPin300,
+                          const Icon(LucideIcons.mapPin500,
                               size: 12, color: UmColors.mutedForeground),
                           const SizedBox(width: 4),
                           Text(
@@ -705,7 +705,7 @@ class _ListingBody extends StatelessWidget {
                       border: Border.all(color: UmColors.ink, width: 1.5),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Icon(LucideIcons.fileText300,
+                    child: const Icon(LucideIcons.fileText500,
                         size: 16, color: UmColors.ink),
                   ),
                   const SizedBox(width: 8),
@@ -850,7 +850,7 @@ class _SellerStrip extends StatelessWidget {
                         return Row(
                           children: [
                             Icon(
-                              hasRatings ? LucideIcons.star300 : LucideIcons.star300,
+                              hasRatings ? LucideIcons.star500 : LucideIcons.star500,
                               size: 13,
                               color: hasRatings
                                   ? UmColors.gold
@@ -896,7 +896,7 @@ class _SellerStrip extends StatelessWidget {
                     color: UmColors.gold,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(LucideIcons.badgeCheck300,
+                  child: const Icon(LucideIcons.badgeCheck500,
                       size: 12, color: UmColors.ink),
                 ),
                 const SizedBox(width: 6),
@@ -949,7 +949,7 @@ class _SafetyTips extends StatelessWidget {
                   border: Border.all(color: UmColors.ink, width: 1.5),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Icon(LucideIcons.shield300,
+                child: const Icon(LucideIcons.shield500,
                     size: 16, color: UmColors.onPrimary),
               ),
               const SizedBox(width: 8),
@@ -966,19 +966,19 @@ class _SafetyTips extends StatelessWidget {
           const SizedBox(height: 14),
           _tip(
             context,
-            LucideIcons.mapPin300,
+            LucideIcons.mapPin500,
             'Meet in public campus spots — library, cafeterias, guarded gates.',
           ),
           const SizedBox(height: 10),
           _tip(
             context,
-            LucideIcons.eye300,
+            LucideIcons.eye500,
             'Inspect the item before handing anything over.',
           ),
           const SizedBox(height: 10),
           _tip(
             context,
-            LucideIcons.wallet300,
+            LucideIcons.wallet500,
             'No payments happen inside the app.',
           ),
         ],
@@ -1043,7 +1043,7 @@ class _OwnListingBar extends StatelessWidget {
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(LucideIcons.package300, size: 18, color: UmColors.ink),
+              Icon(LucideIcons.package500, size: 18, color: UmColors.ink),
               SizedBox(width: 6),
               Text(
                 'This is your listing',
@@ -1085,7 +1085,7 @@ class _ActionBar extends StatelessWidget {
             child: NbrButton(
               label: 'Chat',
               icon: const Icon(
-                LucideIcons.messageCircle300,
+                LucideIcons.messageCircle500,
                 size: 20,
                 color: UmColors.ink,
               ),
@@ -1100,7 +1100,7 @@ class _ActionBar extends StatelessWidget {
             child: NbrButton(
               label: 'Make an offer',
               icon: const Icon(
-                LucideIcons.handCoins300,
+                LucideIcons.handCoins500,
                 size: 20,
                 color: UmColors.ink,
               ),

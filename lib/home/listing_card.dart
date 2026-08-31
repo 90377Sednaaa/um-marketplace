@@ -75,7 +75,7 @@ class _ListingCardState extends State<ListingCard> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(LucideIcons.images300,
+                          const Icon(LucideIcons.images500,
                               size: 12, color: UmColors.ink),
                           const SizedBox(width: 3),
                           Text(
@@ -195,7 +195,7 @@ class _ListingCardState extends State<ListingCard> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(LucideIcons.mapPin300,
+                          const Icon(LucideIcons.mapPin500,
                               size: 11, color: UmColors.mutedForeground),
                           const SizedBox(width: 2),
                           Flexible(

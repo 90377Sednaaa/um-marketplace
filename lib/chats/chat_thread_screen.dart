@@ -213,7 +213,7 @@ class _ThreadHeader extends StatelessWidget {
             onPressed: () => Navigator.of(context).maybePop(),
             tooltip: 'Back',
             icon: const Icon(
-              LucideIcons.arrowLeft300,
+              LucideIcons.arrowLeft500,
               size: 24,
               color: UmColors.onPrimary,
             ),
@@ -234,7 +234,7 @@ class _ThreadHeader extends StatelessWidget {
             onPressed: onReport,
             tooltip: 'Report this chat',
             icon: const Icon(
-              LucideIcons.flag300,
+              LucideIcons.flag500,
               size: 22,
               color: UmColors.onPrimary,
             ),
@@ -390,7 +390,7 @@ class _InactiveBanner extends StatelessWidget {
       ),
       child: const Row(
         children: [
-          Icon(LucideIcons.lock300, size: 18, color: UmColors.ink),
+          Icon(LucideIcons.lock500, size: 18, color: UmColors.ink),
           SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -627,7 +627,7 @@ class _ComposerState extends State<_Composer> {
                       ),
                     ],
                   ),
-                  child: const Icon(LucideIcons.handCoins300,
+                  child: const Icon(LucideIcons.handCoins500,
                       size: 24, color: UmColors.ink),
                 ),
               ),
@@ -680,7 +680,7 @@ class _SendButton extends StatelessWidget {
               : null,
         ),
         child: Icon(
-          LucideIcons.send300,
+          LucideIcons.send500,
           size: 22,
           color: enabled ? UmColors.onPrimary : UmColors.mutedForeground,
         ),
@@ -779,7 +779,7 @@ class _RatingPromptState extends State<_RatingPrompt> {
       child: Row(
         children: [
           Icon(
-            LucideIcons.star300,
+            LucideIcons.star500,
             size: 20,
             color: alreadyRated ? UmColors.mutedForeground : UmColors.ink,
           ),
@@ -881,7 +881,7 @@ class _RateDialogState extends State<_RateDialog> {
                     key: Key('rate-star-$star'),
                     onPressed: () => setState(() => _stars = star),
                     icon: Icon(
-                      star <= _stars ? LucideIcons.star300 : LucideIcons.star300,
+                      star <= _stars ? LucideIcons.star500 : LucideIcons.star500,
                       size: 34,
                       color: star <= _stars
                           ? UmColors.gold

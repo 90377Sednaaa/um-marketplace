@@ -127,7 +127,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
                     onPressed: () => Navigator.of(context).maybePop(),
                     tooltip: 'Back',
                     icon: const Icon(
-                      LucideIcons.arrowLeft300,
+                      LucideIcons.arrowLeft500,
                       size: 24,
                       color: UmColors.onPrimary,
                     ),
@@ -176,7 +176,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
                               setState(() => _query = value),
                           decoration: InputDecoration(
                             hintText: 'Search textbooks, gadgets…',
-                            prefixIcon: const Icon(LucideIcons.search300,
+                            prefixIcon: const Icon(LucideIcons.search500,
                                 color: UmColors.ink),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
@@ -208,7 +208,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
                         children: [
                           NbrButton(
                             label: 'Filters',
-                            icon: const Icon(LucideIcons.slidersHorizontal300,
+                            icon: const Icon(LucideIcons.slidersHorizontal500,
                                 size: 20, color: UmColors.ink),
                             fill: UmColors.surface,
                             labelColor: UmColors.ink,
@@ -348,7 +348,7 @@ class _BrowseEmpty extends StatelessWidget {
       child: Column(
         children: [
           const Icon(
-            LucideIcons.searchX300,
+            LucideIcons.searchX500,
             size: 48,
             color: UmColors.mutedForeground,
           ),

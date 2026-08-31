@@ -264,7 +264,7 @@ class _BellButtonState extends State<_BellButton> {
                 ],
         ),
         child: const Icon(
-          LucideIcons.bell300,
+          LucideIcons.bell500,
           size: 22,
           color: UmColors.ink,
         ),
@@ -284,10 +284,10 @@ class _BottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const items = [
-      (label: 'HOME', icon: LucideIcons.house300),
-      (label: 'SELL', icon: LucideIcons.squarePlus300),
-      (label: 'CHATS', icon: LucideIcons.messageCircle300),
-      (label: 'PROFILE', icon: LucideIcons.user300),
+      (label: 'HOME', icon: LucideIcons.house500),
+      (label: 'SELL', icon: LucideIcons.squarePlus500),
+      (label: 'CHATS', icon: LucideIcons.messageCircle500),
+      (label: 'PROFILE', icon: LucideIcons.user500),
     ];
     return Container(
       decoration: const BoxDecoration(

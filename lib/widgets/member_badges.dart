@@ -29,7 +29,7 @@ class MemberBadges extends StatelessWidget {
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(LucideIcons.badgeCheck300, size: 16, color: UmColors.ink),
+              Icon(LucideIcons.badgeCheck500, size: 16, color: UmColors.ink),
               SizedBox(width: 6),
               Text(
                 'Verified UM student',

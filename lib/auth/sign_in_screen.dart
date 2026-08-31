@@ -271,7 +271,7 @@ class _SignInCard extends StatelessWidget {
                       border: Border.all(color: UmColors.ink, width: 2),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Icon(LucideIcons.badgeCheck300,
+                    child: const Icon(LucideIcons.badgeCheck500,
                         size: 18, color: UmColors.ink),
                   ),
                   const SizedBox(width: 10),
@@ -354,9 +354,9 @@ class _TrustStickers extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const items = [
-      (icon: LucideIcons.bookOpen300, label: 'Textbooks'),
-      (icon: LucideIcons.smartphone300, label: 'Gadgets'),
-      (icon: LucideIcons.bed300, label: 'Dorm'),
+      (icon: LucideIcons.bookOpen500, label: 'Textbooks'),
+      (icon: LucideIcons.smartphone500, label: 'Gadgets'),
+      (icon: LucideIcons.bed500, label: 'Dorm'),
     ];
     return Row(
       children: [

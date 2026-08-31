@@ -243,7 +243,7 @@ class BannedScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         const Icon(
-                          LucideIcons.ban300,
+                          LucideIcons.ban500,
                           size: 44,
                           color: UmColors.destructive,
                         ),
