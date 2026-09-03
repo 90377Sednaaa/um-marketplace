@@ -21,10 +21,12 @@
 ### Task 1: Create Neubrutalist SVG Sticker Assets
 
 **Files:**
+
 - Create: `assets/stickers/shield.svg`
 - Create: `assets/stickers/pin.svg`
 
 **Interfaces:**
+
 - Consumed by: `SvgPicture.asset('assets/stickers/shield.svg')` and `SvgPicture.asset('assets/stickers/pin.svg')`.
 - Produces: 100x100 SVG vector stickers styled with 4px ink stroke (`#000000`) and `#FFC72C` gold fill, matching `assets/stickers/bag.svg` and `starburst.svg`.
 
@@ -58,10 +60,12 @@ git commit -m "feat(assets): add shield and pin neubrutalist stickers"
 ### Task 2: Implement Redesigned Two-Tone Hero Panel with Marquee Ticker Tape
 
 **Files:**
+
 - Modify: `lib/auth/sign_in_screen.dart` (`_HeroPanel`)
 - Test: `test/widget_test.dart`
 
 **Interfaces:**
+
 - Consumes: `UmColors`, `UmShadows`, `GoogleFonts.spaceGrotesk`, `GoogleFonts.outfit`, `assets/stickers/starburst.svg`.
 - Produces: `_HeroPanel` with:
   1. Maroon header container with slanted `Ga` badge, `UM Marketplace` display title, tagline card, and `starburst.svg` sticker.
@@ -221,6 +225,7 @@ class _HeroPanel extends StatelessWidget {
 ```bash
 flutter test test/widget_test.dart
 ```
+
 Expected: PASS
 
 - [ ] **Step 4: Commit**
@@ -235,15 +240,17 @@ git commit -m "feat(auth): redesign hero panel with marquee ticker tape"
 ### Task 3: Enhance Sign-In Card with Institutional Domain Gate Callout
 
 **Files:**
+
 - Modify: `lib/auth/sign_in_screen.dart` (`_SignInCard`)
 
 **Interfaces:**
+
 - Consumes: `_busy`, `onSignIn`, `NbrButton`, `UmColors`, `assets/logos/google_g.svg`, `bag.svg`, `tag.svg`.
 - Produces: `_SignInCard` featuring:
   - Header: `badgeCheck500` icon in gold box + `"Sign in to start trading"`.
   - Notice container in `goldSoft`:
-    - Bold label: `"Institutional Account Required"`.
-    - Subtext: `"Sign in with your @umindanao.edu.ph student Google account. Personal Gmail accounts are refused."`
+    - Bold label: `"Use your UMindanao Gmail Account"`.
+    - Subtext: `"Only @umindanao.edu.ph accounts can join. Personal Gmail accounts are refused."`
   - `NbrButton` with Google logo.
   - Overlapping `bag.svg` top-right and `tag.svg` bottom-left stickers.
 
@@ -256,6 +263,7 @@ Add the styled notice container with 1.5dp ink border, 4dp rounded corners, and 
 ```bash
 flutter test test/widget_test.dart
 ```
+
 Expected: PASS
 
 - [ ] **Step 3: Commit**
@@ -270,9 +278,11 @@ git commit -m "feat(auth): add institutional domain callout to sign in card"
 ### Task 4: Implement "HOW WE TRADE" 3-Step Brutal Grid
 
 **Files:**
+
 - Modify: `lib/auth/sign_in_screen.dart` (`_HowItWorksSection` / replaces `_TrustStickers`)
 
 **Interfaces:**
+
 - Consumes: `LucideIcons.mailCheck500`, `LucideIcons.messageSquare500`, `LucideIcons.mapPin500`.
 - Produces: `_HowItWorksSection` containing:
   - Pill label: `"HOW WE TRADE"`, Space Grotesk 800, gold fill, 2dp ink border.
@@ -415,6 +425,7 @@ class _HowItWorksSection extends StatelessWidget {
 ```bash
 flutter test test/widget_test.dart
 ```
+
 Expected: PASS
 
 - [ ] **Step 3: Commit**
@@ -429,15 +440,17 @@ git commit -m "feat(auth): add how we trade 3-step brutal grid"
 ### Task 5: Implement Campus Meetup & Safety Banner and Footer
 
 **Files:**
+
 - Modify: `lib/auth/sign_in_screen.dart` (`_CampusMeetupBanner`, `_LoginFooter`)
 
 **Interfaces:**
+
 - Consumes: `UmColors`, `LucideIcons.shieldCheck500`, `LucideIcons.mapPin500`, `GoogleFonts`.
-- Produces: 
+- Produces:
   - `_CampusMeetupBanner`:
     - Heading: `[MapPin] SAFE CAMPUS MEETUPS`.
     - Campus chips: `Matina`, `Bolton`, `Tagum`, `Peñaplata`.
-    - Guidance note: *"Always meet in high-traffic campus zones (Cafeteria, Library, Gym Quad). Inspect gear before cash or GCash handoff."*
+    - Guidance note: _"Always meet in high-traffic campus zones (Cafeteria, Library, Gym Quad). Inspect gear before cash or GCash handoff."_
   - `_LoginFooter`:
     - Peer-to-peer tagline + student pride caption.
 
@@ -546,6 +559,7 @@ class _CampusMeetupBanner extends StatelessWidget {
 ```bash
 flutter test test/widget_test.dart
 ```
+
 Expected: PASS
 
 - [ ] **Step 3: Commit**
@@ -560,6 +574,7 @@ git commit -m "feat(auth): add campus meetup safety banner and footer"
 ### Task 6: Final Verification & Analysis
 
 **Files:**
+
 - `lib/auth/sign_in_screen.dart`
 - `test/widget_test.dart`
 
@@ -568,6 +583,7 @@ git commit -m "feat(auth): add campus meetup safety banner and footer"
 ```bash
 flutter analyze
 ```
+
 Expected: 0 issues
 
 - [ ] **Step 2: Run the full test suite**
@@ -575,6 +591,7 @@ Expected: 0 issues
 ```bash
 flutter test
 ```
+
 Expected: All 103+ tests pass
 
 - [ ] **Step 3: Push changes to `origin/qa/bypass`**
@@ -582,4 +599,5 @@ Expected: All 103+ tests pass
 ```bash
 git push origin qa/bypass
 ```
+
 Expected: Successfully pushed
