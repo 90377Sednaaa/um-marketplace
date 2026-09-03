@@ -83,26 +83,57 @@ class HomeScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               children: [
                 _HeroSearchBar(onTap: () => _openBrowse(context)),
-                const SizedBox(height: 18),
+                const SizedBox(height: 14),
+                SizedBox(
+                  height: 38,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: kListingCategories.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 8),
+                    itemBuilder: (context, index) {
+                      final category = kListingCategories[index];
+                      return _CategoryCapsule(
+                        icon: _categoryIcons[category] ?? LucideIcons.tag500,
+                        label: category,
+                        onTap: () => _openBrowse(context, category: category),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (final category in kListingCategories)
-                      Expanded(
-                        child: _CategoryTile(
-                          icon: _categoryIcons[category] ??
-                              LucideIcons.tag500,
-                          label: category,
-                          onTap: () =>
-                              _openBrowse(context, category: category),
+                    Text(
+                      'Recent listings',
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: UmColors.gold,
+                        border: Border.all(color: UmColors.ink, width: 1.5),
+                        borderRadius: BorderRadius.circular(999),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: UmColors.ink,
+                            offset: Offset(1.5, 1.5),
+                            blurRadius: 0,
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        'FRESH',
+                        style: GoogleFonts.spaceGrotesk(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 9.5,
+                          letterSpacing: 0.6,
+                          color: UmColors.ink,
                         ),
                       ),
+                    ),
                   ],
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Recent listings',
-                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 12),
                 if (listings == null)
@@ -118,7 +149,7 @@ class HomeScreen extends StatelessWidget {
                       crossAxisCount: 2,
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 12,
-                      childAspectRatio: 0.68,
+                      childAspectRatio: 0.70,
                     ),
                     itemCount: listings.length,
                     itemBuilder: (context, index) {
@@ -390,11 +421,10 @@ class _HeroSearchBarState extends State<_HeroSearchBar> {
   }
 }
 
-/// A category tile (DESIGN.md §5): ink-bordered square with a goldSoft
-/// circle carrying a bold icon; tap opens Browse pre-filtered. Brutal press
-/// translates onto its shadow.
-class _CategoryTile extends StatefulWidget {
-  const _CategoryTile({
+/// A category action capsule: pill with 2dp ink border, 2dp hard shadow,
+/// bold icon + single-line Space Grotesk label. Press translates onto shadow.
+class _CategoryCapsule extends StatefulWidget {
+  const _CategoryCapsule({
     required this.icon,
     required this.label,
     required this.onTap,
@@ -405,10 +435,10 @@ class _CategoryTile extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_CategoryTile> createState() => _CategoryTileState();
+  State<_CategoryCapsule> createState() => _CategoryCapsuleState();
 }
 
-class _CategoryTileState extends State<_CategoryTile> {
+class _CategoryCapsuleState extends State<_CategoryCapsule> {
   bool _pressed = false;
 
   @override
@@ -418,62 +448,41 @@ class _CategoryTileState extends State<_CategoryTile> {
       onTapUp: (_) => setState(() => _pressed = false),
       onTapCancel: () => setState(() => _pressed = false),
       onTap: widget.onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: Column(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 80),
+        curve: Curves.linear,
+        transform: Matrix4.translationValues(
+          _pressed ? 2 : 0,
+          _pressed ? 2 : 0,
+          0,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: UmColors.surface,
+          border: Border.all(color: UmColors.ink, width: 2),
+          borderRadius: BorderRadius.circular(999),
+          boxShadow: _pressed
+              ? null
+              : const [
+                  BoxShadow(
+                    color: UmColors.ink,
+                    offset: Offset(2, 2),
+                    blurRadius: 0,
+                  ),
+                ],
+        ),
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 80),
-              curve: Curves.linear,
-              transform: Matrix4.translationValues(
-                _pressed ? 2 : 0,
-                _pressed ? 2 : 0,
-                0,
-              ),
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: UmColors.surface,
-                border: Border.all(color: UmColors.ink, width: 2),
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: _pressed
-                    ? null
-                    : const [
-                        BoxShadow(
-                          color: UmColors.ink,
-                          offset: UmShadows.small,
-                          blurRadius: 0,
-                        ),
-                      ],
-              ),
-              child: Center(
-                child: Container(
-                  width: 34,
-                  height: 34,
-                  decoration: const BoxDecoration(
-                    color: UmColors.goldSoft,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(widget.icon,
-                      size: 19, color: UmColors.primary),
-                ),
-              ),
-            ),
-            const SizedBox(height: 6),
-            SizedBox(
-              height: 24,
-              child: Text(
-                widget.label,
-                maxLines: 2,
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.spaceGrotesk(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 10,
-                  height: 1.15,
-                  color: UmColors.onSurface,
-                ),
+            Icon(widget.icon, size: 16, color: UmColors.primary),
+            const SizedBox(width: 8),
+            Text(
+              widget.label,
+              style: GoogleFonts.spaceGrotesk(
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+                letterSpacing: 0.2,
+                color: UmColors.ink,
               ),
             ),
           ],

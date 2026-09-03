@@ -150,29 +150,47 @@ class _BrandBand extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: UmColors.surface,
-                border: Border.all(color: UmColors.ink, width: 2),
-                borderRadius: BorderRadius.circular(6),
-                boxShadow: const [
-                  BoxShadow(
-                    color: UmColors.ink,
-                    offset: UmShadows.small,
-                    blurRadius: 0,
+            child: Row(
+              children: [
+                Transform.rotate(
+                  angle: -0.04,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: UmColors.gold,
+                      border: Border.all(color: UmColors.ink, width: 2),
+                      borderRadius: BorderRadius.circular(6),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: UmColors.ink,
+                          offset: Offset(2, 2),
+                          blurRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      'Ga',
+                      style: GoogleFonts.spaceGrotesk(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                        letterSpacing: 0.8,
+                        color: UmColors.ink,
+                      ),
+                    ),
                   ),
-                ],
-              ),
-              child: Text(
-                'UM MARKETPLACE',
-                style: GoogleFonts.spaceGrotesk(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 15,
-                  letterSpacing: 1.4,
-                  color: UmColors.ink,
                 ),
-              ),
+                const SizedBox(width: 10),
+                Text(
+                  'UM MARKETPLACE',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                    letterSpacing: 1.2,
+                    color: UmColors.onPrimary,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(width: 12),
