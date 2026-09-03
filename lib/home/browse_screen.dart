@@ -46,8 +46,7 @@ class BrowseScreen extends StatefulWidget {
 class _BrowseScreenState extends State<BrowseScreen> {
   final _search = TextEditingController();
   late String _query = widget.initialQuery;
-  late BrowseFilters _filters =
-      BrowseFilters(category: widget.initialCategory);
+  late BrowseFilters _filters = BrowseFilters(category: widget.initialCategory);
 
   @override
   void initState() {
@@ -112,8 +111,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final hasActiveFilter =
-        _query.trim().isNotEmpty || _filters.isActive;
+    final hasActiveFilter = _query.trim().isNotEmpty || _filters.isActive;
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -124,20 +122,24 @@ class _BrowseScreenState extends State<BrowseScreen> {
             ),
             Expanded(
               child: StreamBuilder<List<Listing>>(
-                stream: widget.listingsStore
-                    .activeListingsStream(limit: kBrowseFetchLimit),
+                stream: widget.listingsStore.activeListingsStream(
+                  limit: kBrowseFetchLimit,
+                ),
                 builder: (context, snapshot) {
                   final all = snapshot.data;
                   if (all == null) return const _BrowseSkeleton();
-                  final results = filterListings(all, query: _query, filters: _filters);
+                  final results = filterListings(
+                    all,
+                    query: _query,
+                    filters: _filters,
+                  );
                   return ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
                       Container(
                         decoration: BoxDecoration(
                           color: UmColors.surface,
-                          border:
-                              Border.all(color: UmColors.ink, width: 3),
+                          border: Border.all(color: UmColors.ink, width: 3),
                           borderRadius: BorderRadius.circular(999),
                           boxShadow: const [
                             BoxShadow(
@@ -150,15 +152,18 @@ class _BrowseScreenState extends State<BrowseScreen> {
                         child: TextField(
                           controller: _search,
                           autofocus: true,
-                          onChanged: (value) =>
-                              setState(() => _query = value),
+                          onChanged: (value) => setState(() => _query = value),
                           decoration: InputDecoration(
                             hintText: 'Search textbooks, gadgets…',
-                            prefixIcon: const Icon(LucideIcons.search500,
-                                color: UmColors.ink),
+                            prefixIcon: const Icon(
+                              LucideIcons.search500,
+                              color: UmColors.ink,
+                            ),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 14),
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
                           ),
                         ),
                       ),
@@ -186,8 +191,11 @@ class _BrowseScreenState extends State<BrowseScreen> {
                         children: [
                           NbrButton(
                             label: 'Filters',
-                            icon: const Icon(LucideIcons.slidersHorizontal500,
-                                size: 20, color: UmColors.ink),
+                            icon: const Icon(
+                              LucideIcons.slidersHorizontal500,
+                              size: 20,
+                              color: UmColors.ink,
+                            ),
                             fill: UmColors.surface,
                             labelColor: UmColors.ink,
                             onPressed: _openFilters,
@@ -196,11 +204,8 @@ class _BrowseScreenState extends State<BrowseScreen> {
                           Text(
                             '${results.length} '
                             '${results.length == 1 ? 'result' : 'results'}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelMedium
-                                ?.copyWith(
-                                    color: UmColors.mutedForeground),
+                            style: Theme.of(context).textTheme.labelMedium
+                                ?.copyWith(color: UmColors.mutedForeground),
                           ),
                         ],
                       ),
@@ -216,11 +221,11 @@ class _BrowseScreenState extends State<BrowseScreen> {
                           physics: const NeverScrollableScrollPhysics(),
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 12,
-                            crossAxisSpacing: 12,
-                            childAspectRatio: 0.70,
-                          ),
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 12,
+                                childAspectRatio: 0.70,
+                              ),
                           itemCount: results.length,
                           itemBuilder: (context, index) {
                             final listing = results[index];
@@ -306,10 +311,7 @@ class _BrowseSkeleton extends StatelessWidget {
 }
 
 class _BrowseEmpty extends StatelessWidget {
-  const _BrowseEmpty({
-    required this.hasActiveFilter,
-    required this.onClear,
-  });
+  const _BrowseEmpty({required this.hasActiveFilter, required this.onClear});
 
   final bool hasActiveFilter;
   final VoidCallback onClear;
@@ -389,11 +391,13 @@ class _FiltersSheetState extends State<_FiltersSheet> {
   }
 
   void _apply() {
-    Navigator.of(context).pop(BrowseFilters(
-      condition: _condition,
-      minPrice: double.tryParse(_minController.text.trim()),
-      maxPrice: double.tryParse(_maxController.text.trim()),
-    ));
+    Navigator.of(context).pop(
+      BrowseFilters(
+        condition: _condition,
+        minPrice: double.tryParse(_minController.text.trim()),
+        maxPrice: double.tryParse(_maxController.text.trim()),
+      ),
+    );
   }
 
   void _clear() {
@@ -414,15 +418,9 @@ class _FiltersSheetState extends State<_FiltersSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'Filters',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            Text('Filters', style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 6),
-            Text(
-              'Condition',
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
+            Text('Condition', style: Theme.of(context).textTheme.labelMedium),
             const SizedBox(height: 8),
             Wrap(
               key: const Key('browse-condition-pills'),
@@ -519,8 +517,10 @@ class _PriceField extends StatelessWidget {
         prefixText: prefix,
         filled: true,
         fillColor: UmColors.surface,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: UmColors.ink, width: 2),

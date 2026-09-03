@@ -86,7 +86,9 @@ class _ListingCardState extends State<ListingCard> {
                         right: 6,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 3),
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: UmColors.surface,
                             border: Border.all(color: UmColors.ink, width: 1.5),
@@ -122,11 +124,15 @@ class _ListingCardState extends State<ListingCard> {
                           angle: -0.04,
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 7, vertical: 3),
+                              horizontal: 7,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               color: UmColors.gold,
-                              border:
-                                  Border.all(color: UmColors.ink, width: 1.5),
+                              border: Border.all(
+                                color: UmColors.ink,
+                                width: 1.5,
+                              ),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
@@ -181,7 +187,9 @@ class _ListingCardState extends State<ListingCard> {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: UmColors.surface,
                           border: Border.all(color: UmColors.ink, width: 1.2),
