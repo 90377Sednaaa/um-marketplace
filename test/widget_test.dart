@@ -574,6 +574,7 @@ void main() {
     expect(find.text('Ga'), findsOneWidget);
     expect(find.text('Sign in to start trading'), findsOneWidget);
     expect(find.text('Matina • Bolton • Tagum • Peñaplata'), findsOneWidget);
+    expect(find.text('WHAT UMIANS TRADE'), findsOneWidget);
   });
 
   testWidgets('sign-in creates the member account and lands on home', (

@@ -61,18 +61,35 @@ class _SignInScreenState extends State<SignInScreen> {
           children: [
             _HeroPanel(),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _SignInCard(busy: _busy, onSignIn: _signIn),
-                    const SizedBox(height: 20),
-                    _CampusTrustCard(),
-                    const SizedBox(height: 18),
-                    _LoginFooter(),
-                  ],
-                ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - 36,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _SignInCard(busy: _busy, onSignIn: _signIn),
+                              const SizedBox(height: 16),
+                              _CampusTrustCard(),
+                              const SizedBox(height: 16),
+                              _CampusCategories(),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          _LoginFooter(),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -422,6 +439,85 @@ class _TrustItem extends StatelessWidget {
             fontSize: 10,
             color: UmColors.mutedForeground,
           ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CampusCategories extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    const categories = [
+      (icon: LucideIcons.bookOpen500, label: 'Textbooks'),
+      (icon: LucideIcons.shirt500, label: 'Uniforms'),
+      (icon: LucideIcons.smartphone500, label: 'Gadgets'),
+      (icon: LucideIcons.calculator500, label: 'Calculators'),
+      (icon: LucideIcons.bed500, label: 'Dorm Gear'),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              LucideIcons.sparkles500,
+              size: 14,
+              color: UmColors.primary,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'WHAT UMIANS TRADE',
+              style: GoogleFonts.spaceGrotesk(
+                fontWeight: FontWeight.w800,
+                fontSize: 10.5,
+                letterSpacing: 0.8,
+                color: UmColors.ink,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final cat in categories)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: UmColors.surface,
+                  border: Border.all(color: UmColors.ink, width: 1.5),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: UmColors.ink,
+                      offset: Offset(2, 2),
+                      blurRadius: 0,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(cat.icon, size: 14, color: UmColors.primary),
+                    const SizedBox(width: 6),
+                    Text(
+                      cat.label,
+                      style: GoogleFonts.spaceGrotesk(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 10.5,
+                        color: UmColors.ink,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
       ],
     );
