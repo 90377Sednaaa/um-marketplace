@@ -215,15 +215,20 @@ class _SellScreenState extends State<SellScreen> {
                           controller: _price,
                           hint: 'Price in pesos',
                           prefixText: '₱',
-                          keyboardType:
-                              const TextInputType.numberWithOptions(decimal: true),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
                           inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'[0-9.]'),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 16),
-                        Text('Category',
-                            style: Theme.of(context).textTheme.labelMedium),
+                        Text(
+                          'Category',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
                         const SizedBox(height: 8),
                         _PillSelector<String>(
                           options: kListingCategories,
@@ -231,8 +236,10 @@ class _SellScreenState extends State<SellScreen> {
                           onSelected: (v) => setState(() => _category = v),
                         ),
                         const SizedBox(height: 16),
-                        Text('Condition',
-                            style: Theme.of(context).textTheme.labelMedium),
+                        Text(
+                          'Condition',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
                         const SizedBox(height: 8),
                         _PillSelector<String>(
                           options: kListingConditions,
@@ -258,7 +265,8 @@ class _SellScreenState extends State<SellScreen> {
                         const SizedBox(height: 8),
                         _NbrField(
                           controller: _description,
-                          hint: 'Description (optional) — condition, reason '
+                          hint:
+                              'Description (optional) — condition, reason '
                               'for selling, meetup notes…',
                           maxLines: 3,
                           maxLength: 300,

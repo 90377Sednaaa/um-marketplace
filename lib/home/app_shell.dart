@@ -49,17 +49,14 @@ class _AppShellState extends State<AppShell>
   int _index = 0;
   AnimationController? _tabController;
 
-  AnimationController get _controller =>
-      _tabController ??= AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 150),
-        value: 1.0,
-      );
+  AnimationController get _controller => _tabController ??= AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 150),
+    value: 1.0,
+  );
 
-  Animation<double> get _fadeAnimation => CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOutCubic,
-      );
+  Animation<double> get _fadeAnimation =>
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
 
   @override
   void dispose() {
