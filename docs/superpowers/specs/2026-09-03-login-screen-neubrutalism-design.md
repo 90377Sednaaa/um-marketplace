@@ -11,6 +11,7 @@
 The existing `SignInScreen` has excessive unused white space at the bottom (taking up over 40% of the screen height on mobile devices) and appears generic beneath the primary sign-in card.
 
 ### Goals
+
 1. **Eliminate the bottom empty void**: Transform the lower half of the screen into a rich, informative, authentic Neubrutalist campus bulletin.
 2. **Redesign the Hero Panel**: Upgrade from a plain maroon box to a two-tone Neubrutalist header featuring a bold header lockup, slanted `Ga` badge, display typography, and a prominent edge-to-edge Gold ticker tape (`@umindanao.edu.ph ONLY • 0% FEES • ON-CAMPUS MEETUPS`).
 3. **Clarify the Institutional Domain Requirement**: Make it immediately obvious that only `@umindanao.edu.ph` institutional Google accounts can sign in (per ADR 0001/0008 and UM policy).
@@ -75,6 +76,7 @@ Scaffold (background: UmColors.background)
 ## 3. Detailed Component Specifications
 
 ### 1. `_HeroPanel`
+
 - **Top Maroon Surface**:
   - Color: `UmColors.primary` (`#7C2D12`).
   - Slanted `Ga` badge: `UmColors.gold` (`#FFC72C`), `2dp` ink border, `Offset(2, 2)` hard shadow, tilted `-4°`.
@@ -87,6 +89,7 @@ Scaffold (background: UmColors.background)
   - Text: Space Grotesk 800, 11px, letterSpacing 0.8, black ink `#000000`.
 
 ### 2. `_SignInCard`
+
 - **Surface**: White `#FFFFFF`, `2dp` ink border, `4dp` hard black shadow, `12dp` radius.
 - **Title Row**: `LucideIcons.badgeCheck500` inside a gold container + `"Sign in to start trading"` (Space Grotesk 800, 16px).
 - **Institutional Gate Callout**:
@@ -95,6 +98,7 @@ Scaffold (background: UmColors.background)
 - **Action**: `NbrButton` with `assets/logos/google_g.svg`, white fill, 2dp border, 4dp shadow, full width.
 
 ### 3. `_HowItWorksSection`
+
 - **Section Badge**: Centered pill: `"HOW WE TRADE"`, Space Grotesk 800, 11px, gold fill with ink border.
 - **Grid Tiles**: 3 equal-width flex tiles:
   - Fill: `UmColors.goldSoft` (`#FEF3C7`), `2dp` ink border, `3dp` hard shadow, `8dp` radius.
@@ -104,12 +108,14 @@ Scaffold (background: UmColors.background)
   - Description: Outfit 500, 10px, muted foreground / dark ink.
 
 ### 4. `_CampusMeetupBanner`
+
 - **Surface**: `UmColors.goldSoft`, `2dp` ink border, `4dp` hard shadow, `8dp` radius, padded 14dp.
 - **Header**: `LucideIcons.mapPin500` in primary maroon + `"SAFE CAMPUS MEETUPS"` (Space Grotesk 800, 13px).
 - **Campus tags**: Horizontal wrap of mini-pills (`Matina`, `Bolton`, `Tagum`, `Peñaplata`), white fill, `1.5dp` border.
-- **Safety tip**: Outfit 500, 11px: *"Meet at high-visibility campus spots: Cafeteria, Library, or Gym Quad. Inspect before you pay."*
+- **Safety tip**: Outfit 500, 11px: _"Meet at high-visibility campus spots: Cafeteria, Library, or Gym Quad. Inspect before you pay."_
 
 ### 5. `_LoginFooter`
+
 - Centered captions in Outfit 600, 11px, `UmColors.mutedForeground`.
 
 ---
@@ -117,6 +123,7 @@ Scaffold (background: UmColors.background)
 ## 4. Asset Additions
 
 New SVG stickers created in `assets/stickers/`:
+
 1. `shield.svg`: Neubrutalist gold shield with 4px ink border and center checkmark.
 2. `pin.svg`: Neubrutalist campus location pin with 4px ink border.
 
