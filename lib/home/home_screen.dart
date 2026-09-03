@@ -35,7 +35,11 @@ class HomeScreen extends StatelessWidget {
   final ReportStore reportStore;
   final VoidCallback? onSellRequested;
 
-  void _openBrowse(BuildContext context, {String query = '', String? category}) {
+  void _openBrowse(
+    BuildContext context, {
+    String query = '',
+    String? category,
+  }) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => BrowseScreen(
@@ -85,8 +89,13 @@ class HomeScreen extends StatelessWidget {
                 _HeroSearchBar(onTap: () => _openBrowse(context)),
                 const SizedBox(height: 14),
                 SizedBox(
-                  height: 38,
+                  height: 46,
                   child: ListView.separated(
+                    clipBehavior: Clip.none,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 2,
+                      vertical: 4,
+                    ),
                     scrollDirection: Axis.horizontal,
                     itemCount: kListingCategories.length,
                     separatorBuilder: (_, _) => const SizedBox(width: 8),
@@ -101,39 +110,9 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Text(
-                      'Recent listings',
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: UmColors.gold,
-                        border: Border.all(color: UmColors.ink, width: 1.5),
-                        borderRadius: BorderRadius.circular(999),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: UmColors.ink,
-                            offset: Offset(1.5, 1.5),
-                            blurRadius: 0,
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        'FRESH',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 9.5,
-                          letterSpacing: 0.6,
-                          color: UmColors.ink,
-                        ),
-                      ),
-                    ),
-                  ],
+                Text(
+                  'Recent listings',
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 12),
                 if (listings == null)
@@ -146,11 +125,11 @@ class HomeScreen extends StatelessWidget {
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 0.70,
-                    ),
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: 0.70,
+                        ),
                     itemCount: listings.length,
                     itemBuilder: (context, index) {
                       final listing = listings[index];
@@ -211,11 +190,7 @@ class _EmptyFeed extends StatelessWidget {
         border: Border.all(color: UmColors.ink, width: 2),
         borderRadius: BorderRadius.circular(8),
         boxShadow: const [
-          BoxShadow(
-            color: UmColors.ink,
-            offset: UmShadows.card,
-            blurRadius: 0,
-          ),
+          BoxShadow(color: UmColors.ink, offset: UmShadows.card, blurRadius: 0),
         ],
       ),
       child: Column(
@@ -256,9 +231,8 @@ class _EmptyFeed extends StatelessWidget {
           Text(
             'Be the first to post one!',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: UmColors.mutedForeground,
-                ),
+            style: Theme.of(context).textTheme.bodyMedium
+                ?.copyWith(color: UmColors.mutedForeground),
           ),
           if (onSellRequested != null) ...[
             const SizedBox(height: 16),
@@ -267,8 +241,10 @@ class _EmptyFeed extends StatelessWidget {
             GestureDetector(
               onTap: onSellRequested,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: UmColors.gold,
                   border: Border.all(color: UmColors.ink, width: 2),
@@ -277,8 +253,11 @@ class _EmptyFeed extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(LucideIcons.plus500,
-                        size: 16, color: UmColors.ink),
+                    const Icon(
+                      LucideIcons.plus500,
+                      size: 16,
+                      color: UmColors.ink,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Sell something',
@@ -410,9 +389,8 @@ class _HeroSearchBarState extends State<_HeroSearchBar> {
             const SizedBox(width: 10),
             Text(
               'Search textbooks, gadgets…',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: UmColors.mutedForeground,
-                  ),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: UmColors.mutedForeground),
             ),
           ],
         ),

@@ -44,8 +44,37 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends State<AppShell>
+    with SingleTickerProviderStateMixin {
   int _index = 0;
+  late final AnimationController _tabController;
+  late final Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+      value: 1.0,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _tabController,
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _onTabSelected(int index) {
+    if (_index == index) return;
+    setState(() => _index = index);
+    _tabController.forward(from: 0.0);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,49 +87,49 @@ class _AppShellState extends State<AppShell> {
               notificationStore: widget.notificationStore,
             ),
             Expanded(
-              child: IndexedStack(
-                index: _index,
-                children: [
-                  HomeScreen(
-                    member: widget.member,
-                    memberStore: widget.memberStore,
-                    listingsStore: widget.listingsStore,
-                    chatStore: widget.chatStore,
-                    ratingStore: widget.ratingStore,
-                    reportStore: widget.reportStore,
-                    onSellRequested: () => setState(() => _index = 1),
-                  ),
-                  SellScreen(
-                    sellerId: widget.member.uid,
-                    sellerDisplayName: widget.member.displayName,
-                    listingsStore: widget.listingsStore,
-                    onPublished: () => setState(() => _index = 0),
-                  ),
-                  ChatsScreen(
-                    viewerUid: widget.member.uid,
-                    chatStore: widget.chatStore,
-                    memberStore: widget.memberStore,
-                    listingsStore: widget.listingsStore,
-                    ratingStore: widget.ratingStore,
-                    reportStore: widget.reportStore,
-                  ),
-                  ProfileScreen(
-                    member: widget.member,
-                    memberStore: widget.memberStore,
-                    listingsStore: widget.listingsStore,
-                    chatStore: widget.chatStore,
-                    ratingStore: widget.ratingStore,
-                    reportStore: widget.reportStore,
-                    onSignOut: widget.onSignOut,
-                    onSellRequested: () => setState(() => _index = 1),
-                  ),
-                ],
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: IndexedStack(
+                  index: _index,
+                  children: [
+                    HomeScreen(
+                      member: widget.member,
+                      memberStore: widget.memberStore,
+                      listingsStore: widget.listingsStore,
+                      chatStore: widget.chatStore,
+                      ratingStore: widget.ratingStore,
+                      reportStore: widget.reportStore,
+                      onSellRequested: () => _onTabSelected(1),
+                    ),
+                    SellScreen(
+                      sellerId: widget.member.uid,
+                      sellerDisplayName: widget.member.displayName,
+                      listingsStore: widget.listingsStore,
+                      onPublished: () => _onTabSelected(0),
+                    ),
+                    ChatsScreen(
+                      viewerUid: widget.member.uid,
+                      chatStore: widget.chatStore,
+                      memberStore: widget.memberStore,
+                      listingsStore: widget.listingsStore,
+                      ratingStore: widget.ratingStore,
+                      reportStore: widget.reportStore,
+                    ),
+                    ProfileScreen(
+                      member: widget.member,
+                      memberStore: widget.memberStore,
+                      listingsStore: widget.listingsStore,
+                      chatStore: widget.chatStore,
+                      ratingStore: widget.ratingStore,
+                      reportStore: widget.reportStore,
+                      onSignOut: widget.onSignOut,
+                      onSellRequested: () => _onTabSelected(1),
+                    ),
+                  ],
+                ),
               ),
             ),
-            _BottomNav(
-              index: _index,
-              onSelected: (i) => setState(() => _index = i),
-            ),
+            _BottomNav(index: _index, onSelected: _onTabSelected),
           ],
         ),
       ),
@@ -112,10 +141,7 @@ class _AppShellState extends State<AppShell> {
 /// "the notification bell lives in the Home app bar, never in the nav")
 /// and its live unread gold sticker.
 class _BrandBand extends StatelessWidget {
-  const _BrandBand({
-    required this.viewerUid,
-    required this.notificationStore,
-  });
+  const _BrandBand({required this.viewerUid, required this.notificationStore});
 
   final String viewerUid;
   final NotificationStore notificationStore;
@@ -139,11 +165,7 @@ class _BrandBand extends StatelessWidget {
         color: UmColors.primary,
         border: Border(bottom: BorderSide(color: UmColors.ink, width: 3)),
         boxShadow: [
-          BoxShadow(
-            color: UmColors.ink,
-            offset: Offset(0, 4),
-            blurRadius: 0,
-          ),
+          BoxShadow(color: UmColors.ink, offset: Offset(0, 4), blurRadius: 0),
         ],
       ),
       padding: const EdgeInsets.only(left: 16, right: 8, top: 12, bottom: 12),
@@ -155,8 +177,10 @@ class _BrandBand extends StatelessWidget {
                 Transform.rotate(
                   angle: -0.04,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: UmColors.gold,
                       border: Border.all(color: UmColors.ink, width: 2),
@@ -211,11 +235,12 @@ class _BrandBand extends StatelessWidget {
                       right: -6,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: UmColors.destructive,
-                          border:
-                              Border.all(color: UmColors.ink, width: 1.5),
+                          border: Border.all(color: UmColors.ink, width: 1.5),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
@@ -281,11 +306,7 @@ class _BellButtonState extends State<_BellButton> {
                   ),
                 ],
         ),
-        child: const Icon(
-          LucideIcons.bell500,
-          size: 22,
-          color: UmColors.ink,
-        ),
+        child: const Icon(LucideIcons.bell500, size: 22, color: UmColors.ink),
       ),
     );
   }
@@ -381,8 +402,9 @@ class _NavItemState extends State<_NavItem> {
           color: bg,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-              color: widget.active ? UmColors.ink : Colors.transparent,
-              width: 2),
+            color: widget.active ? UmColors.ink : Colors.transparent,
+            width: 2,
+          ),
           boxShadow: widget.active && !_pressed
               ? const [
                   BoxShadow(

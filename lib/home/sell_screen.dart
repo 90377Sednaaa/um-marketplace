@@ -195,12 +195,22 @@ class _SellScreenState extends State<SellScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        Text(
+                          'Title',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                        const SizedBox(height: 8),
                         _NbrField(
                           controller: _title,
                           hint: 'Title — e.g. Calculus 201 textbook',
                           maxLength: 60,
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Price',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                        const SizedBox(height: 8),
                         _NbrField(
                           controller: _price,
                           hint: 'Price in pesos',
@@ -230,12 +240,22 @@ class _SellScreenState extends State<SellScreen> {
                           onSelected: (v) => setState(() => _condition = v),
                         ),
                         const SizedBox(height: 16),
+                        Text(
+                          'Location',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                        const SizedBox(height: 8),
                         _NbrField(
                           controller: _location,
                           hint: 'Location (optional) — e.g. Matina campus',
                           maxLength: 40,
                         ),
                         const SizedBox(height: 16),
+                        Text(
+                          'Description',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                        const SizedBox(height: 8),
                         _NbrField(
                           controller: _description,
                           hint: 'Description (optional) — condition, reason '
@@ -244,15 +264,17 @@ class _SellScreenState extends State<SellScreen> {
                           maxLength: 300,
                         ),
                         const SizedBox(height: 16),
-                        Text('Photos (up to $kMaxListingPhotos)',
-                            style: Theme.of(context).textTheme.labelMedium),
+                        Text(
+                          'Photos (up to $kMaxListingPhotos)',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
                         const SizedBox(height: 8),
                         _PhotoGrid(
                           photos: _photos,
                           canAdd: _photos.length < kMaxListingPhotos,
                           onAdd: _addPhoto,
-                          onRemove: (index) => setState(
-                              () => _photos.removeAt(index)),
+                          onRemove: (index) =>
+                              setState(() => _photos.removeAt(index)),
                         ),
                         if (_pickFailed) ...[
                           const SizedBox(height: 8),
@@ -268,9 +290,9 @@ class _SellScreenState extends State<SellScreen> {
                             _error!,
                             style: Theme.of(context).textTheme.labelMedium
                                 ?.copyWith(
-                              color: UmColors.destructive,
-                              fontWeight: FontWeight.w500,
-                            ),
+                                  color: UmColors.destructive,
+                                  fontWeight: FontWeight.w500,
+                                ),
                           ),
                         ],
                         const SizedBox(height: 16),
@@ -287,9 +309,8 @@ class _SellScreenState extends State<SellScreen> {
                     'Your listing appears on the Home feed the moment it '
                     'goes live.',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: UmColors.mutedForeground,
-                        ),
+                    style: Theme.of(context).textTheme.bodyMedium
+                        ?.copyWith(color: UmColors.mutedForeground),
                   ),
                 ],
               ),
@@ -330,11 +351,7 @@ class _NbrField extends StatelessWidget {
         border: Border.all(color: UmColors.ink, width: 2),
         borderRadius: BorderRadius.circular(8),
         boxShadow: const [
-          BoxShadow(
-            color: UmColors.ink,
-            offset: Offset(3, 3),
-            blurRadius: 0,
-          ),
+          BoxShadow(color: UmColors.ink, offset: Offset(3, 3), blurRadius: 0),
         ],
       ),
       child: TextField(
@@ -348,15 +365,15 @@ class _NbrField extends StatelessWidget {
           hintText: hint,
           prefixText: prefixText,
           counterText: '',
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: UmColors.mutedForeground,
-              ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 12,
+          ),
+          hintStyle: Theme.of(context).textTheme.bodyMedium
+              ?.copyWith(color: UmColors.mutedForeground),
         ),
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+        style: Theme.of(context).textTheme.bodyMedium
+            ?.copyWith(fontWeight: FontWeight.w500),
       ),
     );
   }
@@ -385,8 +402,7 @@ class _PillSelector<T> extends StatelessWidget {
             onTap: () => onSelected(option),
             borderRadius: BorderRadius.circular(999),
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: option == selected ? UmColors.gold : UmColors.surface,
                 border: Border.all(color: UmColors.ink, width: 2),
@@ -395,9 +411,9 @@ class _PillSelector<T> extends StatelessWidget {
               child: Text(
                 option.toString(),
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: UmColors.ink,
-                    ),
+                  fontWeight: FontWeight.w600,
+                  color: UmColors.ink,
+                ),
               ),
             ),
           ),
@@ -443,8 +459,10 @@ class _PhotoGrid extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (_, _, _) => Container(
                       color: UmColors.muted,
-                      child: const Icon(LucideIcons.imageOff500,
-                          color: UmColors.mutedForeground),
+                      child: const Icon(
+                        LucideIcons.imageOff500,
+                        color: UmColors.mutedForeground,
+                      ),
                     ),
                   ),
                 ),
@@ -481,8 +499,11 @@ class _PhotoGrid extends StatelessWidget {
                 border: Border.all(color: UmColors.ink, width: 2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(LucideIcons.camera500,
-                  size: 26, color: UmColors.ink),
+              child: const Icon(
+                LucideIcons.camera500,
+                size: 26,
+                color: UmColors.ink,
+              ),
             ),
           ),
       ],

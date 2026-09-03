@@ -32,6 +32,12 @@ ThemeData buildUmTheme() {
   final base = ThemeData(useMaterial3: true);
   return base.copyWith(
     scaffoldBackgroundColor: UmColors.background,
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
+        TargetPlatform.iOS: FadeForwardsPageTransitionsBuilder(),
+      },
+    ),
     colorScheme: const ColorScheme.light(
       primary: UmColors.primary,
       onPrimary: UmColors.onPrimary,
