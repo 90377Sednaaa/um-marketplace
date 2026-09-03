@@ -47,33 +47,30 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell>
     with SingleTickerProviderStateMixin {
   int _index = 0;
-  late final AnimationController _tabController;
-  late final Animation<double> _fadeAnimation;
+  AnimationController? _tabController;
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
-      value: 1.0,
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _tabController,
-      curve: Curves.easeOutCubic,
-    );
-  }
+  AnimationController get _controller =>
+      _tabController ??= AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 150),
+        value: 1.0,
+      );
+
+  Animation<double> get _fadeAnimation => CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeOutCubic,
+      );
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController?.dispose();
     super.dispose();
   }
 
   void _onTabSelected(int index) {
     if (_index == index) return;
     setState(() => _index = index);
-    _tabController.forward(from: 0.0);
+    _controller.forward(from: 0.0);
   }
 
   @override
