@@ -61,8 +61,11 @@ class FakeMemberStore implements MemberStore {
   @override
   Stream<List<Member>> searchMembers(String displayNamePrefix) {
     final matches = knownMembers.values
-        .where((m) =>
-            m.displayName.toLowerCase().startsWith(displayNamePrefix.toLowerCase()))
+        .where(
+          (m) => m.displayName.toLowerCase().startsWith(
+            displayNamePrefix.toLowerCase(),
+          ),
+        )
         .take(20)
         .toList();
     return Stream<List<Member>>.value(matches).asBroadcastStream();
@@ -70,8 +73,9 @@ class FakeMemberStore implements MemberStore {
 
   void emitSearch(String prefix) {
     final matches = knownMembers.values
-        .where((m) =>
-            m.displayName.toLowerCase().startsWith(prefix.toLowerCase()))
+        .where(
+          (m) => m.displayName.toLowerCase().startsWith(prefix.toLowerCase()),
+        )
         .take(20)
         .toList();
     _searchController.add(matches);
@@ -122,9 +126,8 @@ class FakeChatStore implements ChatStore {
   bool failSend = false;
   int _messageSeq = 0;
 
-  StreamController<List<ChatMessage>> _for(String chatId) =>
-      _messageControllers.putIfAbsent(
-          chatId, StreamController<List<ChatMessage>>.broadcast);
+  StreamController<List<ChatMessage>> _for(String chatId) => _messageControllers
+      .putIfAbsent(chatId, StreamController<List<ChatMessage>>.broadcast);
 
   @override
   Stream<List<Chat>> myChatsStream(String uid) => _listController.stream;
@@ -298,16 +301,18 @@ class FakeReportStore implements ReportStore {
       'listingId': listingId,
       'chatId': chatId,
     });
-    reports.add(Report(
-      id: 'r${reports.length}',
-      reporterId: reporterId,
-      status: 'open',
-      reason: reason,
-      reportedUid: reportedUid,
-      listingId: listingId,
-      chatId: chatId,
-      createdAt: DateTime(2026, 8, 28, 12),
-    ));
+    reports.add(
+      Report(
+        id: 'r${reports.length}',
+        reporterId: reporterId,
+        status: 'open',
+        reason: reason,
+        reportedUid: reportedUid,
+        listingId: listingId,
+        chatId: chatId,
+        createdAt: DateTime(2026, 8, 28, 12),
+      ),
+    );
     emitOpen();
   }
 
@@ -325,14 +330,14 @@ class FakeRatingStore implements RatingStore {
   final _controllers = <String, StreamController<List<Rating>>>{};
   bool failRate = false;
 
-  StreamController<List<Rating>> _for(String uid) => _controllers
-      .putIfAbsent(uid, StreamController<List<Rating>>.broadcast);
+  StreamController<List<Rating>> _for(String uid) =>
+      _controllers.putIfAbsent(uid, StreamController<List<Rating>>.broadcast);
 
   @override
   Stream<List<Rating>> ratingsFor(String rateeId) => _for(rateeId).stream;
 
-  void emitRatingsFor(String uid) => _for(uid)
-      .add(ratings.values.where((r) => r.rateeId == uid).toList());
+  void emitRatingsFor(String uid) =>
+      _for(uid).add(ratings.values.where((r) => r.rateeId == uid).toList());
 
   @override
   Future<Rating?> myRatingFor(String listingId, String raterId) async =>
@@ -521,7 +526,8 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
   }
 
-  Chat sampleChat({String listingId = 'l1', String buyerId = 'buyer-1'}) => Chat(
+  Chat sampleChat({String listingId = 'l1', String buyerId = 'buyer-1'}) =>
+      Chat(
         id: chatIdFor(listingId, buyerId),
         listingId: listingId,
         sellerId: 'seller-1',
@@ -556,8 +562,9 @@ void main() {
     );
   }
 
-  testWidgets('shows the Google sign-in gate when signed out',
-      (WidgetTester tester) async {
+  testWidgets('shows the Google sign-in gate when signed out', (
+    WidgetTester tester,
+  ) async {
     final auth = FakeAuthService();
     await tester.pumpWidget(_app(auth: auth));
     await tester.pump();
@@ -565,19 +572,20 @@ void main() {
     expect(find.text('Sign in with Google'), findsOneWidget);
     expect(find.text('UM Marketplace'), findsOneWidget);
     expect(find.text('Ga'), findsOneWidget);
-    expect(find.text('Use your UMindanao Gmail account'), findsOneWidget);
-    expect(find.text('HOW WE TRADE'), findsOneWidget);
-    expect(find.text('SAFE CAMPUS MEETUPS'), findsOneWidget);
+    expect(find.text('Sign in to start trading'), findsOneWidget);
+    expect(find.text('Matina • Bolton • Tagum • Peñaplata'), findsOneWidget);
   });
 
-  testWidgets('sign-in creates the member account and lands on home',
-      (WidgetTester tester) async {
+  testWidgets('sign-in creates the member account and lands on home', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
-    await tester
-        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
 
     await tester.tap(find.text('Sign in with Google'));
     await tester.pump();
@@ -594,13 +602,15 @@ void main() {
     expect(find.text('Verified UM student'), findsOneWidget);
   });
 
-  testWidgets('a banned member is shown the banned screen (ADR 0003)',
-      (WidgetTester tester) async {
+  testWidgets('a banned member is shown the banned screen (ADR 0003)', (
+    WidgetTester tester,
+  ) async {
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
-    await tester
-        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
     auth.emit(_student);
     await tester.pump();
     members.emit(
@@ -618,8 +628,9 @@ void main() {
     expect(find.text('Recent listings'), findsNothing);
   });
 
-  testWidgets('home feed shows listings with formatted prices',
-      (WidgetTester tester) async {
+  testWidgets('home feed shows listings with formatted prices', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -645,8 +656,9 @@ void main() {
           location: 'Matina',
         ),
       ];
-    await tester
-        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
     auth.emit(_student);
     await tester.pump();
     await tester.pumpAndSettle();
@@ -659,19 +671,17 @@ void main() {
     expect(find.text('₱250'), findsOneWidget);
   });
 
-  testWidgets('bottom nav shows 4 tabs and switches between them',
-      (WidgetTester tester) async {
+  testWidgets('bottom nav shows 4 tabs and switches between them', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
     final chats = FakeChatStore();
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      chats: chats,
-    ));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, chats: chats),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
 
@@ -696,18 +706,16 @@ void main() {
     expect(find.text('Title — e.g. Calculus 201 textbook'), findsNothing);
   });
 
-  testWidgets('the Sell CTA switches to the Sell tab',
-      (WidgetTester tester) async {
+  testWidgets('the Sell CTA switches to the Sell tab', (
+    WidgetTester tester,
+  ) async {
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
     final chats = FakeChatStore();
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      chats: chats,
-    ));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, chats: chats),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     listings.emitListings();
@@ -719,18 +727,16 @@ void main() {
     expect(find.text('Title — e.g. Calculus 201 textbook'), findsOneWidget);
   });
 
-  testWidgets('the sell draft survives switching tabs (IndexedStack)',
-      (WidgetTester tester) async {
+  testWidgets('the sell draft survives switching tabs (IndexedStack)', (
+    WidgetTester tester,
+  ) async {
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
     final chats = FakeChatStore();
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      chats: chats,
-    ));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, chats: chats),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
 
@@ -745,19 +751,17 @@ void main() {
     expect(find.text('Half-finished draft'), findsOneWidget);
   });
 
-  testWidgets('publishing from the Sell tab lands back on Home',
-      (WidgetTester tester) async {
+  testWidgets('publishing from the Sell tab lands back on Home', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
     final chats = FakeChatStore();
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      chats: chats,
-    ));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, chats: chats),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
 
@@ -779,8 +783,9 @@ void main() {
     expect(listings.drafts, hasLength(1));
   });
 
-  testWidgets('thread renders the pinned listing and messages',
-      (WidgetTester tester) async {
+  testWidgets('thread renders the pinned listing and messages', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final chats = FakeChatStore();
     final listings = FakeListingsStore();
@@ -796,9 +801,17 @@ void main() {
     );
     chats.messages['l1_buyer-1'] = [
       const ChatMessage(
-          id: 'm1', senderId: 'seller-1', type: 'text', text: 'Hi there!'),
+        id: 'm1',
+        senderId: 'seller-1',
+        type: 'text',
+        text: 'Hi there!',
+      ),
       const ChatMessage(
-          id: 'm2', senderId: 'buyer-1', type: 'text', text: 'Still available?'),
+        id: 'm2',
+        senderId: 'buyer-1',
+        type: 'text',
+        text: 'Still available?',
+      ),
     ];
     await tester.pumpWidget(threadApp(chats, listings, members));
     await tester.pumpAndSettle();
@@ -816,8 +829,9 @@ void main() {
     expect(find.text('J. Dela Cruz'), findsOneWidget); // header from chat doc
   });
 
-  testWidgets('thread composer sends a text message',
-      (WidgetTester tester) async {
+  testWidgets('thread composer sends a text message', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final chats = FakeChatStore();
     final listings = FakeListingsStore();
@@ -846,8 +860,9 @@ void main() {
     expect(chats.chats['l1_buyer-1']!.lastMessagePreview, 'Tara, swap meet?');
   });
 
-  testWidgets('a sold listing shows the banner and disables the composer',
-      (WidgetTester tester) async {
+  testWidgets('a sold listing shows the banner and disables the composer', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final chats = FakeChatStore();
     final listings = FakeListingsStore();
@@ -872,8 +887,9 @@ void main() {
     expect(chats.messages['l1_buyer-1'] ?? const [], isEmpty);
   });
 
-  testWidgets('a blocked send surfaces a snackbar and keeps the thread open',
-      (WidgetTester tester) async {
+  testWidgets('a blocked send surfaces a snackbar and keeps the thread open', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final chats = FakeChatStore()..failSend = true;
     final listings = FakeListingsStore();
@@ -896,15 +912,19 @@ void main() {
     await tester.tap(find.byIcon(LucideIcons.send500));
     await tester.pumpAndSettle();
 
-    expect(find.text("You can't message this member right now"), findsOneWidget);
+    expect(
+      find.text("You can't message this member right now"),
+      findsOneWidget,
+    );
 
     // Let the snackbar timer expire before the test ends.
     await tester.pump(const Duration(seconds: 5));
     await tester.pumpAndSettle();
   });
 
-  testWidgets('buyer sees the offer affordance and sends a priced offer',
-      (WidgetTester tester) async {
+  testWidgets('buyer sees the offer affordance and sends a priced offer', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final chats = FakeChatStore();
     final listings = FakeListingsStore();
@@ -936,8 +956,9 @@ void main() {
     expect(find.text('₱40'), findsOneWidget); // rendered offer block
   });
 
-  testWidgets('offer dialog rejects zero and bad input',
-      (WidgetTester tester) async {
+  testWidgets('offer dialog rejects zero and bad input', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final chats = FakeChatStore();
     final listings = FakeListingsStore();
@@ -974,7 +995,9 @@ void main() {
     expect(find.text('Use whole pesos only.'), findsOneWidget);
   });
 
-  testWidgets('the seller has no offer affordance', (WidgetTester tester) async {
+  testWidgets('the seller has no offer affordance', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final chats = FakeChatStore();
     final listings = FakeListingsStore();
@@ -989,7 +1012,8 @@ void main() {
       condition: 'good',
     );
     await tester.pumpWidget(
-        threadApp(chats, listings, members, viewerUid: 'seller-1'));
+      threadApp(chats, listings, members, viewerUid: 'seller-1'),
+    );
     await tester.pumpAndSettle();
     listings.emitListing('l1', listing);
     await tester.pumpAndSettle();
@@ -997,8 +1021,9 @@ void main() {
     expect(find.byIcon(LucideIcons.handCoins500), findsNothing);
   });
 
-  testWidgets('tapping a listing card opens its detail screen',
-      (WidgetTester tester) async {
+  testWidgets('tapping a listing card opens its detail screen', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -1013,11 +1038,15 @@ void main() {
           category: 'textbooks',
           condition: 'good',
           location: 'Matina',
-          photos: [Uint8List.fromList([1]), Uint8List.fromList([2])],
+          photos: [
+            Uint8List.fromList([1]),
+            Uint8List.fromList([2]),
+          ],
         ),
       ];
-    await tester
-        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
     auth.emit(_student);
     await tester.pump();
     await tester.pumpAndSettle();
@@ -1037,8 +1066,9 @@ void main() {
     expect(find.text('Make an offer'), findsOneWidget);
   });
 
-  testWidgets('the seller strip shows the document name and trust cues',
-      (WidgetTester tester) async {
+  testWidgets('the seller strip shows the document name and trust cues', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -1055,8 +1085,9 @@ void main() {
           sellerDisplayName: 'J. Dela Cruz',
         ),
       ];
-    await tester
-        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
     auth.emit(_student);
     await tester.pump();
     await tester.pumpAndSettle();
@@ -1071,8 +1102,9 @@ void main() {
     expect(find.text('★ — · no trades yet'), findsOneWidget);
   });
 
-  testWidgets('an unnamed seller still shows the safe fallback',
-      (WidgetTester tester) async {
+  testWidgets('an unnamed seller still shows the safe fallback', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -1088,8 +1120,9 @@ void main() {
           condition: 'like new',
         ),
       ];
-    await tester
-        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
     auth.emit(_student);
     await tester.pump();
     await tester.pumpAndSettle();
@@ -1103,8 +1136,9 @@ void main() {
     expect(find.text('Verified UM student'), findsOneWidget); // platform badge
   });
 
-  testWidgets('viewing your own listing hides the chat/offer bar',
-      (WidgetTester tester) async {
+  testWidgets('viewing your own listing hides the chat/offer bar', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -1120,8 +1154,9 @@ void main() {
           condition: 'good',
         ),
       ];
-    await tester
-        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
     auth.emit(_student);
     await tester.pump();
     await tester.pumpAndSettle();
@@ -1136,19 +1171,17 @@ void main() {
     expect(find.text('Make an offer'), findsNothing);
   });
 
-  testWidgets('Chats tab lists conversations with names, previews, and times',
-      (WidgetTester tester) async {
+  testWidgets('Chats tab lists conversations with names, previews, and times', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
     final chats = FakeChatStore();
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      chats: chats,
-    ));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, chats: chats),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     await tester.tap(find.text('CHATS'));
@@ -1170,12 +1203,9 @@ void main() {
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
     final chats = FakeChatStore();
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      chats: chats,
-    ));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, chats: chats),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     await tester.tap(find.text('CHATS'));
@@ -1186,19 +1216,17 @@ void main() {
     expect(find.textContaining('No conversations yet'), findsOneWidget);
   });
 
-  testWidgets('tapping a chat row opens the thread',
-      (WidgetTester tester) async {
+  testWidgets('tapping a chat row opens the thread', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
     final chats = FakeChatStore();
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      chats: chats,
-    ));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, chats: chats),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     await tester.tap(find.text('CHATS'));
@@ -1211,23 +1239,27 @@ void main() {
 
     await tester.tap(find.text('J. Dela Cruz'));
     await tester.pumpAndSettle();
-    listings.emitListing('l1', const Listing(
-      id: 'l1',
-      sellerId: 'seller-1',
-      title: 'Notes',
-      description: '',
-      price: 50,
-      category: 'textbooks',
-      condition: 'good',
-    ));
+    listings.emitListing(
+      'l1',
+      const Listing(
+        id: 'l1',
+        sellerId: 'seller-1',
+        title: 'Notes',
+        description: '',
+        price: 50,
+        category: 'textbooks',
+        condition: 'good',
+      ),
+    );
     await tester.pumpAndSettle();
     chats.emitMessages('l1_test-uid'); // empty: no messages yet
     await tester.pumpAndSettle();
     expect(find.text('Say hi — or send an offer.'), findsOneWidget); // thread
   });
 
-  testWidgets('detail Chat opens the thread; offer sends an offer message',
-      (WidgetTester tester) async {
+  testWidgets('detail Chat opens the thread; offer sends an offer message', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -1244,12 +1276,9 @@ void main() {
         ),
       ];
     final chats = FakeChatStore();
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      chats: chats,
-    ));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, chats: chats),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     listings.emitListings();
@@ -1263,15 +1292,18 @@ void main() {
     // Thread open (chat created via the fake) — feed the listing so the
     // thread's body builds past the skeleton.
     expect(chats.chats.containsKey('l1_test-uid'), isTrue);
-    listings.emitListing('l1', const Listing(
-      id: 'l1',
-      sellerId: 'seller-1',
-      title: 'Dorm lamp',
-      description: 'USB powered.',
-      price: 300,
-      category: 'dorm essentials',
-      condition: 'like new',
-    ));
+    listings.emitListing(
+      'l1',
+      const Listing(
+        id: 'l1',
+        sellerId: 'seller-1',
+        title: 'Dorm lamp',
+        description: 'USB powered.',
+        price: 300,
+        category: 'dorm essentials',
+        condition: 'like new',
+      ),
+    );
     await tester.pumpAndSettle();
     chats.emitMessages('l1_test-uid'); // empty: no messages yet
     await tester.pumpAndSettle();
@@ -1285,15 +1317,18 @@ void main() {
     await tester.enterText(find.byType(TextField).last, '250');
     await tester.tap(find.text('Send offer'));
     await tester.pumpAndSettle();
-    listings.emitListing('l1', const Listing(
-      id: 'l1',
-      sellerId: 'seller-1',
-      title: 'Dorm lamp',
-      description: 'USB powered.',
-      price: 300,
-      category: 'dorm essentials',
-      condition: 'like new',
-    ));
+    listings.emitListing(
+      'l1',
+      const Listing(
+        id: 'l1',
+        sellerId: 'seller-1',
+        title: 'Dorm lamp',
+        description: 'USB powered.',
+        price: 300,
+        category: 'dorm essentials',
+        condition: 'like new',
+      ),
+    );
     await tester.pumpAndSettle();
     // The offer was sent before this thread existed — replay the current
     // messages so the freshly-subscribed list renders them.
@@ -1306,8 +1341,9 @@ void main() {
     expect(find.text('OFFER'), findsOneWidget); // landed in the thread
   });
 
-  testWidgets('opening a chat against a blocked pair shows a snackbar',
-      (WidgetTester tester) async {
+  testWidgets('opening a chat against a blocked pair shows a snackbar', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -1324,12 +1360,9 @@ void main() {
         ),
       ];
     final chats = FakeChatStore()..failOpen = true;
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      chats: chats,
-    ));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, chats: chats),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     listings.emitListings();
@@ -1340,8 +1373,10 @@ void main() {
     await tester.tap(find.text('Chat'));
     await tester.pumpAndSettle();
 
-    expect(find.text("You can't start a chat with this member right now"),
-        findsOneWidget);
+    expect(
+      find.text("You can't start a chat with this member right now"),
+      findsOneWidget,
+    );
     // still on the detail screen
     expect(find.text('Make an offer'), findsOneWidget);
 
@@ -1350,8 +1385,9 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('opening a chat on a sold listing explains the listing is gone',
-      (WidgetTester tester) async {
+  testWidgets('opening a chat on a sold listing explains the listing is gone', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -1371,12 +1407,9 @@ void main() {
     final chats = FakeChatStore()
       ..failOpen = true
       ..openFailure = ChatOpenFailure.listingInactive;
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      chats: chats,
-    ));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, chats: chats),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     listings.emitListings();
@@ -1392,8 +1425,9 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('search pill opens Browse; typing filters results live',
-      (WidgetTester tester) async {
+  testWidgets('search pill opens Browse; typing filters results live', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -1427,8 +1461,9 @@ void main() {
           condition: 'fair',
         ),
       ];
-    await tester.pumpWidget(_app(
-      auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     listings.emitListings();
@@ -1453,8 +1488,9 @@ void main() {
     expect(find.text('Dorm lamp'), findsNothing);
   });
 
-  testWidgets('browse category chips filter the grid',
-      (WidgetTester tester) async {
+  testWidgets('browse category chips filter the grid', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -1479,8 +1515,9 @@ void main() {
           condition: 'like new',
         ),
       ];
-    await tester.pumpWidget(_app(
-      auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     listings.emitListings();
@@ -1491,7 +1528,9 @@ void main() {
     await tester.pumpAndSettle();
 
     final chips = find.byKey(const Key('browse-category-chips'));
-    await tester.tap(find.descendant(of: chips, matching: find.text('gadgets')));
+    await tester.tap(
+      find.descendant(of: chips, matching: find.text('gadgets')),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Mechanical keyboard'), findsOneWidget);
@@ -1502,8 +1541,9 @@ void main() {
     expect(find.text('Calculus 201 textbook'), findsOneWidget);
   });
 
-  testWidgets('the filters sheet applies condition and price range',
-      (WidgetTester tester) async {
+  testWidgets('the filters sheet applies condition and price range', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -1537,8 +1577,9 @@ void main() {
           condition: 'fair',
         ),
       ];
-    await tester.pumpWidget(_app(
-      auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     listings.emitListings();
@@ -1552,13 +1593,19 @@ void main() {
     await tester.pumpAndSettle();
 
     final sheet = find.byType(BottomSheet);
-    await tester.tap(find.descendant(
-        of: sheet, matching: find.byKey(const Key('browse-condition-pills'))));
+    await tester.tap(
+      find.descendant(
+        of: sheet,
+        matching: find.byKey(const Key('browse-condition-pills')),
+      ),
+    );
     await tester.pump();
-    await tester.tap(find.descendant(
-      of: find.byKey(const Key('browse-condition-pills')),
-      matching: find.text('like new'),
-    ));
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const Key('browse-condition-pills')),
+        matching: find.text('like new'),
+      ),
+    );
     await tester.pump();
     await tester.enterText(
       find.descendant(of: sheet, matching: find.byType(TextField)).at(0),
@@ -1572,8 +1619,9 @@ void main() {
     expect(find.text('Dorm lamp'), findsNothing);
   });
 
-  testWidgets('empty results show the empty state and clear filters recovers',
-      (WidgetTester tester) async {
+  testWidgets('empty results show the empty state and clear filters recovers', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -1589,8 +1637,9 @@ void main() {
           condition: 'like new',
         ),
       ];
-    await tester.pumpWidget(_app(
-      auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     listings.emitListings();
@@ -1609,75 +1658,83 @@ void main() {
     expect(find.text('Mechanical keyboard'), findsOneWidget);
   });
 
-  testWidgets('home shows hero search and category tiles, quick searches removed',
-      (WidgetTester tester) async {
-    usePortraitPhone(tester);
-    final auth = FakeAuthService();
-    final members = FakeMemberStore();
-    final listings = FakeListingsStore()
-      ..listings = [
-        const Listing(
-          id: 'a',
-          sellerId: 's',
-          title: 'Statistics notes',
-          description: '',
-          price: 80,
-          category: 'review materials',
-          condition: 'good',
-        ),
-        const Listing(
-          id: 'b',
-          sellerId: 's',
-          title: 'Dorm lamp',
-          description: '',
-          price: 60,
-          category: 'dorm essentials',
-          condition: 'fair',
-        ),
-      ];
-    await tester.pumpWidget(_app(
-      auth: auth, members: members, listings: listings));
-    auth.emit(_student);
-    await tester.pumpAndSettle();
-    listings.emitListings();
-    await tester.pumpAndSettle();
+  testWidgets(
+    'home shows hero search and category tiles, quick searches removed',
+    (WidgetTester tester) async {
+      usePortraitPhone(tester);
+      final auth = FakeAuthService();
+      final members = FakeMemberStore();
+      final listings = FakeListingsStore()
+        ..listings = [
+          const Listing(
+            id: 'a',
+            sellerId: 's',
+            title: 'Statistics notes',
+            description: '',
+            price: 80,
+            category: 'review materials',
+            condition: 'good',
+          ),
+          const Listing(
+            id: 'b',
+            sellerId: 's',
+            title: 'Dorm lamp',
+            description: '',
+            price: 60,
+            category: 'dorm essentials',
+            condition: 'fair',
+          ),
+        ];
+      await tester.pumpWidget(
+        _app(auth: auth, members: members, listings: listings),
+      );
+      auth.emit(_student);
+      await tester.pumpAndSettle();
+      listings.emitListings();
+      await tester.pumpAndSettle();
 
-    // Quick search chips removed — only hero search + category tiles remain.
-    expect(find.text('Statistics notes'), findsOneWidget); // only the listing card
-    expect(find.text('Electric fan'), findsNothing);
-    expect(find.text('Airpods'), findsNothing);
-    // Hero search still opens Browse.
-    await tester.tap(find.byIcon(LucideIcons.search500).first);
-    await tester.pumpAndSettle();
-    listings.emitListings();
-    await tester.pumpAndSettle();
-    expect(find.text('BROWSE'), findsOneWidget);
-    await tester.pageBack();
-    await tester.pumpAndSettle();
-    // Category tiles still open Browse pre-filtered.
-    await tester.tap(find.text('gadgets').first);
-    await tester.pumpAndSettle();
-    listings.emitListings();
-    await tester.pumpAndSettle();
-    expect(find.text('Dorm lamp'), findsNothing);
-    expect(
-      find.descendant(
-        of: find.byType(ListingCard),
-        matching: find.text('Statistics notes'),
-      ),
-      findsNothing,
-    );
-  });
+      // Quick search chips removed — only hero search + category tiles remain.
+      expect(
+        find.text('Statistics notes'),
+        findsOneWidget,
+      ); // only the listing card
+      expect(find.text('Electric fan'), findsNothing);
+      expect(find.text('Airpods'), findsNothing);
+      // Hero search still opens Browse.
+      await tester.tap(find.byIcon(LucideIcons.search500).first);
+      await tester.pumpAndSettle();
+      listings.emitListings();
+      await tester.pumpAndSettle();
+      expect(find.text('BROWSE'), findsOneWidget);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      // Category tiles still open Browse pre-filtered.
+      await tester.tap(find.text('gadgets').first);
+      await tester.pumpAndSettle();
+      listings.emitListings();
+      await tester.pumpAndSettle();
+      expect(find.text('Dorm lamp'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(ListingCard),
+          matching: find.text('Statistics notes'),
+        ),
+        findsNothing,
+      );
+    },
+  );
 
-  testWidgets('profile shows member identity and the rating placeholder',
-      (WidgetTester tester) async {
+  testWidgets('profile shows member identity and the rating placeholder', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
     final chats = FakeChatStore();
-    await tester.pumpWidget(_app(
-      auth: auth, members: members, listings: listings, chats: chats));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, chats: chats),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
 
@@ -1697,8 +1754,9 @@ void main() {
     );
   });
 
-  testWidgets('a sold listing offers the rate prompt and records the vote',
-      (WidgetTester tester) async {
+  testWidgets('a sold listing offers the rate prompt and records the vote', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final chats = FakeChatStore();
     final listings = FakeListingsStore();
@@ -1715,7 +1773,8 @@ void main() {
       status: 'sold',
     );
     await tester.pumpWidget(
-        threadApp(chats, listings, members, ratings: ratings));
+      threadApp(chats, listings, members, ratings: ratings),
+    );
     await tester.pumpAndSettle();
     listings.emitListing('l1', listing);
     await tester.pumpAndSettle();
@@ -1745,8 +1804,9 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('an already-rated thread shows the read-only state',
-      (WidgetTester tester) async {
+  testWidgets('an already-rated thread shows the read-only state', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final chats = FakeChatStore();
     final listings = FakeListingsStore();
@@ -1771,7 +1831,8 @@ void main() {
       status: 'sold',
     );
     await tester.pumpWidget(
-        threadApp(chats, listings, members, ratings: ratings));
+      threadApp(chats, listings, members, ratings: ratings),
+    );
     await tester.pumpAndSettle();
     listings.emitListing('l1', listing);
     await tester.pumpAndSettle();
@@ -1780,8 +1841,9 @@ void main() {
     expect(find.text('Rate deal'), findsNothing);
   });
 
-  testWidgets('a hidden listing shows no rating prompt',
-      (WidgetTester tester) async {
+  testWidgets('a hidden listing shows no rating prompt', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final chats = FakeChatStore();
     final listings = FakeListingsStore();
@@ -1805,8 +1867,9 @@ void main() {
     expect(find.text('This listing is no longer active'), findsOneWidget);
   });
 
-  testWidgets('the seller strip shows the live rating average',
-      (WidgetTester tester) async {
+  testWidgets('the seller strip shows the live rating average', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -1837,12 +1900,9 @@ void main() {
         stars: 4,
         chatId: 'a_r2',
       );
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      ratings: ratings,
-    ));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, ratings: ratings),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     listings.emitListings();
@@ -1850,11 +1910,13 @@ void main() {
 
     await tester.tap(find.text('Dorm lamp'));
     await tester.pumpAndSettle();
-    members.emit(const Member(
-      uid: 'seller-uid',
-      email: 'j.delacruz.000000@umindanao.edu.ph',
-      displayName: 'J. Dela Cruz',
-    ));
+    members.emit(
+      const Member(
+        uid: 'seller-uid',
+        email: 'j.delacruz.000000@umindanao.edu.ph',
+        displayName: 'J. Dela Cruz',
+      ),
+    );
     await tester.pumpAndSettle();
     ratings.emitRatingsFor('seller-uid');
     await tester.pumpAndSettle();
@@ -1863,8 +1925,9 @@ void main() {
     expect(find.text('★ — · no trades yet'), findsNothing);
   });
 
-  testWidgets('the profile card shows the live rating average',
-      (WidgetTester tester) async {
+  testWidgets('the profile card shows the live rating average', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -1877,12 +1940,9 @@ void main() {
         stars: 3,
         chatId: 'b_r1',
       );
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      ratings: ratings,
-    ));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, ratings: ratings),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     await tester.tap(find.text('PROFILE'));
@@ -1894,8 +1954,9 @@ void main() {
     expect(find.text('★ — · no trades yet'), findsNothing);
   });
 
-  testWidgets('detail screen submits a listing report',
-      (WidgetTester tester) async {
+  testWidgets('detail screen submits a listing report', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -1913,12 +1974,9 @@ void main() {
         ),
       ];
     final reports = FakeReportStore();
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      reports: reports,
-    ));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, reports: reports),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     listings.emitListings();
@@ -1941,15 +1999,17 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('thread header submits a chat report',
-      (WidgetTester tester) async {
+  testWidgets('thread header submits a chat report', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final chats = FakeChatStore();
     final listings = FakeListingsStore();
     final members = FakeMemberStore();
     final reports = FakeReportStore();
-    await tester
-        .pumpWidget(threadApp(chats, listings, members, reports: reports));
+    await tester.pumpWidget(
+      threadApp(chats, listings, members, reports: reports),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.byIcon(LucideIcons.flag500));
@@ -1975,22 +2035,21 @@ void main() {
   }) async {
     final auth = FakeAuthService();
     final listings = FakeListingsStore();
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      reports: reports,
-    ));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, reports: reports),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     await tester.tap(find.text('PROFILE'));
     await tester.pumpAndSettle();
-    members.emit(const Member(
-      uid: 'test-uid',
-      email: 'l.murillo.546842@umindanao.edu.ph',
-      displayName: 'L. Murillo',
-      isAdmin: true,
-    ));
+    members.emit(
+      const Member(
+        uid: 'test-uid',
+        email: 'l.murillo.546842@umindanao.edu.ph',
+        displayName: 'L. Murillo',
+        isAdmin: true,
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Moderation'));
     await tester.pumpAndSettle();
@@ -1998,20 +2057,23 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('the admin gate opens moderation with live reports',
-      (WidgetTester tester) async {
+  testWidgets('the admin gate opens moderation with live reports', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final members = FakeMemberStore();
     final reports = FakeReportStore()
-      ..reports.add(Report(
-        id: 'r1',
-        reporterId: 'buyer-1',
-        status: 'open',
-        reason: 'Stolen notes',
-        listingId: 'l1',
-        reportedUid: 'seller-1',
-        createdAt: DateTime(2026, 8, 28, 12),
-      ));
+      ..reports.add(
+        Report(
+          id: 'r1',
+          reporterId: 'buyer-1',
+          status: 'open',
+          reason: 'Stolen notes',
+          listingId: 'l1',
+          reportedUid: 'seller-1',
+          createdAt: DateTime(2026, 8, 28, 12),
+        ),
+      );
     await openModeration(tester, members: members, reports: reports);
 
     expect(find.text('Open reports'), findsOneWidget);
@@ -2021,38 +2083,40 @@ void main() {
     expect(find.text('Ban user'), findsOneWidget);
   });
 
-  testWidgets('hiding a listing resolves the report',
-      (WidgetTester tester) async {
+  testWidgets('hiding a listing resolves the report', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final members = FakeMemberStore();
     final reports = FakeReportStore()
-      ..reports.add(Report(
-        id: 'r1',
-        reporterId: 'buyer-1',
-        status: 'open',
-        reason: 'Stolen notes',
-        listingId: 'l1',
-        reportedUid: 'seller-1',
-        createdAt: DateTime(2026, 8, 28, 12),
-      ));
+      ..reports.add(
+        Report(
+          id: 'r1',
+          reporterId: 'buyer-1',
+          status: 'open',
+          reason: 'Stolen notes',
+          listingId: 'l1',
+          reportedUid: 'seller-1',
+          createdAt: DateTime(2026, 8, 28, 12),
+        ),
+      );
     final listings = FakeListingsStore();
     final auth = FakeAuthService();
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      reports: reports,
-    ));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, reports: reports),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     await tester.tap(find.text('PROFILE'));
     await tester.pumpAndSettle();
-    members.emit(const Member(
-      uid: 'test-uid',
-      email: 'l.murillo.546842@umindanao.edu.ph',
-      displayName: 'L. Murillo',
-      isAdmin: true,
-    ));
+    members.emit(
+      const Member(
+        uid: 'test-uid',
+        email: 'l.murillo.546842@umindanao.edu.ph',
+        displayName: 'L. Murillo',
+        isAdmin: true,
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Moderation'));
     await tester.pumpAndSettle();
@@ -2071,20 +2135,23 @@ void main() {
     expect(find.text('Stolen notes'), findsNothing);
   });
 
-  testWidgets('banning a user hides their listings and resolves the report',
-      (WidgetTester tester) async {
+  testWidgets('banning a user hides their listings and resolves the report', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final members = FakeMemberStore();
     final reports = FakeReportStore()
-      ..reports.add(Report(
-        id: 'r1',
-        reporterId: 'buyer-1',
-        status: 'open',
-        reason: 'Scams repeatedly',
-        listingId: 'l1',
-        reportedUid: 'seller-1',
-        createdAt: DateTime(2026, 8, 28, 12),
-      ));
+      ..reports.add(
+        Report(
+          id: 'r1',
+          reporterId: 'buyer-1',
+          status: 'open',
+          reason: 'Scams repeatedly',
+          listingId: 'l1',
+          reportedUid: 'seller-1',
+          createdAt: DateTime(2026, 8, 28, 12),
+        ),
+      );
     final listings = FakeListingsStore()
       ..listings = [
         const Listing(
@@ -2098,22 +2165,21 @@ void main() {
         ),
       ];
     final auth = FakeAuthService();
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      reports: reports,
-    ));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, reports: reports),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     await tester.tap(find.text('PROFILE'));
     await tester.pumpAndSettle();
-    members.emit(const Member(
-      uid: 'test-uid',
-      email: 'l.murillo.546842@umindanao.edu.ph',
-      displayName: 'L. Murillo',
-      isAdmin: true,
-    ));
+    members.emit(
+      const Member(
+        uid: 'test-uid',
+        email: 'l.murillo.546842@umindanao.edu.ph',
+        displayName: 'L. Murillo',
+        isAdmin: true,
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Moderation'));
     await tester.pumpAndSettle();
@@ -2131,8 +2197,9 @@ void main() {
     expect(reports.reports, isEmpty);
   });
 
-  testWidgets('member lookup finds and bans a member',
-      (WidgetTester tester) async {
+  testWidgets('member lookup finds and bans a member', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final members = FakeMemberStore()
       ..knownMembers['seller-1'] = const Member(
@@ -2157,19 +2224,23 @@ void main() {
     expect(members.bannedUids['seller-1'], isTrue);
   });
 
-  AppNotification note(String id, {String type = 'message', bool read = false}) =>
-      AppNotification(
-        id: id,
-        ownerId: 'test-uid',
-        type: type,
-        title: 'New $type',
-        body: 'Something happened',
-        read: read,
-        createdAt: DateTime(2026, 8, 28, 12),
-      );
+  AppNotification note(
+    String id, {
+    String type = 'message',
+    bool read = false,
+  }) => AppNotification(
+    id: id,
+    ownerId: 'test-uid',
+    type: type,
+    title: 'New $type',
+    body: 'Something happened',
+    read: read,
+    createdAt: DateTime(2026, 8, 28, 12),
+  );
 
-  testWidgets('the bell shows the live unread count and opens the center',
-      (WidgetTester tester) async {
+  testWidgets('the bell shows the live unread count and opens the center', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -2180,12 +2251,14 @@ void main() {
         note('n2'),
         note('n3', type: 'sold', read: true),
       ]);
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      notifications: notifications,
-    ));
+    await tester.pumpWidget(
+      _app(
+        auth: auth,
+        members: members,
+        listings: listings,
+        notifications: notifications,
+      ),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     notifications.emit();
@@ -2206,20 +2279,23 @@ void main() {
     expect(find.text('NEW'), findsNWidgets(2)); // unread stickers only
   });
 
-  testWidgets('tapping an unread row marks it read and clears its sticker',
-      (WidgetTester tester) async {
+  testWidgets('tapping an unread row marks it read and clears its sticker', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
     final notifications = FakeNotificationStore()
       ..notifications.addAll([note('n1'), note('n2')]);
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      notifications: notifications,
-    ));
+    await tester.pumpWidget(
+      _app(
+        auth: auth,
+        members: members,
+        listings: listings,
+        notifications: notifications,
+      ),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     notifications.emit();
@@ -2236,19 +2312,20 @@ void main() {
     expect(find.text('NEW'), findsOneWidget); // only n2 remains unread
   });
 
-  testWidgets('the center shows the empty state',
-      (WidgetTester tester) async {
+  testWidgets('the center shows the empty state', (WidgetTester tester) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
     final notifications = FakeNotificationStore();
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      notifications: notifications,
-    ));
+    await tester.pumpWidget(
+      _app(
+        auth: auth,
+        members: members,
+        listings: listings,
+        notifications: notifications,
+      ),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     notifications.emit(); // empty
@@ -2261,38 +2338,44 @@ void main() {
     expect(find.textContaining('Nothing here yet'), findsOneWidget);
   });
 
-  testWidgets('sign-in registers the device for FCM',
-      (WidgetTester tester) async {
+  testWidgets('sign-in registers the device for FCM', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
     final messaging = FakeMessagingService();
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      messaging: messaging,
-    ));
+    await tester.pumpWidget(
+      _app(
+        auth: auth,
+        members: members,
+        listings: listings,
+        messaging: messaging,
+      ),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
 
     expect(messaging.registeredUids, ['test-uid']);
   });
 
-  testWidgets('sign-out unregisters before the auth session ends',
-      (WidgetTester tester) async {
+  testWidgets('sign-out unregisters before the auth session ends', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
     final messaging = FakeMessagingService();
-    await tester.pumpWidget(_app(
-      auth: auth,
-      members: members,
-      listings: listings,
-      messaging: messaging,
-    ));
+    await tester.pumpWidget(
+      _app(
+        auth: auth,
+        members: members,
+        listings: listings,
+        messaging: messaging,
+      ),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     listings.emitListings();
@@ -2309,8 +2392,9 @@ void main() {
     expect(find.text('Sign in with Google'), findsOneWidget);
   });
 
-  testWidgets('my listings show active and sold rows with pills',
-      (WidgetTester tester) async {
+  testWidgets('my listings show active and sold rows with pills', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -2337,8 +2421,9 @@ void main() {
         ),
       ];
     final chats = FakeChatStore();
-    await tester.pumpWidget(_app(
-      auth: auth, members: members, listings: listings, chats: chats));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, chats: chats),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
 
@@ -2353,8 +2438,9 @@ void main() {
     expect(find.text('SOLD'), findsOneWidget);
   });
 
-  testWidgets('marking a listing sold confirms and flips the row',
-      (WidgetTester tester) async {
+  testWidgets('marking a listing sold confirms and flips the row', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -2380,8 +2466,9 @@ void main() {
         ),
       ];
     final chats = FakeChatStore();
-    await tester.pumpWidget(_app(
-      auth: auth, members: members, listings: listings, chats: chats));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, chats: chats),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
 
@@ -2403,15 +2490,17 @@ void main() {
     expect(find.text('Mark as sold'), findsOneWidget); // only b remains active
   });
 
-  testWidgets('the moderation row is admin-only and opens the screen',
-      (WidgetTester tester) async {
+  testWidgets('the moderation row is admin-only and opens the screen', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
     final chats = FakeChatStore();
-    await tester.pumpWidget(_app(
-      auth: auth, members: members, listings: listings, chats: chats));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, chats: chats),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
 
@@ -2421,12 +2510,14 @@ void main() {
     expect(find.text('Moderation'), findsNothing);
 
     // The Admin's account carries the flag; the row appears and gates.
-    members.emit(const Member(
-      uid: 'test-uid',
-      email: 'l.murillo.546842@umindanao.edu.ph',
-      displayName: 'L. Murillo',
-      isAdmin: true,
-    ));
+    members.emit(
+      const Member(
+        uid: 'test-uid',
+        email: 'l.murillo.546842@umindanao.edu.ph',
+        displayName: 'L. Murillo',
+        isAdmin: true,
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('Moderation'), findsOneWidget);
 
@@ -2435,8 +2526,9 @@ void main() {
     expect(find.text('Open reports'), findsOneWidget); // the screen
   });
 
-  testWidgets('a profile listing row opens the listing detail',
-      (WidgetTester tester) async {
+  testWidgets('a profile listing row opens the listing detail', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -2453,8 +2545,9 @@ void main() {
         ),
       ];
     final chats = FakeChatStore();
-    await tester.pumpWidget(_app(
-      auth: auth, members: members, listings: listings, chats: chats));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, chats: chats),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
 
@@ -2469,8 +2562,9 @@ void main() {
     expect(find.text('Clean set, minimal highlights.'), findsOneWidget);
   });
 
-  testWidgets('category tiles open Browse pre-filtered by category',
-      (WidgetTester tester) async {
+  testWidgets('category tiles open Browse pre-filtered by category', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -2495,8 +2589,9 @@ void main() {
           condition: 'fair',
         ),
       ];
-    await tester.pumpWidget(_app(
-      auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     listings.emitListings();
@@ -2512,8 +2607,9 @@ void main() {
     expect(find.text('Dorm lamp'), findsNothing);
   });
 
-  testWidgets('browse cards open the listing detail',
-      (WidgetTester tester) async {
+  testWidgets('browse cards open the listing detail', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -2529,8 +2625,9 @@ void main() {
           condition: 'like new',
         ),
       ];
-    await tester.pumpWidget(_app(
-      auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
     auth.emit(_student);
     await tester.pumpAndSettle();
     listings.emitListings();
@@ -2546,8 +2643,9 @@ void main() {
     expect(find.text('RGB switches'), findsOneWidget); // detail description
   });
 
-  testWidgets('a listing without photos shows the placeholder, no count chip',
-      (WidgetTester tester) async {
+  testWidgets('a listing without photos shows the placeholder, no count chip', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -2563,8 +2661,9 @@ void main() {
           condition: 'fair',
         ),
       ];
-    await tester
-        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
     auth.emit(_student);
     await tester.pump();
     await tester.pumpAndSettle();
@@ -2578,8 +2677,9 @@ void main() {
     expect(find.text('1/2'), findsNothing);
   });
 
-  testWidgets('a sold listing shows the SOLD sticker on the hero photo',
-      (WidgetTester tester) async {
+  testWidgets('a sold listing shows the SOLD sticker on the hero photo', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
@@ -2596,8 +2696,9 @@ void main() {
           status: 'sold',
         ),
       ];
-    await tester
-        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
     auth.emit(_student);
     await tester.pump();
     await tester.pumpAndSettle();
@@ -2610,14 +2711,16 @@ void main() {
     expect(find.text('SOLD'), findsOneWidget);
   });
 
-  testWidgets('sell flow validates, publishes and records the draft',
-      (WidgetTester tester) async {
+  testWidgets('sell flow validates, publishes and records the draft', (
+    WidgetTester tester,
+  ) async {
     usePortraitPhone(tester);
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
-    await tester
-        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
     auth.emit(_student);
     await tester.pump();
     await tester.pumpAndSettle();
@@ -2656,8 +2759,9 @@ void main() {
     final auth = FakeAuthService();
     final members = FakeMemberStore();
     final listings = FakeListingsStore();
-    await tester
-        .pumpWidget(_app(auth: auth, members: members, listings: listings));
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings),
+    );
     auth.emit(_student);
     await tester.pump();
     await tester.pumpAndSettle();
@@ -2674,13 +2778,15 @@ void main() {
     expect(find.text('Sign in with Google'), findsOneWidget);
   });
 
-  test('kMaxListingPhotos is 2 to stay inside the Firestore document limit',
-      () {
-    expect(kMaxListingPhotos, 2);
-    expect(kListingCategories, contains('review materials'));
-    expect(kListingCategories, hasLength(5));
-    expect(kListingConditions, hasLength(4));
-  });
+  test(
+    'kMaxListingPhotos is 2 to stay inside the Firestore document limit',
+    () {
+      expect(kMaxListingPhotos, 2);
+      expect(kListingCategories, contains('review materials'));
+      expect(kListingCategories, hasLength(5));
+      expect(kListingConditions, hasLength(4));
+    },
+  );
 
   test('Uint8List photos round-trip through Listing.fromDoc', () {
     final bytes = Uint8List.fromList([1, 2, 3]);

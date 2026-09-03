@@ -62,16 +62,14 @@ class _SignInScreenState extends State<SignInScreen> {
             _HeroPanel(),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _SignInCard(busy: _busy, onSignIn: _signIn),
-                    const SizedBox(height: 22),
-                    _HowItWorksSection(),
+                    const SizedBox(height: 20),
+                    _CampusTrustCard(),
                     const SizedBox(height: 18),
-                    _CampusMeetupBanner(),
-                    const SizedBox(height: 16),
                     _LoginFooter(),
                   ],
                 ),
@@ -87,182 +85,106 @@ class _SignInScreenState extends State<SignInScreen> {
 class _HeroPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          decoration: const BoxDecoration(
-            color: UmColors.primary,
-            border: Border(bottom: BorderSide(color: UmColors.ink, width: 3)),
-          ),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Main maroon content
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 22, 16, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Transform.rotate(
-                          angle: -0.04,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 7,
-                            ),
-                            decoration: BoxDecoration(
-                              color: UmColors.gold,
-                              border: Border.all(color: UmColors.ink, width: 2),
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: UmColors.ink,
-                                  offset: UmShadows.small,
-                                  blurRadius: 0,
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              'Ga',
-                              style: GoogleFonts.spaceGrotesk(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 22,
-                                color: UmColors.ink,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Transform.rotate(
-                          angle: 0.08,
-                          child: SvgPicture.asset(
-                            'assets/stickers/starburst.svg',
-                            width: 56,
-                            height: 56,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      'UM Marketplace',
-                      style: GoogleFonts.spaceGrotesk(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 32,
-                        height: 1.05,
-                        letterSpacing: -0.5,
-                        color: UmColors.onPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: UmColors.surface,
-                        border: Border.all(color: UmColors.ink, width: 2),
-                        borderRadius: BorderRadius.circular(6),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: UmColors.ink,
-                            offset: Offset(3, 3),
-                            blurRadius: 0,
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        'The campus marketplace for University of Mindanao students.',
-                        style: GoogleFonts.outfit(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12.5,
-                          height: 1.35,
-                          color: UmColors.onSurface,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                right: 18,
-                bottom: -13,
-                child: Transform.rotate(
-                  angle: -0.05,
+    return Container(
+      decoration: const BoxDecoration(
+        color: UmColors.primary,
+        border: Border(bottom: BorderSide(color: UmColors.ink, width: 3)),
+        boxShadow: [
+          BoxShadow(color: UmColors.ink, offset: Offset(0, 4), blurRadius: 0),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 24, 20, 26),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Transform.rotate(
+                  angle: -0.04,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
+                      horizontal: 14,
+                      vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: UmColors.goldSoft,
+                      color: UmColors.gold,
                       border: Border.all(color: UmColors.ink, width: 2),
-                      borderRadius: BorderRadius.circular(999),
+                      borderRadius: BorderRadius.circular(8),
                       boxShadow: const [
                         BoxShadow(
                           color: UmColors.ink,
-                          offset: Offset(2, 2),
+                          offset: UmShadows.small,
                           blurRadius: 0,
                         ),
                       ],
                     ),
                     child: Text(
-                      'VERIFIED ONLY',
+                      'Ga',
                       style: GoogleFonts.spaceGrotesk(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 9.5,
-                        letterSpacing: 0.8,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 22,
                         color: UmColors.ink,
+                        letterSpacing: 1.2,
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        // Neubrutalist Gold Ticker Tape Bar
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          decoration: const BoxDecoration(
-            color: UmColors.gold,
-            border: Border(bottom: BorderSide(color: UmColors.ink, width: 3)),
-            boxShadow: [
-              BoxShadow(
-                color: UmColors.ink,
-                offset: Offset(0, 3),
-                blurRadius: 0,
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Flexible(
-                child: Text(
-                  '⚡ @umindanao.edu.ph ONLY ⚡ 0% FEES ⚡ ON-CAMPUS MEETUPS ⚡',
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.spaceGrotesk(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 10.5,
-                    letterSpacing: 0.6,
-                    color: UmColors.ink,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: UmColors.surface,
+                    border: Border.all(color: UmColors.ink, width: 2),
+                    borderRadius: BorderRadius.circular(6),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: UmColors.ink,
+                        offset: Offset(2, 2),
+                        blurRadius: 0,
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    'STUDENT EXCHANGE',
+                    style: GoogleFonts.spaceGrotesk(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 10,
+                      letterSpacing: 0.8,
+                      color: UmColors.ink,
+                    ),
                   ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Text(
+              'UM Marketplace',
+              style: GoogleFonts.spaceGrotesk(
+                fontWeight: FontWeight.w900,
+                fontSize: 34,
+                height: 1.05,
+                letterSpacing: -1.0,
+                color: UmColors.onPrimary,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'The campus marketplace for University of Mindanao students.',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w500,
+                fontSize: 13.5,
+                height: 1.4,
+                color: UmColors.goldSoft,
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -279,7 +201,7 @@ class _SignInCard extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: UmColors.surface,
             border: Border.all(color: UmColors.ink, width: 2),
@@ -317,7 +239,7 @@ class _SignInCard extends StatelessWidget {
                       'Sign in to start trading',
                       style: GoogleFonts.spaceGrotesk(
                         fontWeight: FontWeight.w800,
-                        fontSize: 16,
+                        fontSize: 17,
                         color: UmColors.onSurface,
                       ),
                     ),
@@ -325,75 +247,36 @@ class _SignInCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: UmColors.goldSoft,
-                  border: Border.all(color: UmColors.ink, width: 1.5),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      LucideIcons.mail500,
-                      size: 16,
-                      color: UmColors.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Use your UMindanao Gmail account',
-                            style: GoogleFonts.spaceGrotesk(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 11.5,
-                              color: UmColors.ink,
-                            ),
-                          ),
-                          const SizedBox(height: 1),
-                          Text(
-                            'Must end in @umindanao.edu.ph to join',
-                            style: GoogleFonts.outfit(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 10.5,
-                              color: UmColors.mutedForeground,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+              Text(
+                'Only verified University of Mindanao students can join. Use your school Google account (@umindanao.edu.ph).',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 13.5,
+                  height: 1.45,
+                  color: UmColors.mutedForeground,
                 ),
               ),
-              const SizedBox(height: 16),
-              Align(
-                alignment: Alignment.center,
-                child: NbrButton(
-                  label: busy ? 'Opening Google…' : 'Sign in with Google',
-                  icon: busy
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: UmColors.mutedForeground,
-                          ),
-                        )
-                      : SvgPicture.asset(
-                          'assets/logos/google_g.svg',
-                          width: 20,
-                          height: 20,
+              const SizedBox(height: 20),
+              NbrButton(
+                label: busy ? 'Opening Google…' : 'Sign in with Google',
+                icon: busy
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: UmColors.mutedForeground,
                         ),
-                  fill: UmColors.surface,
-                  labelColor: UmColors.ink,
-                  stretch: true,
-                  onPressed: busy ? null : onSignIn,
-                ),
+                      )
+                    : SvgPicture.asset(
+                        'assets/logos/google_g.svg',
+                        width: 20,
+                        height: 20,
+                      ),
+                fill: UmColors.surface,
+                labelColor: UmColors.ink,
+                stretch: true,
+                onPressed: busy ? null : onSignIn,
               ),
             ],
           ),
@@ -406,8 +289,8 @@ class _SignInCard extends StatelessWidget {
             angle: 0.07,
             child: SvgPicture.asset(
               'assets/stickers/bag.svg',
-              width: 48,
-              height: 48,
+              width: 44,
+              height: 44,
             ),
           ),
         ),
@@ -418,8 +301,8 @@ class _SignInCard extends StatelessWidget {
             angle: -0.09,
             child: SvgPicture.asset(
               'assets/stickers/tag.svg',
-              width: 44,
-              height: 44,
+              width: 40,
+              height: 40,
             ),
           ),
         ),
@@ -428,151 +311,11 @@ class _SignInCard extends StatelessWidget {
   }
 }
 
-class _HowItWorksSection extends StatelessWidget {
+class _CampusTrustCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    const steps = [
-      (
-        number: '01',
-        icon: LucideIcons.mailCheck500,
-        title: '@umindanao',
-        caption: 'UMindanao Gmail',
-      ),
-      (
-        number: '02',
-        icon: LucideIcons.messageSquare500,
-        title: 'Direct Deal',
-        caption: '₱0 fees • Chat 1-on-1',
-      ),
-      (
-        number: '03',
-        icon: LucideIcons.mapPin500,
-        title: 'On-Campus',
-        caption: 'Matina & Bolton',
-      ),
-    ];
-
-    return Column(
-      children: [
-        Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-            decoration: BoxDecoration(
-              color: UmColors.gold,
-              border: Border.all(color: UmColors.ink, width: 2),
-              borderRadius: BorderRadius.circular(999),
-              boxShadow: const [
-                BoxShadow(
-                  color: UmColors.ink,
-                  offset: Offset(2, 2),
-                  blurRadius: 0,
-                ),
-              ],
-            ),
-            child: Text(
-              'HOW WE TRADE',
-              style: GoogleFonts.spaceGrotesk(
-                fontWeight: FontWeight.w800,
-                fontSize: 10.5,
-                letterSpacing: 0.8,
-                color: UmColors.ink,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            for (final step in steps)
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 3),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: UmColors.goldSoft,
-                      border: Border.all(color: UmColors.ink, width: 2),
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: UmColors.ink,
-                          offset: Offset(2, 2),
-                          blurRadius: 0,
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 1,
-                              ),
-                              decoration: BoxDecoration(
-                                color: UmColors.ink,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                step.number,
-                                style: GoogleFonts.spaceGrotesk(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 8.5,
-                                  color: UmColors.gold,
-                                ),
-                              ),
-                            ),
-                            Icon(step.icon, size: 15, color: UmColors.primary),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          step.title,
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.spaceGrotesk(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 10.5,
-                            color: UmColors.ink,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          step.caption,
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 9,
-                            color: UmColors.mutedForeground,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _CampusMeetupBanner extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    const campuses = ['Matina', 'Bolton', 'Tagum', 'Peñaplata'];
-
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: UmColors.surface,
         border: Border.all(color: UmColors.ink, width: 2),
@@ -582,89 +325,105 @@ class _CampusMeetupBanner extends StatelessWidget {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: UmColors.gold,
-                  border: Border.all(color: UmColors.ink, width: 1.5),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Icon(
-                  LucideIcons.mapPin500,
-                  size: 15,
-                  color: UmColors.ink,
+              const Expanded(
+                child: _TrustItem(
+                  icon: LucideIcons.mailCheck500,
+                  title: '@umindanao',
+                  subtitle: 'School email',
                 ),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'SAFE CAMPUS MEETUPS',
-                  style: GoogleFonts.spaceGrotesk(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 12,
-                    letterSpacing: 0.4,
-                    color: UmColors.ink,
-                  ),
+              Container(width: 2, height: 36, color: UmColors.ink),
+              const Expanded(
+                child: _TrustItem(
+                  icon: LucideIcons.handshake500,
+                  title: '₱0 Fees',
+                  subtitle: 'Direct chat',
+                ),
+              ),
+              Container(width: 2, height: 36, color: UmColors.ink),
+              const Expanded(
+                child: _TrustItem(
+                  icon: LucideIcons.mapPin500,
+                  title: 'On-Campus',
+                  subtitle: 'Safe meetups',
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 5,
-            runSpacing: 5,
-            children: [
-              for (final campus in campuses)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: UmColors.goldSoft,
-                    border: Border.all(color: UmColors.ink, width: 1.5),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: UmColors.goldSoft,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: UmColors.ink, width: 1.5),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  LucideIcons.shieldCheck500,
+                  size: 14,
+                  color: UmColors.primary,
+                ),
+                const SizedBox(width: 6),
+                Flexible(
                   child: Text(
-                    campus,
+                    'Matina • Bolton • Tagum • Peñaplata',
                     style: GoogleFonts.spaceGrotesk(
                       fontWeight: FontWeight.w700,
-                      fontSize: 9.5,
+                      fontSize: 11,
+                      letterSpacing: 0.4,
                       color: UmColors.ink,
                     ),
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(
-                LucideIcons.shieldCheck500,
-                size: 14,
-                color: UmColors.primary,
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  'Meet in open areas: Cafeteria, Library, or Gym Quad. Inspect items before cash or GCash handoff.',
-                  style: GoogleFonts.outfit(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 10,
-                    height: 1.35,
-                    color: UmColors.onSurface,
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TrustItem extends StatelessWidget {
+  const _TrustItem({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(icon, size: 18, color: UmColors.primary),
+        const SizedBox(height: 4),
+        Text(
+          title,
+          style: GoogleFonts.spaceGrotesk(
+            fontWeight: FontWeight.w800,
+            fontSize: 11.5,
+            color: UmColors.ink,
+          ),
+        ),
+        Text(
+          subtitle,
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w500,
+            fontSize: 10,
+            color: UmColors.mutedForeground,
+          ),
+        ),
+      ],
     );
   }
 }
