@@ -21,6 +21,16 @@ import 'package:um_marketplace/theme/app_theme.dart';
 import 'package:um_marketplace/widgets/dot_grid.dart';
 import 'package:um_marketplace/widgets/um_logo.dart';
 
+/// Test canvas for recording circle drawing calls.
+class _RecordingCanvas extends Fake implements Canvas {
+  final List<Offset> circles = [];
+
+  @override
+  void drawCircle(Offset c, double radius, Paint paint) {
+    circles.add(c);
+  }
+}
+
 /// In-memory [AuthService] so widget tests never touch Firebase.
 class FakeAuthService implements AuthService {
   final _controller = StreamController<AuthUser?>.broadcast();
@@ -782,10 +792,15 @@ void main() {
     expect(p1.shouldRepaint(pDiffSpacing), isTrue);
     expect(p1.shouldRepaint(pDiffRadius), isTrue);
     expect(p1.shouldRepaint(pDiffColor), isTrue);
+
+    // Equality and hashCode
+    expect(p1, equals(p2));
+    expect(p1.hashCode, equals(p2.hashCode));
+    expect(p1 == pDiffSpacing, isFalse);
   });
 
   test(
-    'DotGridPainter paints cleanly and handles non-positive sizes safely',
+    'DotGridPainter paints cleanly, centers dots symmetrically, and handles edge cases safely',
     () {
       const painter = DotGridPainter();
       final recorder = ui.PictureRecorder();
@@ -808,9 +823,35 @@ void main() {
         returnsNormally,
       );
 
+      // Infinite and NaN dimensions must return safely without infinite loop or hang
+      expect(
+        () => painter.paint(canvas, const Size(100, double.infinity)),
+        returnsNormally,
+      );
+      expect(
+        () => painter.paint(canvas, const Size(double.infinity, 100)),
+        returnsNormally,
+      );
+      expect(
+        () => painter.paint(canvas, const Size(double.nan, 100)),
+        returnsNormally,
+      );
+
       const zeroSpacing = DotGridPainter(spacing: 0);
       expect(
         () => zeroSpacing.paint(canvas, const Size(100, 100)),
+        returnsNormally,
+      );
+
+      const negativeSpacing = DotGridPainter(spacing: -5);
+      expect(
+        () => negativeSpacing.paint(canvas, const Size(100, 100)),
+        returnsNormally,
+      );
+
+      const nanSpacing = DotGridPainter(spacing: double.nan);
+      expect(
+        () => nanSpacing.paint(canvas, const Size(100, 100)),
         returnsNormally,
       );
 
@@ -824,6 +865,34 @@ void main() {
       picture.dispose();
     },
   );
+
+  test('DotGridPainter draws symmetrically centered grid within canvas bounds', () {
+    final testCanvas = _RecordingCanvas();
+    const painter = DotGridPainter(spacing: 24.0, dotRadius: 1.3);
+
+    // Test on standard 375x812 viewport
+    painter.paint(testCanvas, const Size(375, 812));
+    expect(testCanvas.circles, isNotEmpty);
+
+    // Symmetrical margins check
+    final firstDot = testCanvas.circles.first;
+    final lastDot = testCanvas.circles.last;
+    final leftMargin = firstDot.dx;
+    final rightMargin = 375 - lastDot.dx;
+    final topMargin = firstDot.dy;
+    final bottomMargin = 812 - lastDot.dy;
+
+    expect(leftMargin, closeTo(rightMargin, 0.001));
+    expect(topMargin, closeTo(bottomMargin, 0.001));
+
+    // Strict bounds check: no dot clips outside the canvas
+    for (final dot in testCanvas.circles) {
+      expect(dot.dx - 1.3, greaterThanOrEqualTo(0));
+      expect(dot.dx + 1.3, lessThanOrEqualTo(375));
+      expect(dot.dy - 1.3, greaterThanOrEqualTo(0));
+      expect(dot.dy + 1.3, lessThanOrEqualTo(812));
+    }
+  });
 
   testWidgets('DotGridBackground renders child widget and custom properties', (
     WidgetTester tester,
@@ -855,6 +924,44 @@ void main() {
     expect(painter.spacing, 32.0);
     expect(painter.dotRadius, 1.4);
     expect(painter.dotColor, const Color(0x1F000000));
+  });
+
+  testWidgets('DotGridBackground renders safely with null child and in UnconstrainedBox', (
+    WidgetTester tester,
+  ) async {
+    // 1. Null child inside bounded parent
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 200,
+            height: 200,
+            child: DotGridBackground(),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.byType(DotGridBackground), findsOneWidget);
+
+    // 2. DotGridBackground inside UnconstrainedBox (unbounded constraints must not crash)
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: UnconstrainedBox(
+            child: DotGridBackground(
+              child: SizedBox(
+                width: 100,
+                height: 100,
+                child: Text('Unconstrained Test'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('Unconstrained Test'), findsOneWidget);
   });
 
   testWidgets('sign-in creates the member account and lands on home', (

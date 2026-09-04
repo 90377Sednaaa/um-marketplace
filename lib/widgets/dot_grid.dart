@@ -27,17 +27,39 @@ class DotGridPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (size.width <= 0 || size.height <= 0 || spacing <= 0 || dotRadius <= 0) {
+    if (!size.width.isFinite ||
+        !size.height.isFinite ||
+        !spacing.isFinite ||
+        !dotRadius.isFinite ||
+        size.width <= 0 ||
+        size.height <= 0 ||
+        spacing <= 0 ||
+        dotRadius <= 0) {
       return;
     }
+
+    final minDimension = dotRadius * 2;
+    if (size.width < minDimension || size.height < minDimension) {
+      return;
+    }
+
+    final availableWidth = size.width - minDimension;
+    final availableHeight = size.height - minDimension;
+    final countX = (availableWidth / spacing).floor();
+    final countY = (availableHeight / spacing).floor();
+
+    final startX = (size.width - (countX * spacing)) / 2;
+    final startY = (size.height - (countY * spacing)) / 2;
 
     final paint = Paint()
       ..color = dotColor
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
 
-    for (double y = spacing / 2; y < size.height; y += spacing) {
-      for (double x = spacing / 2; x < size.width; x += spacing) {
+    for (int j = 0; j <= countY; j++) {
+      final y = startY + (j * spacing);
+      for (int i = 0; i <= countX; i++) {
+        final x = startX + (i * spacing);
         canvas.drawCircle(Offset(x, y), dotRadius, paint);
       }
     }
@@ -49,6 +71,18 @@ class DotGridPainter extends CustomPainter {
         oldDelegate.dotRadius != dotRadius ||
         oldDelegate.dotColor != dotColor;
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is DotGridPainter &&
+        other.spacing == spacing &&
+        other.dotRadius == dotRadius &&
+        other.dotColor == dotColor;
+  }
+
+  @override
+  int get hashCode => Object.hash(spacing, dotRadius, dotColor);
 }
 
 /// A background container that paints a subtle Neubrutalist dot grid behind [child].
@@ -82,27 +116,36 @@ class DotGridBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final grid = RepaintBoundary(
+      child: ExcludeSemantics(
+        child: CustomPaint(
+          size: Size.infinite,
+          painter: DotGridPainter(
+            spacing: spacing,
+            dotRadius: dotRadius,
+            dotColor: dotColor,
+          ),
+          isComplex: true,
+          willChange: false,
+        ),
+      ),
+    );
+
+    final currentChild = child;
+    if (currentChild == null) {
+      return ColoredBox(
+        color: backgroundColor,
+        child: grid,
+      );
+    }
+
     return ColoredBox(
       color: backgroundColor,
       child: Stack(
-        fit: StackFit.expand,
+        fit: StackFit.passthrough,
         children: [
-          Positioned.fill(
-            child: RepaintBoundary(
-              child: ExcludeSemantics(
-                child: CustomPaint(
-                  painter: DotGridPainter(
-                    spacing: spacing,
-                    dotRadius: dotRadius,
-                    dotColor: dotColor,
-                  ),
-                  isComplex: true,
-                  willChange: false,
-                ),
-              ),
-            ),
-          ),
-          ?child,
+          Positioned.fill(child: grid),
+          currentChild,
         ],
       ),
     );
