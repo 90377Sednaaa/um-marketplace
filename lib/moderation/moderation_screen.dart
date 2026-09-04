@@ -11,6 +11,7 @@ import '../home/relative_time.dart';
 import '../theme/app_theme.dart';
 import '../widgets/brutal_app_bar.dart';
 import '../widgets/brutal_dialog.dart';
+import '../widgets/brutal_shimmer.dart';
 
 /// Moderation (DESIGN.md screen 9, ADR 0003): the single Admin's console
 /// — the open-reports inbox with hide-listing and ban-user actions, and
@@ -747,21 +748,74 @@ class _ReportsSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        for (var i = 0; i < 3; i++)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Container(
-              height: 110,
-              decoration: BoxDecoration(
-                color: UmColors.muted,
-                border: Border.all(color: UmColors.ink, width: 2),
-                borderRadius: BorderRadius.circular(8),
+    return BrutalShimmer(
+      child: Column(
+        children: [
+          for (var i = 0; i < 3; i++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: UmColors.surface,
+                  border: Border.all(color: UmColors.ink, width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: UmColors.ink,
+                      offset: UmShadows.small,
+                      blurRadius: 0,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: const [
+                        BrutalSkeletonBox(
+                          height: 18,
+                          width: 80,
+                          borderRadius: BorderRadius.all(Radius.circular(999)),
+                        ),
+                        BrutalSkeletonBox(
+                          height: 12,
+                          width: 40,
+                          borderRadius: BorderRadius.all(Radius.circular(999)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    const BrutalSkeletonBox(
+                      height: 14,
+                      width: 160,
+                      borderRadius: BorderRadius.all(Radius.circular(4)),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: const [
+                        BrutalSkeletonBox(
+                          height: 28,
+                          width: 90,
+                          borderRadius: BorderRadius.all(Radius.circular(999)),
+                          hasBorder: true,
+                        ),
+                        SizedBox(width: 8),
+                        BrutalSkeletonBox(
+                          height: 28,
+                          width: 80,
+                          borderRadius: BorderRadius.all(Radius.circular(999)),
+                          hasBorder: true,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

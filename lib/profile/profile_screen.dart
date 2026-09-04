@@ -12,6 +12,7 @@ import '../home/money_format.dart';
 import '../moderation/moderation_screen.dart';
 import '../theme/app_theme.dart';
 import '../widgets/brutal_dialog.dart';
+import '../widgets/brutal_shimmer.dart';
 import '../widgets/member_badges.dart';
 import '../widgets/nbr_button.dart';
 import '../widgets/photo_placeholder.dart';
@@ -641,21 +642,72 @@ class _MyListingsSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        for (var i = 0; i < 3; i++)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Container(
-              height: 76,
-              decoration: BoxDecoration(
-                color: UmColors.muted,
-                border: Border.all(color: UmColors.ink, width: 2),
-                borderRadius: BorderRadius.circular(8),
+    return BrutalShimmer(
+      child: Column(
+        children: [
+          for (var i = 0; i < 3; i++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: UmColors.surface,
+                  border: Border.all(color: UmColors.ink, width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: UmColors.ink,
+                      offset: UmShadows.card,
+                      blurRadius: 0,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const BrutalSkeletonBox(
+                      width: 56,
+                      height: 56,
+                      borderRadius: BorderRadius.all(Radius.circular(6)),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          BrutalSkeletonBox(
+                            height: 14,
+                            width: 130,
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                          ),
+                          SizedBox(height: 6),
+                          BrutalSkeletonBox(
+                            height: 11,
+                            width: 64,
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                          ),
+                          SizedBox(height: 6),
+                          BrutalSkeletonBox(
+                            height: 14,
+                            width: 80,
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                            color: Color(0xFFDCFCE7),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const BrutalSkeletonBox(
+                      height: 28,
+                      width: 80,
+                      borderRadius: BorderRadius.all(Radius.circular(999)),
+                      hasBorder: true,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

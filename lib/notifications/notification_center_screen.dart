@@ -5,6 +5,7 @@ import '../data/notification_store.dart';
 import '../home/relative_time.dart';
 import '../theme/app_theme.dart';
 import '../widgets/brutal_app_bar.dart';
+import '../widgets/brutal_shimmer.dart';
 
 /// Notification center (DESIGN.md screen 8): pushed from the Home bell;
 /// lists the member's notifications with unread rows marked by a gold
@@ -204,22 +205,60 @@ class _NotificationsSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        for (var i = 0; i < 4; i++)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Container(
-              height: 84,
-              decoration: BoxDecoration(
-                color: UmColors.muted,
-                border: Border.all(color: UmColors.ink, width: 2),
-                borderRadius: BorderRadius.circular(8),
+    return BrutalShimmer(
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          for (var i = 0; i < 4; i++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: UmColors.surface,
+                  border: Border.all(color: UmColors.ink, width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: UmColors.ink,
+                      offset: UmShadows.small,
+                      blurRadius: 0,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const BrutalSkeletonBox(
+                      width: 40,
+                      height: 40,
+                      borderRadius: BorderRadius.all(Radius.circular(999)),
+                      hasBorder: true,
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          BrutalSkeletonBox(
+                            height: 13,
+                            width: 120,
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                          ),
+                          SizedBox(height: 6),
+                          BrutalSkeletonBox(
+                            height: 11,
+                            width: 200,
+                            borderRadius: BorderRadius.all(Radius.circular(4)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

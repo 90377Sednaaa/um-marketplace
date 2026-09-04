@@ -22,6 +22,8 @@ import 'package:um_marketplace/home/browse_screen.dart';
 import 'package:um_marketplace/home/home_screen.dart';
 import 'package:um_marketplace/home/listing_card.dart';
 import 'package:um_marketplace/members/member_gate.dart';
+import 'package:um_marketplace/moderation/moderation_screen.dart';
+import 'package:um_marketplace/notifications/notification_center_screen.dart';
 import 'package:um_marketplace/theme/app_theme.dart';
 import 'package:um_marketplace/widgets/brutal_app_bar.dart';
 import 'package:um_marketplace/widgets/brutal_dialog.dart';
@@ -3971,6 +3973,72 @@ void main() {
         await tester.pump();
 
         expect(find.byType(BrutalShimmer), findsNothing);
+      },
+    );
+  });
+
+  group('Profile, Notifications, and Moderation Skeletons', () {
+    testWidgets(
+      'NotificationCenterScreen renders notification row skeletons when stream is loading',
+      (WidgetTester tester) async {
+        final fakeNotifs = FakeNotificationStore();
+        // Stream pending — snapshot.data is null.
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildUmTheme(),
+            home: NotificationCenterScreen(
+              ownerId: 'test-owner',
+              notificationStore: fakeNotifs,
+            ),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.text('NOTIFICATIONS'), findsOneWidget);
+        expect(find.byType(BrutalShimmer), findsWidgets);
+
+        // Once the (empty) notifications arrive, the skeleton is replaced
+        // by the empty state.
+        fakeNotifs.emit();
+        await tester.pump();
+
+        expect(find.byType(BrutalShimmer), findsNothing);
+        expect(find.textContaining('Nothing here yet'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'ModerationScreen renders report card skeletons when reports stream is loading',
+      (WidgetTester tester) async {
+        final fakeReports = FakeReportStore();
+        // Stream pending — snapshot.data is null.
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildUmTheme(),
+            home: ModerationScreen(
+              memberStore: FakeMemberStore(),
+              listingsStore: FakeListingsStore(),
+              reportStore: fakeReports,
+              chatStore: FakeChatStore(),
+              ratingStore: FakeRatingStore(),
+              viewerId: 'admin-id',
+            ),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.text('Open reports'), findsOneWidget);
+        expect(find.byType(BrutalShimmer), findsWidgets);
+
+        // Once the (empty) reports arrive, the skeleton is replaced by the
+        // clear-inbox state.
+        fakeReports.emitOpen();
+        await tester.pump();
+
+        expect(find.byType(BrutalShimmer), findsNothing);
+        expect(find.textContaining('inbox is clear'), findsOneWidget);
       },
     );
   });
