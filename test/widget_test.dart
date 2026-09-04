@@ -640,6 +640,61 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('SignInScreen handles extreme short viewport without crash', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 40);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    final auth = FakeAuthService();
+    await tester.pumpWidget(_app(auth: auth));
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'SignInScreen renders cleanly without overflow under accessibility text scaling',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1.0;
+      tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.platformDispatcher.clearTextScaleFactorTestValue();
+      });
+
+      final auth = FakeAuthService();
+      await tester.pumpWidget(_app(auth: auth));
+      await tester.pump();
+
+      expect(find.text('Sign in with Google'), findsOneWidget);
+      expect(find.text('@umindanao.edu.ph accounts only'), findsOneWidget);
+      final textWidget = tester.widget<Text>(
+        find.text('@umindanao.edu.ph accounts only'),
+      );
+      expect(textWidget.textAlign, TextAlign.center);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('SignInScreen renders UmMark with proper semantics', (
+    WidgetTester tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+
+    final auth = FakeAuthService();
+    await tester.pumpWidget(_app(auth: auth));
+    await tester.pump();
+
+    expect(find.byType(UmMark), findsOneWidget);
+    final node = tester.getSemantics(find.byType(UmMark));
+    expect(node.label, contains('UM Marketplace logo'));
+
+    semantics.dispose();
+  });
+
   testWidgets('sign-in creates the member account and lands on home', (
     WidgetTester tester,
   ) async {

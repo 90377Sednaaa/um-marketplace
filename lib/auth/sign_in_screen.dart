@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +8,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../theme/app_theme.dart';
 import '../widgets/brutal_dialog.dart';
 import '../widgets/nbr_button.dart';
+import '../widgets/um_logo.dart';
 import 'auth_service.dart';
 import 'um_email_policy.dart';
 
@@ -61,12 +64,13 @@ class _SignInScreenState extends State<SignInScreen> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
+            final minHeight = constraints.hasBoundedHeight
+                ? math.max(0.0, constraints.maxHeight - 48)
+                : 0.0;
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - 48,
-                ),
+                constraints: BoxConstraints(minHeight: minHeight),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 420),
@@ -78,7 +82,11 @@ class _SignInScreenState extends State<SignInScreen> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             const SizedBox(height: 32),
-                            const _AppBadge(),
+                            const UmMark(
+                              size: 64,
+                              borderWidth: 3,
+                              shadowOffset: UmShadows.card,
+                            ),
                             const SizedBox(height: 20),
                             const _AppHeader(),
                             const SizedBox(height: 36),
@@ -96,41 +104,6 @@ class _SignInScreenState extends State<SignInScreen> {
               ),
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-class _AppBadge extends StatelessWidget {
-  const _AppBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: -0.04,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        decoration: BoxDecoration(
-          color: UmColors.gold,
-          border: Border.all(color: UmColors.ink, width: 3),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
-            BoxShadow(
-              color: UmColors.ink,
-              offset: UmShadows.card,
-              blurRadius: 0,
-            ),
-          ],
-        ),
-        child: Text(
-          'Ga',
-          style: GoogleFonts.spaceGrotesk(
-            fontWeight: FontWeight.w900,
-            fontSize: 34,
-            letterSpacing: 1.2,
-            color: UmColors.ink,
-          ),
         ),
       ),
     );
@@ -236,6 +209,7 @@ class _SignInCard extends StatelessWidget {
                   Flexible(
                     child: Text(
                       '@umindanao.edu.ph accounts only',
+                      textAlign: TextAlign.center,
                       style: GoogleFonts.spaceGrotesk(
                         fontWeight: FontWeight.w700,
                         fontSize: 12,

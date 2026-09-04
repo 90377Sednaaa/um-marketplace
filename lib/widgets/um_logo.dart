@@ -15,10 +15,22 @@ import '../theme/app_theme.dart';
 /// store listings and docs — in-app we draw with Flutter widgets so the
 /// lettermark always uses the bundled Space Grotesk cut.
 class UmMark extends StatelessWidget {
-  const UmMark({super.key, this.size = 40, this.semanticsLabel});
+  const UmMark({
+    super.key,
+    this.size = 40,
+    this.borderWidth = 2,
+    this.shadowOffset = UmShadows.small,
+    this.semanticsLabel,
+  });
 
   /// Face size (logical px). Shadow sits inside the widget box so nothing clips.
   final double size;
+
+  /// Border width (logical px). Defaults to 2dp per DESIGN.md.
+  final double borderWidth;
+
+  /// Hard offset shadow. Defaults to [UmShadows.small] (3, 3).
+  final Offset shadowOffset;
 
   /// Accessibility label. Defaults to `UM Marketplace logo`.
   final String? semanticsLabel;
@@ -29,24 +41,26 @@ class UmMark extends StatelessWidget {
     final fontSize = size * 0.44;
     final barWidth = size * 0.5;
     final barHeight = size * 0.08;
+    final shadowDx = shadowOffset.dx;
+    final shadowDy = shadowOffset.dy;
     return Semantics(
       label: semanticsLabel ?? 'UM Marketplace logo',
       image: true,
       child: Transform.rotate(
         angle: -0.04,
         child: SizedBox(
-          width: face + 3,
-          height: face + 3,
+          width: face + shadowDx,
+          height: face + shadowDy,
           child: Container(
-            margin: const EdgeInsets.only(right: 3, bottom: 3),
+            margin: EdgeInsets.only(right: shadowDx, bottom: shadowDy),
             decoration: BoxDecoration(
               color: UmColors.gold,
-              border: Border.all(color: UmColors.ink, width: 2),
+              border: Border.all(color: UmColors.ink, width: borderWidth),
               borderRadius: BorderRadius.circular(face * 0.18),
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
                   color: UmColors.ink,
-                  offset: UmShadows.small,
+                  offset: shadowOffset,
                   blurRadius: 0,
                 ),
               ],
