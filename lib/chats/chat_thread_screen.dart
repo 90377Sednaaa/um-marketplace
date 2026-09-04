@@ -10,6 +10,7 @@ import '../home/listing_detail_screen.dart';
 import '../home/money_format.dart';
 import '../theme/app_theme.dart';
 import '../widgets/brutal_dialog.dart';
+import '../widgets/brutal_shimmer.dart';
 import '../widgets/nbr_button.dart';
 import '../widgets/offer_price_dialog.dart';
 import '../widgets/photo_placeholder.dart';
@@ -254,25 +255,126 @@ class _ThreadSkeleton extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Container(
-            height: 96,
-            decoration: BoxDecoration(
-              color: UmColors.muted,
-              border: Border.all(color: UmColors.ink, width: 2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Expanded(
+          // Pinned listing placeholder
+          BrutalShimmer(
             child: Container(
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: UmColors.muted,
+                color: UmColors.surface,
                 border: Border.all(color: UmColors.ink, width: 2),
                 borderRadius: BorderRadius.circular(8),
+                boxShadow: const [
+                  BoxShadow(
+                    color: UmColors.ink,
+                    offset: UmShadows.card,
+                    blurRadius: 0,
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const BrutalSkeletonBox(
+                    width: 56,
+                    height: 56,
+                    borderRadius: BorderRadius.all(Radius.circular(6)),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        BrutalSkeletonBox(
+                          height: 14,
+                          width: 140,
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                        ),
+                        SizedBox(height: 6),
+                        BrutalSkeletonBox(
+                          height: 12,
+                          width: 70,
+                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
+          const SizedBox(height: 24),
+          const Expanded(child: _MessagesSkeleton()),
         ],
+      ),
+    );
+  }
+}
+
+/// Message-bubble placeholders (alternating incoming & outgoing) shown
+/// while the pinned listing is resolved and while the message stream is
+/// still pending.
+class _MessagesSkeleton extends StatelessWidget {
+  const _MessagesSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return BrutalShimmer(
+      child: ListView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        children: [
+          _MessageBubbleSkeleton(
+            width: 180,
+            height: 48,
+            color: UmColors.surface,
+            mine: false,
+          ),
+          _MessageBubbleSkeleton(
+            width: 150,
+            height: 48,
+            color: UmColors.primary.withValues(alpha: 0.3),
+            mine: true,
+          ),
+          _MessageBubbleSkeleton(
+            width: 220,
+            height: 56,
+            color: UmColors.gold.withValues(alpha: 0.35),
+            mine: false,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MessageBubbleSkeleton extends StatelessWidget {
+  const _MessageBubbleSkeleton({
+    required this.width,
+    required this.height,
+    required this.color,
+    required this.mine,
+  });
+
+  final double width;
+  final double height;
+  final Color color;
+  final bool mine;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        width: width,
+        height: height,
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        decoration: BoxDecoration(
+          color: color,
+          border: Border.all(color: UmColors.ink, width: 2),
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: const [
+            BoxShadow(color: UmColors.ink, offset: UmShadows.small, blurRadius: 0),
+          ],
+        ),
       ),
     );
   }
@@ -426,7 +528,7 @@ class _MessageList extends StatelessWidget {
       builder: (context, snapshot) {
         final messages = snapshot.data;
         if (messages == null) {
-          return const SizedBox.shrink();
+          return const _MessagesSkeleton();
         }
         if (messages.isEmpty) {
           return Center(

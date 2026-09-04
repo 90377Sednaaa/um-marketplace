@@ -10,6 +10,7 @@ import 'package:um_marketplace/app.dart';
 import 'package:um_marketplace/auth/auth_service.dart';
 import 'package:um_marketplace/auth/sign_in_screen.dart' show SignInScreen;
 import 'package:um_marketplace/chats/chat_thread_screen.dart';
+import 'package:um_marketplace/chats/chats_screen.dart';
 import 'package:um_marketplace/data/chat_store.dart';
 import 'package:um_marketplace/data/listing_store.dart';
 import 'package:um_marketplace/data/member_store.dart';
@@ -3890,6 +3891,86 @@ void main() {
         await tester.pump(const Duration(milliseconds: 500));
         await tester.pump(const Duration(milliseconds: 500));
         expect(find.byType(ListingDetailSkeleton), findsOneWidget);
+      },
+    );
+  });
+
+  group('Chats and ChatThread Skeletons', () {
+    testWidgets(
+      'ChatsScreen renders high-fidelity chat row skeletons when chats stream is loading',
+      (WidgetTester tester) async {
+        final fakeChatStore = FakeChatStore();
+        // Stream pending — snapshot.data is null.
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildUmTheme(),
+            home: ChatsScreen(
+              viewerUid: 'buyer-1',
+              chatStore: fakeChatStore,
+              memberStore: FakeMemberStore(),
+              listingsStore: FakeListingsStore(),
+              ratingStore: FakeRatingStore(),
+              reportStore: FakeReportStore(),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.text('Conversations'), findsOneWidget);
+        expect(find.byType(BrutalShimmer), findsWidgets);
+
+        // Once chats are emitted, skeletons are replaced by real rows.
+        fakeChatStore.chats['chat-1'] = sampleChat();
+        fakeChatStore.emitList();
+        await tester.pump();
+
+        expect(find.byType(BrutalShimmer), findsNothing);
+        expect(find.text('J. Dela Cruz'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'ChatThreadScreen renders thread skeleton while listing and messages are loading',
+      (WidgetTester tester) async {
+        usePortraitPhone(tester);
+        final fakeChatStore = FakeChatStore();
+        final fakeListingsStore = FakeListingsStore();
+        // Neither the listing nor the messages have emitted yet.
+
+        await tester.pumpWidget(
+          threadApp(fakeChatStore, fakeListingsStore, FakeMemberStore()),
+        );
+        await tester.pump();
+
+        expect(find.byType(BrutalShimmer), findsWidgets);
+
+        // Emitting the listing swaps the full-thread skeleton for the real
+        // pinned card; messages are still pending, so the bubble skeleton
+        // shows inside the real body.
+        fakeListingsStore.emitListing(
+          'l1',
+          Listing(
+            id: 'l1',
+            sellerId: 'seller-1',
+            title: 'Desk lamp',
+            description: 'LED study lamp',
+            price: 150.0,
+            category: 'gadgets',
+            condition: 'Good',
+            createdAt: DateTime(2026, 8, 28),
+          ),
+        );
+        await tester.pump();
+        expect(find.text('Desk lamp'), findsOneWidget);
+        expect(find.byType(BrutalShimmer), findsOneWidget);
+
+        // Once the (empty) messages arrive, the bubble skeleton is replaced
+        // by the empty-state prompt.
+        fakeChatStore.emitMessages(chatIdFor('l1', 'buyer-1'));
+        await tester.pump();
+
+        expect(find.byType(BrutalShimmer), findsNothing);
       },
     );
   });

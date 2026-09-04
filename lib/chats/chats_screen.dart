@@ -10,6 +10,7 @@ import '../data/report_store.dart';
 import '../home/browse_screen.dart';
 import '../home/relative_time.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brutal_shimmer.dart';
 import '../widgets/nbr_button.dart';
 import 'chat_thread_screen.dart';
 
@@ -204,18 +205,68 @@ class _ChatsSkeleton extends StatelessWidget {
           style: Theme.of(context).textTheme.headlineMedium,
         ),
         const SizedBox(height: 12),
-        for (var i = 0; i < 4; i++)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Container(
-              height: 76,
-              decoration: BoxDecoration(
-                color: UmColors.muted,
-                border: Border.all(color: UmColors.ink, width: 2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
+        BrutalShimmer(
+          child: Column(
+            children: [
+              for (var i = 0; i < 4; i++)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: UmColors.surface,
+                      border: Border.all(color: UmColors.ink, width: 2),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: UmColors.ink,
+                          offset: UmShadows.card,
+                          blurRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const BrutalSkeletonBox(
+                          width: 44,
+                          height: 44,
+                          borderRadius: BorderRadius.all(Radius.circular(999)),
+                          hasBorder: true,
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              BrutalSkeletonBox(
+                                height: 14,
+                                width: 110,
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(4)),
+                              ),
+                              SizedBox(height: 6),
+                              BrutalSkeletonBox(
+                                height: 11,
+                                width: 180,
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(4)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const BrutalSkeletonBox(
+                          height: 12,
+                          width: 36,
+                          borderRadius: BorderRadius.all(Radius.circular(999)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
           ),
+        ),
       ],
     );
   }
