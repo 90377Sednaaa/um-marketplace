@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import '../widgets/brutal_dialog.dart';
 import '../widgets/nbr_button.dart';
+import '../widgets/um_logo.dart';
 import 'auth_service.dart';
 import 'um_email_policy.dart';
 
@@ -119,36 +120,7 @@ class _HeroPanel extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Transform.rotate(
-                  angle: -0.04,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: UmColors.gold,
-                      border: Border.all(color: UmColors.ink, width: 2),
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: UmColors.ink,
-                          offset: UmShadows.small,
-                          blurRadius: 0,
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      'Ga',
-                      style: GoogleFonts.spaceGrotesk(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 22,
-                        color: UmColors.ink,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ),
-                ),
+                const UmMark(size: 44),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,

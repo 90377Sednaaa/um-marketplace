@@ -2,7 +2,7 @@
     <!-- FCM delivery on Android 13+ (ADR 0005). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
-        android:label="um_marketplace"
+        android:label="UM Marketplace"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

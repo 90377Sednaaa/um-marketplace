@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <!-- UM Marketplace mark — neubrutalist campus edition (DESIGN.md §2/§4).
+       Maroon/gold/ink only, flat fills, 2dp-equivalent ink borders, hard offset shadow, blur 0. -->
+  <!-- Hard shadow (offset 8,8, solid ink, no blur) -->
+  <rect x="22" y="22" width="88" height="88" rx="18" fill="#000000"/>
+  <!-- Gold face -->
+  <rect x="14" y="14" width="88" height="88" rx="18" fill="#FFC72C" stroke="#000000" stroke-width="6"/>
+  <!-- Ga lettermark — Space Grotesk 900 where available, brutal sans fallback -->
+  <text x="58" y="63" text-anchor="middle" dominant-baseline="central" font-family="'Space Grotesk','Arial Black',sans-serif" font-weight="900" font-size="44" letter-spacing="1" fill="#000000">Ga</text>
+  <!-- Tag underline — maroon bar under the letters, campus-trade accent -->
+  <rect x="36" y="78" width="44" height="8" rx="2" fill="#7C2D12" stroke="#000000" stroke-width="3"/>
+</svg>

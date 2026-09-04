@@ -16,6 +16,7 @@ import 'package:um_marketplace/data/rating_store.dart';
 import 'package:um_marketplace/data/report_store.dart';
 import 'package:um_marketplace/home/listing_card.dart';
 import 'package:um_marketplace/theme/app_theme.dart';
+import 'package:um_marketplace/widgets/um_logo.dart';
 
 /// In-memory [AuthService] so widget tests never touch Firebase.
 class FakeAuthService implements AuthService {
@@ -2801,5 +2802,52 @@ void main() {
     });
     expect(listing.photos.single, bytes);
     expect(listing.status, 'active');
+  });
+
+  group('UmLogo', () {
+    testWidgets('UmMark renders the Ga lettermark at any size', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [UmMark(size: 44), UmMark(size: 32), UmMark(size: 72)],
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('Ga'), findsNWidgets(3));
+    });
+
+    testWidgets('UmLogo pairs the mark with the wordmark', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(home: Scaffold(body: UmLogo(dark: true))),
+      );
+      await tester.pump();
+      expect(find.text('Ga'), findsOneWidget);
+      expect(find.text('UM MARKETPLACE'), findsOneWidget);
+      expect(find.text('STUDENT EXCHANGE'), findsOneWidget);
+    });
+
+    testWidgets('logo SVG assets parse and render', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [UmMarkSvg(size: 40), UmLogoSvg(height: 64)],
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(UmMarkSvg), findsOneWidget);
+      expect(find.byType(UmLogoSvg), findsOneWidget);
+    });
   });
 }

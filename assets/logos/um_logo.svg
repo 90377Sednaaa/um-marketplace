@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 128" width="400" height="128">
+  <!-- UM Marketplace horizontal lockup — transparent field for light surfaces.
+       Pairs um_mark.svg with a Space Grotesk 900 wordmark (DESIGN.md §3). -->
+  <!-- Hard shadow for the mark -->
+  <rect x="14" y="14" width="96" height="96" rx="20" fill="#000000"/>
+  <!-- Gold mark face -->
+  <rect x="6" y="6" width="96" height="96" rx="20" fill="#FFC72C" stroke="#000000" stroke-width="6"/>
+  <text x="54" y="57" text-anchor="middle" dominant-baseline="central" font-family="'Space Grotesk','Arial Black',sans-serif" font-weight="900" font-size="46" letter-spacing="1" fill="#000000">Ga</text>
+  <rect x="28" y="80" width="52" height="9" rx="2" fill="#7C2D12" stroke="#000000" stroke-width="3"/>
+
+  <!-- Wordmark -->
+  <text x="122" y="58" font-family="'Space Grotesk','Arial Black',sans-serif" font-weight="900" font-size="34" letter-spacing="-0.5" fill="#450A0A">UM MARKETPLACE</text>
+  <!-- Sub-badge -->
+  <rect x="122" y="70" width="172" height="26" rx="6" fill="#FFFFFF" stroke="#000000" stroke-width="4"/>
+  <text x="208" y="84" text-anchor="middle" dominant-baseline="central" font-family="'Space Grotesk','Arial Black',sans-serif" font-weight="800" font-size="13" letter-spacing="1.5" fill="#000000">STUDENT EXCHANGE</text>
+</svg>

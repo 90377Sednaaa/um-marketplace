@@ -15,6 +15,7 @@ import '../home/app_shell.dart';
 import '../theme/app_theme.dart';
 import '../widgets/brutal_loader.dart';
 import '../widgets/nbr_button.dart';
+import '../widgets/um_logo.dart';
 
 /// Resolves the Member Account right after Google sign-in (ADR 0007/0008):
 /// creates `members/{uid}` if missing, then routes to the app shell — or
@@ -113,33 +114,7 @@ class _MemberSplash extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Transform.rotate(
-                    angle: -0.04,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 18, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: UmColors.gold,
-                        border: Border.all(color: UmColors.ink, width: 3),
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: const [
-                          BoxShadow(
-                              color: UmColors.ink,
-                              offset: Offset(4, 4),
-                              blurRadius: 0),
-                        ],
-                      ),
-                      child: Text(
-                        'Ga',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 42,
-                          letterSpacing: 1.0,
-                          color: UmColors.ink,
-                        ),
-                      ),
-                    ),
-                  ),
+                  const UmMark(size: 72),
                   const SizedBox(height: 28),
                   const BrutalLoader(size: 56, stroke: 3),
                   const SizedBox(height: 18),
