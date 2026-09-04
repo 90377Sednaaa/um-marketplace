@@ -7,10 +7,13 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../theme/app_theme.dart';
 import '../widgets/brutal_dialog.dart';
+import '../widgets/dot_grid.dart';
 import '../widgets/nbr_button.dart';
 import '../widgets/um_logo.dart';
 import 'auth_service.dart';
 import 'um_email_policy.dart';
+
+export '../widgets/dot_grid.dart';
 
 /// The auth gate (DESIGN.md screen 5, ADR 0001/0008): unified brutal canvas
 /// with the iconic gold "Ga" badge, ink-bordered Google sign-in card,
@@ -61,43 +64,48 @@ class _SignInScreenState extends State<SignInScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: UmColors.background,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final minHeight = constraints.hasBoundedHeight
-                ? math.max(0.0, constraints.maxHeight - 48)
-                : 0.0;
-            return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: minHeight),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 420),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Center(
-                          child: UmMark(
-                            size: 80,
-                            borderWidth: 3,
-                            shadowOffset: Offset(4, 4),
+      body: DotGridBackground(
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final minHeight = constraints.hasBoundedHeight
+                  ? math.max(0.0, constraints.maxHeight - 48)
+                  : 0.0;
+              return SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 24,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: minHeight),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Center(
+                            child: UmMark(
+                              size: 80,
+                              borderWidth: 3,
+                              shadowOffset: Offset(4, 4),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        const _AppHeader(),
-                        const SizedBox(height: 32),
-                        _SignInCard(busy: _busy, onSignIn: _signIn),
-                        const SizedBox(height: 32),
-                        const _LoginFooter(),
-                      ],
+                          const SizedBox(height: 20),
+                          const _AppHeader(),
+                          const SizedBox(height: 32),
+                          _SignInCard(busy: _busy, onSignIn: _signIn),
+                          const SizedBox(height: 32),
+                          const _LoginFooter(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -17,6 +18,7 @@ import 'package:um_marketplace/data/rating_store.dart';
 import 'package:um_marketplace/data/report_store.dart';
 import 'package:um_marketplace/home/listing_card.dart';
 import 'package:um_marketplace/theme/app_theme.dart';
+import 'package:um_marketplace/widgets/dot_grid.dart';
 import 'package:um_marketplace/widgets/um_logo.dart';
 
 /// In-memory [AuthService] so widget tests never touch Firebase.
@@ -739,6 +741,103 @@ void main() {
       expect(find.text('Sign in with Google'), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'SignInScreen renders campus notebook dot grid background with ink dots',
+    (WidgetTester tester) async {
+      final auth = FakeAuthService();
+      await tester.pumpWidget(_app(auth: auth));
+      await tester.pump();
+
+      expect(find.byType(DotGridBackground), findsOneWidget);
+
+      final customPaintFinder = find.byWidgetPredicate(
+        (w) => w is CustomPaint && w.painter is DotGridPainter,
+      );
+      expect(customPaintFinder, findsOneWidget);
+
+      final customPaint = tester.widget<CustomPaint>(customPaintFinder);
+      final painter = customPaint.painter as DotGridPainter;
+      expect(painter.spacing, 24.0);
+      expect(painter.dotRadius, greaterThanOrEqualTo(1.2));
+      expect(painter.dotRadius, lessThanOrEqualTo(1.4));
+      expect(painter.dotColor, kDefaultDotGridColor);
+      expect(customPaint.isComplex, isTrue);
+      expect(customPaint.willChange, isFalse);
+    },
+  );
+
+  test('DotGridPainter shouldRepaint reflects property changes accurately', () {
+    const p1 = DotGridPainter(spacing: 24, dotRadius: 1.3);
+    const p2 = DotGridPainter(spacing: 24, dotRadius: 1.3);
+    const pDiffSpacing = DotGridPainter(spacing: 28, dotRadius: 1.3);
+    const pDiffRadius = DotGridPainter(spacing: 24, dotRadius: 1.5);
+    const pDiffColor = DotGridPainter(
+      spacing: 24,
+      dotRadius: 1.3,
+      dotColor: Color(0xFF000000),
+    );
+
+    expect(p1.shouldRepaint(p2), isFalse);
+    expect(p1.shouldRepaint(pDiffSpacing), isTrue);
+    expect(p1.shouldRepaint(pDiffRadius), isTrue);
+    expect(p1.shouldRepaint(pDiffColor), isTrue);
+  });
+
+  test('DotGridPainter paints cleanly and handles non-positive sizes safely', () {
+    const painter = DotGridPainter();
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    // Normal drawing
+    expect(() => painter.paint(canvas, const Size(200, 200)), returnsNormally);
+
+    // Boundary edge cases: zero or negative dimensions, spacing <= 0, radius <= 0
+    expect(() => painter.paint(canvas, Size.zero), returnsNormally);
+    expect(() => painter.paint(canvas, const Size(-10, 100)), returnsNormally);
+    expect(() => painter.paint(canvas, const Size(100, -10)), returnsNormally);
+
+    const zeroSpacing = DotGridPainter(spacing: 0);
+    expect(() => zeroSpacing.paint(canvas, const Size(100, 100)), returnsNormally);
+
+    const negativeRadius = DotGridPainter(dotRadius: -1);
+    expect(() => negativeRadius.paint(canvas, const Size(100, 100)), returnsNormally);
+
+    final picture = recorder.endRecording();
+    picture.dispose();
+  });
+
+  testWidgets('DotGridBackground renders child widget and custom properties', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: DotGridBackground(
+            spacing: 32.0,
+            dotRadius: 1.4,
+            dotColor: Color(0x1F000000),
+            backgroundColor: Colors.white,
+            child: Text('Notebook Canvas Test'),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Notebook Canvas Test'), findsOneWidget);
+
+    final customPaintFinder = find.byWidgetPredicate(
+      (w) => w is CustomPaint && w.painter is DotGridPainter,
+    );
+    expect(customPaintFinder, findsOneWidget);
+
+    final customPaint = tester.widget<CustomPaint>(customPaintFinder);
+    final painter = customPaint.painter as DotGridPainter;
+    expect(painter.spacing, 32.0);
+    expect(painter.dotRadius, 1.4);
+    expect(painter.dotColor, const Color(0x1F000000));
+  });
 
   testWidgets('sign-in creates the member account and lands on home', (
     WidgetTester tester,
