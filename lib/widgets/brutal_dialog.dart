@@ -5,14 +5,43 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
 import 'nbr_button.dart';
 
+Future<T?> showBrutalGeneralDialog<T>({
+  required BuildContext context,
+  required WidgetBuilder builder,
+  bool barrierDismissible = true,
+}) {
+  return showGeneralDialog<T>(
+    context: context,
+    barrierDismissible: barrierDismissible,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: Colors.black54,
+    transitionDuration: const Duration(milliseconds: 220),
+    pageBuilder: (dialogContext, animation, secondaryAnimation) =>
+        builder(dialogContext),
+    transitionBuilder: (dialogContext, animation, secondaryAnimation, child) {
+      final curved = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutBack,
+        reverseCurve: Curves.easeInBack,
+      );
+      return ScaleTransition(
+        scale: Tween<double>(begin: 0.78, end: 1.0).animate(curved),
+        child: FadeTransition(
+          opacity: animation,
+          child: child,
+        ),
+      );
+    },
+  );
+}
+
 Future<void> showBrutalErrorDialog(
   BuildContext context, {
   required String title,
   required String message,
 }) {
-  return showDialog<void>(
+  return showBrutalGeneralDialog<void>(
     context: context,
-    barrierColor: Colors.black54,
     barrierDismissible: true,
     builder: (dialogContext) => Dialog(
       backgroundColor: Colors.transparent,
@@ -89,7 +118,7 @@ Future<void> showBrutalSuccessDialog(
   required String title,
   required String message,
 }) {
-  return showDialog<void>(
+  return showBrutalGeneralDialog<void>(
     context: context,
     barrierDismissible: true,
     builder: (dialogContext) => Dialog(

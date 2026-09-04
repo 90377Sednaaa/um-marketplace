@@ -18,6 +18,7 @@ import 'package:um_marketplace/data/rating_store.dart';
 import 'package:um_marketplace/data/report_store.dart';
 import 'package:um_marketplace/home/listing_card.dart';
 import 'package:um_marketplace/theme/app_theme.dart';
+import 'package:um_marketplace/widgets/brutal_dialog.dart';
 import 'package:um_marketplace/widgets/dot_grid.dart';
 import 'package:um_marketplace/widgets/um_logo.dart';
 
@@ -3223,5 +3224,97 @@ void main() {
       expect(find.byType(UmMarkSvg), findsOneWidget);
       expect(find.byType(UmLogoSvg), findsOneWidget);
     });
+  });
+
+  group('BrutalDialog pop-in animation', () {
+    testWidgets(
+      'showBrutalErrorDialog renders with pop-in scale and fade transition',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: ElevatedButton(
+                  onPressed: () => showBrutalErrorDialog(
+                    context,
+                    title: 'Error Title',
+                    message: 'Error body message.',
+                  ),
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open'));
+        await tester.pump(); // Start of animation
+        expect(find.byType(ScaleTransition), findsWidgets);
+        expect(find.byType(FadeTransition), findsWidgets);
+        expect(
+          find.ancestor(
+            of: find.byType(Dialog),
+            matching: find.byType(ScaleTransition),
+          ),
+          findsOneWidget,
+        );
+
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(find.text('Error Title'), findsOneWidget);
+
+        await tester.pumpAndSettle();
+        expect(find.text('Error Title'), findsOneWidget);
+        expect(find.text('Error body message.'), findsOneWidget);
+
+        await tester.tap(find.text('Got it'));
+        await tester.pumpAndSettle();
+        expect(find.text('Error Title'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'showBrutalSuccessDialog renders with pop-in scale and fade transition',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: ElevatedButton(
+                  onPressed: () => showBrutalSuccessDialog(
+                    context,
+                    title: 'Success Title',
+                    message: 'Success body message.',
+                  ),
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open'));
+        await tester.pump(); // Start of animation
+        expect(find.byType(ScaleTransition), findsWidgets);
+        expect(find.byType(FadeTransition), findsWidgets);
+        expect(
+          find.ancestor(
+            of: find.byType(Dialog),
+            matching: find.byType(ScaleTransition),
+          ),
+          findsOneWidget,
+        );
+
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(find.text('Success Title'), findsOneWidget);
+
+        await tester.pumpAndSettle();
+        expect(find.text('Success Title'), findsOneWidget);
+        expect(find.text('Success body message.'), findsOneWidget);
+
+        await tester.tap(find.text('Nice'));
+        await tester.pumpAndSettle();
+        expect(find.text('Success Title'), findsNothing);
+      },
+    );
   });
 }
