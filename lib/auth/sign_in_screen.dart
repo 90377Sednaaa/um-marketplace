@@ -219,8 +219,10 @@ class _SignInCard extends StatelessWidget {
               const SizedBox(height: 14),
               Center(
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: UmColors.goldSoft,
                     border: Border.all(color: UmColors.ink, width: 1.5),

@@ -579,6 +579,8 @@ void main() {
     expect(find.text('Ga'), findsOneWidget);
     final umMark = tester.widget<UmMark>(find.byType(UmMark));
     expect(umMark.size, 80);
+    expect(umMark.borderWidth, 3);
+    expect(umMark.shadowOffset, const Offset(4, 4));
     expect(
       find.text('The campus marketplace for University of Mindanao students.'),
       findsOneWidget,
@@ -714,6 +716,27 @@ void main() {
             widget.bytesLoader.toString().contains('starburst.svg'),
       );
       expect(starburstFinder, findsOneWidget);
+      final starburst = tester.widget<SvgPicture>(starburstFinder);
+      expect(starburst.width, 38);
+      expect(starburst.height, 38);
+    },
+  );
+
+  testWidgets(
+    'SignInScreen scrolls cleanly without overflow in landscape orientation',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(800, 360);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      final auth = FakeAuthService();
+      await tester.pumpWidget(_app(auth: auth));
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      await tester.ensureVisible(find.text('Sign in with Google'));
+      await tester.pumpAndSettle();
+      expect(find.text('Sign in with Google'), findsOneWidget);
     },
   );
 
