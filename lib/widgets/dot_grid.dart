@@ -133,10 +133,7 @@ class DotGridBackground extends StatelessWidget {
 
     final currentChild = child;
     if (currentChild == null) {
-      return ColoredBox(
-        color: backgroundColor,
-        child: grid,
-      );
+      return ColoredBox(color: backgroundColor, child: grid);
     }
 
     return ColoredBox(

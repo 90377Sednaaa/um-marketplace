@@ -799,100 +799,91 @@ void main() {
     expect(p1 == pDiffSpacing, isFalse);
   });
 
+  test('DotGridPainter paints cleanly, centers dots symmetrically, and handles edge cases safely', () {
+    const painter = DotGridPainter();
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    // Normal drawing
+    expect(() => painter.paint(canvas, const Size(200, 200)), returnsNormally);
+
+    // Boundary edge cases: zero or negative dimensions, spacing <= 0, radius <= 0
+    expect(() => painter.paint(canvas, Size.zero), returnsNormally);
+    expect(() => painter.paint(canvas, const Size(-10, 100)), returnsNormally);
+    expect(() => painter.paint(canvas, const Size(100, -10)), returnsNormally);
+
+    // Infinite and NaN dimensions must return safely without infinite loop or hang
+    expect(
+      () => painter.paint(canvas, const Size(100, double.infinity)),
+      returnsNormally,
+    );
+    expect(
+      () => painter.paint(canvas, const Size(double.infinity, 100)),
+      returnsNormally,
+    );
+    expect(
+      () => painter.paint(canvas, const Size(double.nan, 100)),
+      returnsNormally,
+    );
+
+    const zeroSpacing = DotGridPainter(spacing: 0);
+    expect(
+      () => zeroSpacing.paint(canvas, const Size(100, 100)),
+      returnsNormally,
+    );
+
+    const negativeSpacing = DotGridPainter(spacing: -5);
+    expect(
+      () => negativeSpacing.paint(canvas, const Size(100, 100)),
+      returnsNormally,
+    );
+
+    const nanSpacing = DotGridPainter(spacing: double.nan);
+    expect(
+      () => nanSpacing.paint(canvas, const Size(100, 100)),
+      returnsNormally,
+    );
+
+    const negativeRadius = DotGridPainter(dotRadius: -1);
+    expect(
+      () => negativeRadius.paint(canvas, const Size(100, 100)),
+      returnsNormally,
+    );
+
+    final picture = recorder.endRecording();
+    picture.dispose();
+  });
+
   test(
-    'DotGridPainter paints cleanly, centers dots symmetrically, and handles edge cases safely',
+    'DotGridPainter draws symmetrically centered grid within canvas bounds',
     () {
-      const painter = DotGridPainter();
-      final recorder = ui.PictureRecorder();
-      final canvas = Canvas(recorder);
+      final testCanvas = _RecordingCanvas();
+      const painter = DotGridPainter(spacing: 24.0, dotRadius: 1.3);
 
-      // Normal drawing
-      expect(
-        () => painter.paint(canvas, const Size(200, 200)),
-        returnsNormally,
-      );
+      // Test on standard 375x812 viewport
+      painter.paint(testCanvas, const Size(375, 812));
+      expect(testCanvas.circles, isNotEmpty);
 
-      // Boundary edge cases: zero or negative dimensions, spacing <= 0, radius <= 0
-      expect(() => painter.paint(canvas, Size.zero), returnsNormally);
-      expect(
-        () => painter.paint(canvas, const Size(-10, 100)),
-        returnsNormally,
-      );
-      expect(
-        () => painter.paint(canvas, const Size(100, -10)),
-        returnsNormally,
-      );
+      // Symmetrical margins check
+      final firstDot = testCanvas.circles.first;
+      final lastDot = testCanvas.circles.last;
+      final leftMargin = firstDot.dx;
+      final rightMargin = 375 - lastDot.dx;
+      final topMargin = firstDot.dy;
+      final bottomMargin = 812 - lastDot.dy;
 
-      // Infinite and NaN dimensions must return safely without infinite loop or hang
-      expect(
-        () => painter.paint(canvas, const Size(100, double.infinity)),
-        returnsNormally,
-      );
-      expect(
-        () => painter.paint(canvas, const Size(double.infinity, 100)),
-        returnsNormally,
-      );
-      expect(
-        () => painter.paint(canvas, const Size(double.nan, 100)),
-        returnsNormally,
-      );
+      expect(leftMargin, closeTo(rightMargin, 0.001));
+      expect(topMargin, closeTo(bottomMargin, 0.001));
 
-      const zeroSpacing = DotGridPainter(spacing: 0);
-      expect(
-        () => zeroSpacing.paint(canvas, const Size(100, 100)),
-        returnsNormally,
-      );
-
-      const negativeSpacing = DotGridPainter(spacing: -5);
-      expect(
-        () => negativeSpacing.paint(canvas, const Size(100, 100)),
-        returnsNormally,
-      );
-
-      const nanSpacing = DotGridPainter(spacing: double.nan);
-      expect(
-        () => nanSpacing.paint(canvas, const Size(100, 100)),
-        returnsNormally,
-      );
-
-      const negativeRadius = DotGridPainter(dotRadius: -1);
-      expect(
-        () => negativeRadius.paint(canvas, const Size(100, 100)),
-        returnsNormally,
-      );
-
-      final picture = recorder.endRecording();
-      picture.dispose();
+      // Strict bounds check: no dot clips outside the canvas
+      for (final dot in testCanvas.circles) {
+        expect(dot.dx - 1.3, greaterThanOrEqualTo(0));
+        expect(dot.dx + 1.3, lessThanOrEqualTo(375));
+        expect(dot.dy - 1.3, greaterThanOrEqualTo(0));
+        expect(dot.dy + 1.3, lessThanOrEqualTo(812));
+      }
     },
   );
-
-  test('DotGridPainter draws symmetrically centered grid within canvas bounds', () {
-    final testCanvas = _RecordingCanvas();
-    const painter = DotGridPainter(spacing: 24.0, dotRadius: 1.3);
-
-    // Test on standard 375x812 viewport
-    painter.paint(testCanvas, const Size(375, 812));
-    expect(testCanvas.circles, isNotEmpty);
-
-    // Symmetrical margins check
-    final firstDot = testCanvas.circles.first;
-    final lastDot = testCanvas.circles.last;
-    final leftMargin = firstDot.dx;
-    final rightMargin = 375 - lastDot.dx;
-    final topMargin = firstDot.dy;
-    final bottomMargin = 812 - lastDot.dy;
-
-    expect(leftMargin, closeTo(rightMargin, 0.001));
-    expect(topMargin, closeTo(bottomMargin, 0.001));
-
-    // Strict bounds check: no dot clips outside the canvas
-    for (final dot in testCanvas.circles) {
-      expect(dot.dx - 1.3, greaterThanOrEqualTo(0));
-      expect(dot.dx + 1.3, lessThanOrEqualTo(375));
-      expect(dot.dy - 1.3, greaterThanOrEqualTo(0));
-      expect(dot.dy + 1.3, lessThanOrEqualTo(812));
-    }
-  });
 
   testWidgets('DotGridBackground renders child widget and custom properties', (
     WidgetTester tester,
@@ -926,43 +917,40 @@ void main() {
     expect(painter.dotColor, const Color(0x1F000000));
   });
 
-  testWidgets('DotGridBackground renders safely with null child and in UnconstrainedBox', (
-    WidgetTester tester,
-  ) async {
-    // 1. Null child inside bounded parent
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: SizedBox(
-            width: 200,
-            height: 200,
-            child: DotGridBackground(),
+  testWidgets(
+    'DotGridBackground renders safely with null child and in UnconstrainedBox',
+    (WidgetTester tester) async {
+      // 1. Null child inside bounded parent
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(width: 200, height: 200, child: DotGridBackground()),
           ),
         ),
-      ),
-    );
-    await tester.pump();
-    expect(find.byType(DotGridBackground), findsOneWidget);
+      );
+      await tester.pump();
+      expect(find.byType(DotGridBackground), findsOneWidget);
 
-    // 2. DotGridBackground inside UnconstrainedBox (unbounded constraints must not crash)
-    await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: UnconstrainedBox(
-            child: DotGridBackground(
-              child: SizedBox(
-                width: 100,
-                height: 100,
-                child: Text('Unconstrained Test'),
+      // 2. DotGridBackground inside UnconstrainedBox (unbounded constraints must not crash)
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: UnconstrainedBox(
+              child: DotGridBackground(
+                child: SizedBox(
+                  width: 100,
+                  height: 100,
+                  child: Text('Unconstrained Test'),
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
-    await tester.pump();
-    expect(find.text('Unconstrained Test'), findsOneWidget);
-  });
+      );
+      await tester.pump();
+      expect(find.text('Unconstrained Test'), findsOneWidget);
+    },
+  );
 
   testWidgets('sign-in creates the member account and lands on home', (
     WidgetTester tester,
