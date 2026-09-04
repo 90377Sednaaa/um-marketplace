@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:um_marketplace/app.dart';
@@ -574,7 +575,10 @@ void main() {
 
     expect(find.text('Sign in with Google'), findsOneWidget);
     expect(find.text('UM Marketplace'), findsOneWidget);
+    expect(find.text('CAMPUS EXCLUSIVE'), findsOneWidget);
     expect(find.text('Ga'), findsOneWidget);
+    final umMark = tester.widget<UmMark>(find.byType(UmMark));
+    expect(umMark.size, 80);
     expect(
       find.text('The campus marketplace for University of Mindanao students.'),
       findsOneWidget,
@@ -694,6 +698,24 @@ void main() {
 
     semantics.dispose();
   });
+
+  testWidgets(
+    'SignInScreen renders campus sticker badge and starburst accent',
+    (WidgetTester tester) async {
+      final auth = FakeAuthService();
+      await tester.pumpWidget(_app(auth: auth));
+      await tester.pump();
+
+      expect(find.text('CAMPUS EXCLUSIVE'), findsOneWidget);
+
+      final starburstFinder = find.byWidgetPredicate(
+        (widget) =>
+            widget is SvgPicture &&
+            widget.bytesLoader.toString().contains('starburst.svg'),
+      );
+      expect(starburstFinder, findsOneWidget);
+    },
+  );
 
   testWidgets('sign-in creates the member account and lands on home', (
     WidgetTester tester,

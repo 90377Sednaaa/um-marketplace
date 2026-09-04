@@ -75,28 +75,22 @@ class _SignInScreenState extends State<SignInScreen> {
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 420),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const SizedBox(height: 32),
-                            const UmMark(
-                              size: 64,
-                              borderWidth: 3,
-                              shadowOffset: UmShadows.card,
-                            ),
-                            const SizedBox(height: 20),
-                            const _AppHeader(),
-                            const SizedBox(height: 36),
-                            _SignInCard(busy: _busy, onSignIn: _signIn),
-                          ],
+                        const Center(
+                          child: UmMark(
+                            size: 80,
+                            borderWidth: 3,
+                            shadowOffset: Offset(4, 4),
+                          ),
                         ),
-                        const Padding(
-                          padding: EdgeInsets.only(top: 28, bottom: 8),
-                          child: _LoginFooter(),
-                        ),
+                        const SizedBox(height: 20),
+                        const _AppHeader(),
+                        const SizedBox(height: 32),
+                        _SignInCard(busy: _busy, onSignIn: _signIn),
+                        const SizedBox(height: 32),
+                        const _LoginFooter(),
                       ],
                     ),
                   ),
@@ -118,12 +112,40 @@ class _AppHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        Transform.rotate(
+          angle: -0.03,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: UmColors.gold,
+              border: Border.all(color: UmColors.ink, width: 2),
+              borderRadius: BorderRadius.circular(6),
+              boxShadow: const [
+                BoxShadow(
+                  color: UmColors.ink,
+                  offset: Offset(2, 2),
+                  blurRadius: 0,
+                ),
+              ],
+            ),
+            child: Text(
+              'CAMPUS EXCLUSIVE',
+              style: GoogleFonts.spaceGrotesk(
+                fontWeight: FontWeight.w800,
+                fontSize: 11,
+                letterSpacing: 0.8,
+                color: UmColors.ink,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
         Text(
           'UM Marketplace',
           textAlign: TextAlign.center,
           style: GoogleFonts.spaceGrotesk(
             fontWeight: FontWeight.w900,
-            fontSize: 32,
+            fontSize: 34,
             height: 1.1,
             letterSpacing: -0.8,
             color: UmColors.onSurface,
@@ -153,77 +175,103 @@ class _SignInCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: UmColors.surface,
-        border: Border.all(color: UmColors.ink, width: 2),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(color: UmColors.ink, offset: UmShadows.card, blurRadius: 0),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          NbrButton(
-            label: busy ? 'Opening Google…' : 'Sign in with Google',
-            icon: busy
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: UmColors.mutedForeground,
-                    ),
-                  )
-                : SvgPicture.asset(
-                    'assets/logos/google_g.svg',
-                    width: 20,
-                    height: 20,
-                  ),
-            fill: UmColors.surface,
-            labelColor: UmColors.ink,
-            stretch: true,
-            onPressed: busy ? null : onSignIn,
-          ),
-          const SizedBox(height: 14),
-          Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: UmColors.goldSoft,
-                border: Border.all(color: UmColors.ink, width: 1.5),
-                borderRadius: BorderRadius.circular(999),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: UmColors.surface,
+            border: Border.all(color: UmColors.ink, width: 2),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: const [
+              BoxShadow(
+                color: UmColors.ink,
+                offset: UmShadows.card,
+                blurRadius: 0,
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    LucideIcons.shieldCheck500,
-                    size: 15,
-                    color: UmColors.primary,
-                  ),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      '@umindanao.edu.ph accounts only',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.spaceGrotesk(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                        letterSpacing: 0.2,
-                        color: UmColors.ink,
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              NbrButton(
+                label: busy ? 'Opening Google…' : 'Sign in with Google',
+                icon: busy
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: UmColors.mutedForeground,
+                        ),
+                      )
+                    : SvgPicture.asset(
+                        'assets/logos/google_g.svg',
+                        width: 20,
+                        height: 20,
                       ),
-                    ),
+                fill: UmColors.surface,
+                labelColor: UmColors.ink,
+                stretch: true,
+                onPressed: busy ? null : onSignIn,
+              ),
+              const SizedBox(height: 14),
+              Center(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: UmColors.goldSoft,
+                    border: Border.all(color: UmColors.ink, width: 1.5),
+                    borderRadius: BorderRadius.circular(999),
                   ),
-                ],
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        LucideIcons.shieldCheck500,
+                        size: 15,
+                        color: UmColors.primary,
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          '@umindanao.edu.ph accounts only',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.spaceGrotesk(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                            letterSpacing: 0.2,
+                            color: UmColors.ink,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          top: -16,
+          right: -10,
+          child: IgnorePointer(
+            child: ExcludeSemantics(
+              child: Transform.rotate(
+                angle: 0.12,
+                child: SvgPicture.asset(
+                  'assets/stickers/starburst.svg',
+                  width: 38,
+                  height: 38,
+                ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
