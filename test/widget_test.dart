@@ -22,8 +22,10 @@ import 'package:um_marketplace/home/home_screen.dart';
 import 'package:um_marketplace/home/listing_card.dart';
 import 'package:um_marketplace/members/member_gate.dart';
 import 'package:um_marketplace/theme/app_theme.dart';
+import 'package:um_marketplace/widgets/brutal_app_bar.dart';
 import 'package:um_marketplace/widgets/brutal_dialog.dart';
 import 'package:um_marketplace/widgets/brutal_shimmer.dart';
+import 'package:um_marketplace/widgets/listing_detail_skeleton.dart';
 import 'package:um_marketplace/widgets/product_card_skeleton.dart';
 import 'package:um_marketplace/widgets/dot_grid.dart';
 import 'package:um_marketplace/widgets/um_logo.dart';
@@ -3825,6 +3827,69 @@ void main() {
         expect(find.byType(ProductCardSkeleton), findsNothing);
         expect(find.byType(ListingCard), findsOneWidget);
         expect(find.text('Scientific Calculator'), findsOneWidget);
+      },
+    );
+  });
+
+  group('ListingDetailSkeleton', () {
+    testWidgets(
+      'ListingDetailSkeleton renders BrutalAppBar, hero frame, price block, seller strip, and BrutalShimmer',
+      (WidgetTester tester) async {
+        usePortraitPhone(tester);
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: ListingDetailSkeleton(),
+          ),
+        );
+
+        expect(find.byType(ListingDetailSkeleton), findsOneWidget);
+        expect(find.byType(BrutalAppBar), findsOneWidget);
+        expect(find.text('LISTING'), findsOneWidget);
+        expect(find.byType(BrutalShimmer), findsOneWidget);
+        expect(find.byType(ListView), findsOneWidget);
+
+        // AspectRatio check (4 / 3 hero photo placeholder)
+        final aspectRatioFinder = find.byType(AspectRatio);
+        expect(aspectRatioFinder, findsOneWidget);
+        final aspectRatio = tester.widget<AspectRatio>(aspectRatioFinder);
+        expect(aspectRatio.aspectRatio, 4 / 3);
+
+        // Hero photo container decoration check
+        final heroContainer = tester.widget<Container>(
+          find.descendant(
+            of: aspectRatioFinder,
+            matching: find.byType(Container),
+          ).first,
+        );
+        final heroDecoration = heroContainer.decoration as BoxDecoration;
+        expect(heroDecoration.color, UmColors.muted);
+        expect(heroDecoration.borderRadius, BorderRadius.circular(8));
+        expect(heroDecoration.border, isNotNull);
+        final heroBorder = heroDecoration.border as Border;
+        expect(heroBorder.top.color, UmColors.ink);
+        expect(heroBorder.top.width, 2.0);
+        expect(heroDecoration.boxShadow, isNotNull);
+        expect(heroDecoration.boxShadow!.first.offset, UmShadows.card);
+
+        // BrutalSkeletonBox components check:
+        // - price pill (height: 32, Color(0xFFDCFCE7))
+        // - condition pill (height: 20)
+        // - title line 1 (height: 20)
+        // - title line 2 (height: 16)
+        // - category chip (height: 24)
+        // - location chip (height: 24)
+        // - avatar box (44x44, hasBorder: true)
+        // - seller name (height: 14)
+        // - seller verified badge (height: 12)
+        // - description line 1 (height: 14)
+        // - description line 2 (height: 14)
+        final skeletonBoxes = find.byType(BrutalSkeletonBox);
+        expect(skeletonBoxes, findsNWidgets(11));
+
+        // Shimmer animation progression
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pump(const Duration(milliseconds: 500));
+        expect(find.byType(ListingDetailSkeleton), findsOneWidget);
       },
     );
   });
