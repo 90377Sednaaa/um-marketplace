@@ -21,6 +21,7 @@ import 'package:um_marketplace/home/listing_card.dart';
 import 'package:um_marketplace/members/member_gate.dart';
 import 'package:um_marketplace/theme/app_theme.dart';
 import 'package:um_marketplace/widgets/brutal_dialog.dart';
+import 'package:um_marketplace/widgets/brutal_shimmer.dart';
 import 'package:um_marketplace/widgets/dot_grid.dart';
 import 'package:um_marketplace/widgets/um_logo.dart';
 
@@ -3598,4 +3599,72 @@ void main() {
       },
     );
   });
+
+  group('BrutalShimmer and BrutalSkeletonBox', () {
+    testWidgets(
+      'BrutalSkeletonBox renders with specified dimensions, border, and color',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: BrutalSkeletonBox(
+                width: 120,
+                height: 40,
+                borderRadius: BorderRadius.circular(10),
+                hasBorder: true,
+                borderColor: UmColors.ink,
+                borderWidth: 3.0,
+                color: UmColors.gold,
+                child: const Text('Loading...'),
+              ),
+            ),
+          ),
+        );
+
+        final boxFinder = find.byType(BrutalSkeletonBox);
+        expect(boxFinder, findsOneWidget);
+        expect(find.text('Loading...'), findsOneWidget);
+
+        final container = tester.widget<Container>(
+          find.descendant(of: boxFinder, matching: find.byType(Container)),
+        );
+        final decoration = container.decoration as BoxDecoration;
+        expect(container.constraints?.tighten(width: 120, height: 40).minWidth, 120);
+        expect(decoration.color, UmColors.gold);
+        expect(decoration.borderRadius, BorderRadius.circular(10));
+        expect(decoration.border, isNotNull);
+        final border = decoration.border as Border;
+        expect(border.top.color, UmColors.ink);
+        expect(border.top.width, 3.0);
+      },
+    );
+
+    testWidgets(
+      'BrutalShimmer advances animation with tester.pump without error',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: BrutalShimmer(
+                child: BrutalSkeletonBox(
+                  width: 100,
+                  height: 20,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        expect(find.byType(BrutalShimmer), findsOneWidget);
+        expect(find.byType(ShaderMask), findsOneWidget);
+
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pump(const Duration(milliseconds: 500));
+
+        expect(find.byType(BrutalShimmer), findsOneWidget);
+      },
+    );
+  });
 }
+
