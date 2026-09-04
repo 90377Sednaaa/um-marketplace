@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../theme/app_theme.dart';
 import '../widgets/brutal_dialog.dart';
 import '../widgets/nbr_button.dart';
-import '../widgets/um_logo.dart';
 import 'auth_service.dart';
 import 'um_email_policy.dart';
 
-/// The auth gate (DESIGN.md screen 5, ADR 0001/0008): maroon hero panel
-/// with brutal stickers and an ink-bordered card carrying the Google sign-in
-/// button. Accounts whose address fails the UM student format are refused.
+/// The auth gate (DESIGN.md screen 5, ADR 0001/0008): unified brutal canvas
+/// with the iconic gold "Ga" badge, ink-bordered Google sign-in card,
+/// student domain note, and minimalist campus footer. Accounts whose address
+/// fails the UM student format are refused.
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key, required this.authService});
 
@@ -32,6 +32,7 @@ class _SignInScreenState extends State<SignInScreen> {
       await widget.authService.signInWithGoogle();
       // Success is observed through userChanges; the gate swaps screens.
     } on UmEmailRejectedException catch (e) {
+      if (mounted) setState(() => _busy = false);
       if (!mounted) return;
       await showBrutalErrorDialog(
         context,
@@ -41,6 +42,7 @@ class _SignInScreenState extends State<SignInScreen> {
       );
     } catch (e) {
       debugPrint('Google sign-in failed: $e');
+      if (mounted) setState(() => _busy = false);
       if (!mounted) return;
       await showBrutalErrorDialog(
         context,
@@ -57,123 +59,115 @@ class _SignInScreenState extends State<SignInScreen> {
     return Scaffold(
       backgroundColor: UmColors.background,
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _HeroPanel(),
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight - 36,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _SignInCard(busy: _busy, onSignIn: _signIn),
-                              const SizedBox(height: 16),
-                              _CampusTrustCard(),
-                              const SizedBox(height: 16),
-                              _CampusCategories(),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          _LoginFooter(),
-                        ],
-                      ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 48,
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const SizedBox(height: 32),
+                            const _AppBadge(),
+                            const SizedBox(height: 20),
+                            const _AppHeader(),
+                            const SizedBox(height: 36),
+                            _SignInCard(busy: _busy, onSignIn: _signIn),
+                          ],
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.only(top: 28, bottom: 8),
+                          child: _LoginFooter(),
+                        ),
+                      ],
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
   }
 }
 
-class _HeroPanel extends StatelessWidget {
+class _AppBadge extends StatelessWidget {
+  const _AppBadge();
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: UmColors.primary,
-        border: Border(bottom: BorderSide(color: UmColors.ink, width: 3)),
-        boxShadow: [
-          BoxShadow(color: UmColors.ink, offset: Offset(0, 4), blurRadius: 0),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 26),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const UmMark(size: 44),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: UmColors.surface,
-                    border: Border.all(color: UmColors.ink, width: 2),
-                    borderRadius: BorderRadius.circular(6),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: UmColors.ink,
-                        offset: Offset(2, 2),
-                        blurRadius: 0,
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    'STUDENT EXCHANGE',
-                    style: GoogleFonts.spaceGrotesk(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 10,
-                      letterSpacing: 0.8,
-                      color: UmColors.ink,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 18),
-            Text(
-              'UM Marketplace',
-              style: GoogleFonts.spaceGrotesk(
-                fontWeight: FontWeight.w900,
-                fontSize: 34,
-                height: 1.05,
-                letterSpacing: -1.0,
-                color: UmColors.onPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'The campus marketplace for University of Mindanao students.',
-              style: GoogleFonts.outfit(
-                fontWeight: FontWeight.w500,
-                fontSize: 13.5,
-                height: 1.4,
-                color: UmColors.goldSoft,
-              ),
+    return Transform.rotate(
+      angle: -0.04,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: UmColors.gold,
+          border: Border.all(color: UmColors.ink, width: 3),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: const [
+            BoxShadow(
+              color: UmColors.ink,
+              offset: UmShadows.card,
+              blurRadius: 0,
             ),
           ],
         ),
+        child: Text(
+          'Ga',
+          style: GoogleFonts.spaceGrotesk(
+            fontWeight: FontWeight.w900,
+            fontSize: 34,
+            letterSpacing: 1.2,
+            color: UmColors.ink,
+          ),
+        ),
       ),
+    );
+  }
+}
+
+class _AppHeader extends StatelessWidget {
+  const _AppHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          'UM Marketplace',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.spaceGrotesk(
+            fontWeight: FontWeight.w900,
+            fontSize: 32,
+            height: 1.1,
+            letterSpacing: -0.8,
+            color: UmColors.onSurface,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'The campus marketplace for University of Mindanao students.',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+            height: 1.4,
+            color: UmColors.mutedForeground,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -186,338 +180,105 @@ class _SignInCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: UmColors.surface,
-            border: Border.all(color: UmColors.ink, width: 2),
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [
-              BoxShadow(
-                color: UmColors.ink,
-                offset: UmShadows.card,
-                blurRadius: 0,
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: UmColors.gold,
-                      border: Border.all(color: UmColors.ink, width: 2),
-                      borderRadius: BorderRadius.circular(6),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: UmColors.surface,
+        border: Border.all(color: UmColors.ink, width: 2),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(color: UmColors.ink, offset: UmShadows.card, blurRadius: 0),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          NbrButton(
+            label: busy ? 'Opening Google…' : 'Sign in with Google',
+            icon: busy
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: UmColors.mutedForeground,
                     ),
-                    child: const Icon(
-                      LucideIcons.badgeCheck500,
-                      size: 18,
-                      color: UmColors.ink,
-                    ),
+                  )
+                : SvgPicture.asset(
+                    'assets/logos/google_g.svg',
+                    width: 20,
+                    height: 20,
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
+            fill: UmColors.surface,
+            labelColor: UmColors.ink,
+            stretch: true,
+            onPressed: busy ? null : onSignIn,
+          ),
+          const SizedBox(height: 14),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: UmColors.goldSoft,
+                border: Border.all(color: UmColors.ink, width: 1.5),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    LucideIcons.shieldCheck500,
+                    size: 15,
+                    color: UmColors.primary,
+                  ),
+                  const SizedBox(width: 6),
+                  Flexible(
                     child: Text(
-                      'Sign in to start trading',
+                      '@umindanao.edu.ph accounts only',
                       style: GoogleFonts.spaceGrotesk(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 17,
-                        color: UmColors.onSurface,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                        letterSpacing: 0.2,
+                        color: UmColors.ink,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
-              Text(
-                'Only verified University of Mindanao students can join. Use your school Google account (@umindanao.edu.ph).',
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 13.5,
-                  height: 1.45,
-                  color: UmColors.mutedForeground,
-                ),
-              ),
-              const SizedBox(height: 20),
-              NbrButton(
-                label: busy ? 'Opening Google…' : 'Sign in with Google',
-                icon: busy
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: UmColors.mutedForeground,
-                        ),
-                      )
-                    : SvgPicture.asset(
-                        'assets/logos/google_g.svg',
-                        width: 20,
-                        height: 20,
-                      ),
-                fill: UmColors.surface,
-                labelColor: UmColors.ink,
-                stretch: true,
-                onPressed: busy ? null : onSignIn,
-              ),
-            ],
-          ),
-        ),
-        // Overlapping bag sticker peeking over the card
-        Positioned(
-          right: -6,
-          top: -14,
-          child: Transform.rotate(
-            angle: 0.07,
-            child: SvgPicture.asset(
-              'assets/stickers/bag.svg',
-              width: 44,
-              height: 44,
-            ),
-          ),
-        ),
-        Positioned(
-          left: -8,
-          bottom: -12,
-          child: Transform.rotate(
-            angle: -0.09,
-            child: SvgPicture.asset(
-              'assets/stickers/tag.svg',
-              width: 40,
-              height: 40,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CampusTrustCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: UmColors.surface,
-        border: Border.all(color: UmColors.ink, width: 2),
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
-          BoxShadow(color: UmColors.ink, offset: Offset(3, 3), blurRadius: 0),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              const Expanded(
-                child: _TrustItem(
-                  icon: LucideIcons.mailCheck500,
-                  title: '@umindanao',
-                  subtitle: 'School email',
-                ),
-              ),
-              Container(width: 2, height: 36, color: UmColors.ink),
-              const Expanded(
-                child: _TrustItem(
-                  icon: LucideIcons.handshake500,
-                  title: '₱0 Fees',
-                  subtitle: 'Direct chat',
-                ),
-              ),
-              Container(width: 2, height: 36, color: UmColors.ink),
-              const Expanded(
-                child: _TrustItem(
-                  icon: LucideIcons.mapPin500,
-                  title: 'On-Campus',
-                  subtitle: 'Safe meetups',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: UmColors.goldSoft,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: UmColors.ink, width: 1.5),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  LucideIcons.shieldCheck500,
-                  size: 14,
-                  color: UmColors.primary,
-                ),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    'Matina • Bolton • Tagum • Peñaplata',
-                    style: GoogleFonts.spaceGrotesk(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 11,
-                      letterSpacing: 0.4,
-                      color: UmColors.ink,
-                    ),
-                  ),
-                ),
-              ],
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _TrustItem extends StatelessWidget {
-  const _TrustItem({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, size: 18, color: UmColors.primary),
-        const SizedBox(height: 4),
-        Text(
-          title,
-          style: GoogleFonts.spaceGrotesk(
-            fontWeight: FontWeight.w800,
-            fontSize: 11.5,
-            color: UmColors.ink,
-          ),
-        ),
-        Text(
-          subtitle,
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w500,
-            fontSize: 10,
-            color: UmColors.mutedForeground,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CampusCategories extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    const categories = [
-      (icon: LucideIcons.bookOpen500, label: 'Textbooks'),
-      (icon: LucideIcons.shirt500, label: 'Uniforms'),
-      (icon: LucideIcons.smartphone500, label: 'Gadgets'),
-      (icon: LucideIcons.calculator500, label: 'Calculators'),
-      (icon: LucideIcons.bed500, label: 'Dorm Gear'),
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(
-              LucideIcons.sparkles500,
-              size: 14,
-              color: UmColors.primary,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              'WHAT UMIANS TRADE',
-              style: GoogleFonts.spaceGrotesk(
-                fontWeight: FontWeight.w800,
-                fontSize: 10.5,
-                letterSpacing: 0.8,
-                color: UmColors.ink,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            for (final cat in categories)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: UmColors.surface,
-                  border: Border.all(color: UmColors.ink, width: 1.5),
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: UmColors.ink,
-                      offset: Offset(2, 2),
-                      blurRadius: 0,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(cat.icon, size: 14, color: UmColors.primary),
-                    const SizedBox(width: 6),
-                    Text(
-                      cat.label,
-                      style: GoogleFonts.spaceGrotesk(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 10.5,
-                        color: UmColors.ink,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ],
     );
   }
 }
 
 class _LoginFooter extends StatelessWidget {
+  const _LoginFooter();
+
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          'Peer-to-peer • No checkout • Meet on campus',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            fontSize: 11,
-            letterSpacing: 0.6,
-            color: UmColors.mutedForeground,
-          ),
-        ),
-        const SizedBox(height: 3),
         Text(
           'Exclusively for University of Mindanao Students',
           textAlign: TextAlign.center,
           style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
+            letterSpacing: 0.3,
+            color: UmColors.mutedForeground,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Peer-to-peer • Meet on campus',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.outfit(
             fontWeight: FontWeight.w500,
-            fontSize: 9.5,
+            fontSize: 11,
             letterSpacing: 0.4,
             color: UmColors.mutedForeground,
           ),

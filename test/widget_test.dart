@@ -21,6 +21,7 @@ import 'package:um_marketplace/widgets/um_logo.dart';
 /// In-memory [AuthService] so widget tests never touch Firebase.
 class FakeAuthService implements AuthService {
   final _controller = StreamController<AuthUser?>.broadcast();
+  Object? signInError;
 
   @override
   Stream<AuthUser?> get userChanges => _controller.stream;
@@ -29,6 +30,7 @@ class FakeAuthService implements AuthService {
 
   @override
   Future<void> signInWithGoogle() async {
+    if (signInError != null) throw signInError!;
     emit(_student);
   }
 
@@ -573,9 +575,69 @@ void main() {
     expect(find.text('Sign in with Google'), findsOneWidget);
     expect(find.text('UM Marketplace'), findsOneWidget);
     expect(find.text('Ga'), findsOneWidget);
-    expect(find.text('Sign in to start trading'), findsOneWidget);
-    expect(find.text('Matina • Bolton • Tagum • Peñaplata'), findsOneWidget);
-    expect(find.text('WHAT UMIANS TRADE'), findsOneWidget);
+    expect(
+      find.text('The campus marketplace for University of Mindanao students.'),
+      findsOneWidget,
+    );
+    expect(find.text('@umindanao.edu.ph accounts only'), findsOneWidget);
+    expect(
+      find.text('Exclusively for University of Mindanao Students'),
+      findsOneWidget,
+    );
+    expect(find.text('Peer-to-peer • Meet on campus'), findsOneWidget);
+  });
+
+  testWidgets('shows error dialog when sign-in email is rejected', (
+    WidgetTester tester,
+  ) async {
+    final auth = FakeAuthService()
+      ..signInError = const UmEmailRejectedException('outsider@gmail.com');
+    await tester.pumpWidget(_app(auth: auth));
+    await tester.pump();
+
+    await tester.tap(find.text('Sign in with Google'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Not a student address'), findsOneWidget);
+    expect(find.textContaining('outsider@gmail.com'), findsOneWidget);
+    await tester.tap(find.text('Got it'));
+    await tester.pumpAndSettle();
+    expect(find.text('Not a student address'), findsNothing);
+  });
+
+  testWidgets('shows error dialog on generic sign-in failure', (
+    WidgetTester tester,
+  ) async {
+    final auth = FakeAuthService()..signInError = Exception('network error');
+    await tester.pumpWidget(_app(auth: auth));
+    await tester.pump();
+
+    await tester.tap(find.text('Sign in with Google'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sign-in failed'), findsOneWidget);
+    expect(
+      find.text('Could not sign in. Check your connection and try again.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Got it'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sign-in failed'), findsNothing);
+  });
+
+  testWidgets('SignInScreen fits without overflow on compact viewport', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    final auth = FakeAuthService();
+    await tester.pumpWidget(_app(auth: auth));
+    await tester.pump();
+
+    expect(find.text('Sign in with Google'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('sign-in creates the member account and lands on home', (
