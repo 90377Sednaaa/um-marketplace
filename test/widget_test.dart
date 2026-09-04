@@ -784,28 +784,46 @@ void main() {
     expect(p1.shouldRepaint(pDiffColor), isTrue);
   });
 
-  test('DotGridPainter paints cleanly and handles non-positive sizes safely', () {
-    const painter = DotGridPainter();
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
+  test(
+    'DotGridPainter paints cleanly and handles non-positive sizes safely',
+    () {
+      const painter = DotGridPainter();
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder);
 
-    // Normal drawing
-    expect(() => painter.paint(canvas, const Size(200, 200)), returnsNormally);
+      // Normal drawing
+      expect(
+        () => painter.paint(canvas, const Size(200, 200)),
+        returnsNormally,
+      );
 
-    // Boundary edge cases: zero or negative dimensions, spacing <= 0, radius <= 0
-    expect(() => painter.paint(canvas, Size.zero), returnsNormally);
-    expect(() => painter.paint(canvas, const Size(-10, 100)), returnsNormally);
-    expect(() => painter.paint(canvas, const Size(100, -10)), returnsNormally);
+      // Boundary edge cases: zero or negative dimensions, spacing <= 0, radius <= 0
+      expect(() => painter.paint(canvas, Size.zero), returnsNormally);
+      expect(
+        () => painter.paint(canvas, const Size(-10, 100)),
+        returnsNormally,
+      );
+      expect(
+        () => painter.paint(canvas, const Size(100, -10)),
+        returnsNormally,
+      );
 
-    const zeroSpacing = DotGridPainter(spacing: 0);
-    expect(() => zeroSpacing.paint(canvas, const Size(100, 100)), returnsNormally);
+      const zeroSpacing = DotGridPainter(spacing: 0);
+      expect(
+        () => zeroSpacing.paint(canvas, const Size(100, 100)),
+        returnsNormally,
+      );
 
-    const negativeRadius = DotGridPainter(dotRadius: -1);
-    expect(() => negativeRadius.paint(canvas, const Size(100, 100)), returnsNormally);
+      const negativeRadius = DotGridPainter(dotRadius: -1);
+      expect(
+        () => negativeRadius.paint(canvas, const Size(100, 100)),
+        returnsNormally,
+      );
 
-    final picture = recorder.endRecording();
-    picture.dispose();
-  });
+      final picture = recorder.endRecording();
+      picture.dispose();
+    },
+  );
 
   testWidgets('DotGridBackground renders child widget and custom properties', (
     WidgetTester tester,
