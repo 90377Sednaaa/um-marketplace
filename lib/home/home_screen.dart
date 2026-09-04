@@ -11,6 +11,7 @@ import '../theme/app_theme.dart';
 import 'browse_screen.dart';
 import 'listing_card.dart';
 import 'listing_detail_screen.dart';
+import '../widgets/product_card_skeleton.dart';
 
 /// Home (DESIGN.md screen 1): hero search + category tiles + recent
 /// listings feed. Lean — no member card, no Sell/SignOut
@@ -151,8 +152,6 @@ class HomeScreen extends StatelessWidget {
 class _FeedSkeleton extends StatelessWidget {
   const _FeedSkeleton();
 
-  /// Static `muted` blocks (DESIGN.md §5 skeletons) — deliberately
-  /// non-animated so the tree settles while the feed streams in.
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
@@ -162,16 +161,10 @@ class _FeedSkeleton extends StatelessWidget {
         crossAxisCount: 2,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 0.68,
+        childAspectRatio: 0.70,
       ),
       itemCount: 4,
-      itemBuilder: (context, index) => Container(
-        decoration: BoxDecoration(
-          color: UmColors.muted,
-          border: Border.all(color: UmColors.ink, width: 2),
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
+      itemBuilder: (context, index) => const ProductCardSkeleton(),
     );
   }
 }

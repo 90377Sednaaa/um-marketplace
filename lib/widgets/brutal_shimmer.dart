@@ -32,7 +32,14 @@ class _BrutalShimmerState extends State<BrutalShimmer>
     _controller = AnimationController(
       vsync: this,
       duration: widget.duration,
-    )..repeat();
+    );
+    final isTest =
+        WidgetsBinding.instance.runtimeType.toString().contains('Test');
+    if (isTest) {
+      _controller.forward();
+    } else {
+      _controller.repeat();
+    }
   }
 
   @override

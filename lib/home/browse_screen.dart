@@ -9,6 +9,7 @@ import '../data/report_store.dart';
 import '../theme/app_theme.dart';
 import '../widgets/brutal_app_bar.dart';
 import '../widgets/nbr_button.dart';
+import '../widgets/product_card_skeleton.dart';
 import 'listing_card.dart';
 import 'listing_detail_screen.dart';
 
@@ -296,16 +297,10 @@ class _BrowseSkeleton extends StatelessWidget {
         crossAxisCount: 2,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 0.68,
+        childAspectRatio: 0.70,
       ),
       itemCount: 4,
-      itemBuilder: (context, index) => Container(
-        decoration: BoxDecoration(
-          color: UmColors.muted,
-          border: Border.all(color: UmColors.ink, width: 2),
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
+      itemBuilder: (context, index) => const ProductCardSkeleton(),
     );
   }
 }

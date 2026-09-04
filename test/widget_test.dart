@@ -17,11 +17,14 @@ import 'package:um_marketplace/data/messaging_service.dart';
 import 'package:um_marketplace/data/notification_store.dart';
 import 'package:um_marketplace/data/rating_store.dart';
 import 'package:um_marketplace/data/report_store.dart';
+import 'package:um_marketplace/home/browse_screen.dart';
+import 'package:um_marketplace/home/home_screen.dart';
 import 'package:um_marketplace/home/listing_card.dart';
 import 'package:um_marketplace/members/member_gate.dart';
 import 'package:um_marketplace/theme/app_theme.dart';
 import 'package:um_marketplace/widgets/brutal_dialog.dart';
 import 'package:um_marketplace/widgets/brutal_shimmer.dart';
+import 'package:um_marketplace/widgets/product_card_skeleton.dart';
 import 'package:um_marketplace/widgets/dot_grid.dart';
 import 'package:um_marketplace/widgets/um_logo.dart';
 
@@ -3663,6 +3666,165 @@ void main() {
         await tester.pump(const Duration(milliseconds: 500));
 
         expect(find.byType(BrutalShimmer), findsOneWidget);
+      },
+    );
+  });
+
+  group('ProductCardSkeleton and Feed Integration', () {
+    testWidgets(
+      'ProductCardSkeleton renders image, title, category/condition, and price placeholders with BrutalShimmer',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 200,
+                height: 300,
+                child: ProductCardSkeleton(),
+              ),
+            ),
+          ),
+        );
+
+        expect(find.byType(ProductCardSkeleton), findsOneWidget);
+        expect(find.byType(BrutalShimmer), findsOneWidget);
+        expect(find.byType(AspectRatio), findsOneWidget);
+
+        // AspectRatio check (4 / 3)
+        final aspectRatioWidget = tester.widget<AspectRatio>(
+          find.byType(AspectRatio),
+        );
+        expect(aspectRatioWidget.aspectRatio, 4 / 3);
+
+        // Outer container decoration check
+        final cardContainer = tester.widget<Container>(
+          find.descendant(
+            of: find.byType(ProductCardSkeleton),
+            matching: find.byType(Container),
+          ).first,
+        );
+        final decoration = cardContainer.decoration as BoxDecoration;
+        expect(decoration.color, UmColors.surface);
+        expect(decoration.borderRadius, BorderRadius.circular(8));
+        expect(decoration.border, isNotNull);
+        final border = decoration.border as Border;
+        expect(border.top.color, UmColors.ink);
+        expect(border.top.width, 2.0);
+        expect(decoration.boxShadow, isNotNull);
+        expect(decoration.boxShadow!.first.offset, UmShadows.card);
+
+        // BrutalSkeletonBox instances: title, 2 pills, and price
+        final skeletonBoxes = find.byType(BrutalSkeletonBox);
+        expect(skeletonBoxes, findsNWidgets(4));
+
+        // Shimmer animation ticks without error
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pump(const Duration(milliseconds: 500));
+        expect(find.byType(ProductCardSkeleton), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'HomeScreen renders ProductCardSkeleton grid when listings stream has not emitted data yet',
+      (WidgetTester tester) async {
+        final fakeMemberStore = FakeMemberStore();
+        final fakeListingsStore = FakeListingsStore();
+        final fakeChatStore = FakeChatStore();
+        final fakeRatingStore = FakeRatingStore();
+        final fakeReportStore = FakeReportStore();
+
+        const testMember = Member(
+          uid: 'student-1',
+          email: 's.one.123456@umindanao.edu.ph',
+          displayName: 'Student One',
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildUmTheme(),
+            home: HomeScreen(
+              member: testMember,
+              memberStore: fakeMemberStore,
+              listingsStore: fakeListingsStore,
+              chatStore: fakeChatStore,
+              ratingStore: fakeRatingStore,
+              reportStore: fakeReportStore,
+            ),
+          ),
+        );
+
+        // When listingsStore has not emitted any data (snapshot.data is null),
+        // 4 ProductCardSkeleton widgets should be rendered in the feed skeleton grid.
+        expect(find.byType(ProductCardSkeleton), findsNWidgets(4));
+
+        // When listings are emitted, skeletons are replaced by listing cards
+        fakeListingsStore.listings = [
+          Listing(
+            id: 'listing-1',
+            sellerId: 'student-2',
+            title: 'Engineering Mechanics',
+            description: 'Good condition',
+            price: 450.0,
+            category: 'textbooks',
+            condition: 'Good',
+            createdAt: DateTime(2026, 8, 28),
+          ),
+        ];
+        fakeListingsStore.emitListings();
+        await tester.pump();
+
+        expect(find.byType(ProductCardSkeleton), findsNothing);
+        expect(find.byType(ListingCard), findsOneWidget);
+        expect(find.text('Engineering Mechanics'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'BrowseScreen renders ProductCardSkeleton grid when listings stream has not emitted data yet',
+      (WidgetTester tester) async {
+        usePortraitPhone(tester);
+        final fakeMemberStore = FakeMemberStore();
+        final fakeListingsStore = FakeListingsStore();
+        final fakeChatStore = FakeChatStore();
+        final fakeRatingStore = FakeRatingStore();
+        final fakeReportStore = FakeReportStore();
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildUmTheme(),
+            home: BrowseScreen(
+              viewerUid: 'student-1',
+              memberStore: fakeMemberStore,
+              listingsStore: fakeListingsStore,
+              chatStore: fakeChatStore,
+              ratingStore: fakeRatingStore,
+              reportStore: fakeReportStore,
+            ),
+          ),
+        );
+
+        // Browse screen initial loading state renders 4 ProductCardSkeletons
+        expect(find.byType(ProductCardSkeleton), findsNWidgets(4));
+
+        // Once listings are emitted, skeletons are replaced
+        fakeListingsStore.listings = [
+          Listing(
+            id: 'listing-2',
+            sellerId: 'student-3',
+            title: 'Scientific Calculator',
+            description: 'Like new',
+            price: 800.0,
+            category: 'gadgets',
+            condition: 'Like New',
+            createdAt: DateTime(2026, 8, 28),
+          ),
+        ];
+        fakeListingsStore.emitListings();
+        await tester.pump();
+
+        expect(find.byType(ProductCardSkeleton), findsNothing);
+        expect(find.byType(ListingCard), findsOneWidget);
+        expect(find.text('Scientific Calculator'), findsOneWidget);
       },
     );
   });
