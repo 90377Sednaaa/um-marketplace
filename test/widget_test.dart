@@ -768,9 +768,9 @@ void main() {
 
       final customPaint = tester.widget<CustomPaint>(customPaintFinder);
       final painter = customPaint.painter as DotGridPainter;
-      expect(painter.spacing, 24.0);
-      expect(painter.dotRadius, greaterThanOrEqualTo(1.2));
-      expect(painter.dotRadius, lessThanOrEqualTo(1.4));
+      expect(painter.spacing, 22.0);
+      expect(painter.dotRadius, greaterThanOrEqualTo(1.5));
+      expect(painter.dotRadius, lessThanOrEqualTo(1.7));
       expect(painter.dotColor, kDefaultDotGridColor);
       expect(customPaint.isComplex, isTrue);
       expect(customPaint.willChange, isFalse);
@@ -858,7 +858,7 @@ void main() {
     'DotGridPainter draws symmetrically centered grid within canvas bounds',
     () {
       final testCanvas = _RecordingCanvas();
-      const painter = DotGridPainter(spacing: 24.0, dotRadius: 1.3);
+      const painter = DotGridPainter(spacing: 22.0, dotRadius: 1.6);
 
       // Test on standard 375x812 viewport
       painter.paint(testCanvas, const Size(375, 812));
@@ -877,10 +877,10 @@ void main() {
 
       // Strict bounds check: no dot clips outside the canvas
       for (final dot in testCanvas.circles) {
-        expect(dot.dx - 1.3, greaterThanOrEqualTo(0));
-        expect(dot.dx + 1.3, lessThanOrEqualTo(375));
-        expect(dot.dy - 1.3, greaterThanOrEqualTo(0));
-        expect(dot.dy + 1.3, lessThanOrEqualTo(812));
+        expect(dot.dx - 1.6, greaterThanOrEqualTo(0));
+        expect(dot.dx + 1.6, lessThanOrEqualTo(375));
+        expect(dot.dy - 1.6, greaterThanOrEqualTo(0));
+        expect(dot.dy + 1.6, lessThanOrEqualTo(812));
       }
     },
   );

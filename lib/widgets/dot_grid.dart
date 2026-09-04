@@ -2,17 +2,18 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// Default ink dot color: [UmColors.ink] at ~8% opacity (`#14000000`).
-const Color kDefaultDotGridColor = Color(0x14000000);
+/// Default ink dot color: [UmColors.ink] at ~14% opacity (`#24000000`).
+/// Dark enough to read as notebook paper on white in daylight.
+const Color kDefaultDotGridColor = Color(0x24000000);
 
 /// Neubrutalist campus notebook dot-grid custom painter.
 ///
-/// Draws an evenly spaced grid of ink dots across the canvas (~24dp spacing,
-/// ~1.3dp radius, 8% ink opacity) evoking student graph/sketchbook paper.
+/// Draws an evenly spaced grid of ink dots across the canvas (~22dp spacing,
+/// ~1.6dp radius, 14% ink opacity) evoking student graph/sketchbook paper.
 class DotGridPainter extends CustomPainter {
   const DotGridPainter({
-    this.spacing = 24.0,
-    this.dotRadius = 1.3,
+    this.spacing = 22.0,
+    this.dotRadius = 1.6,
     this.dotColor = kDefaultDotGridColor,
   });
 
@@ -92,8 +93,8 @@ class DotGridPainter extends CustomPainter {
 class DotGridBackground extends StatelessWidget {
   const DotGridBackground({
     super.key,
-    this.spacing = 24.0,
-    this.dotRadius = 1.3,
+    this.spacing = 22.0,
+    this.dotRadius = 1.6,
     this.dotColor = kDefaultDotGridColor,
     this.backgroundColor = UmColors.background,
     this.child,
@@ -116,10 +117,12 @@ class DotGridBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Positioned.fill gives the grid tight finite bounds; Size.zero lets
+    // the CustomPaint take exactly the Stack size instead of requesting
+    // infinity (which stays invisible under unbounded constraints).
     final grid = RepaintBoundary(
       child: ExcludeSemantics(
         child: CustomPaint(
-          size: Size.infinite,
           painter: DotGridPainter(
             spacing: spacing,
             dotRadius: dotRadius,
