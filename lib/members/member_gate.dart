@@ -228,17 +228,20 @@ class _MemberSplashState extends State<MemberSplash> {
                   const BrutalLoader(size: 56, stroke: 3),
                   const SizedBox(height: 18),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: UmColors.surface,
                       border: Border.all(color: UmColors.ink, width: 2),
                       borderRadius: BorderRadius.circular(999),
                       boxShadow: const [
                         BoxShadow(
-                            color: UmColors.ink,
-                            offset: Offset(3, 3),
-                            blurRadius: 0),
+                          color: UmColors.ink,
+                          offset: Offset(3, 3),
+                          blurRadius: 0,
+                        ),
                       ],
                     ),
                     child: Text(

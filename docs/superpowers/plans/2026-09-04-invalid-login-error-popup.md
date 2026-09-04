@@ -21,10 +21,12 @@
 ### Task 1: Pop-in Animation for Brutal Dialogs
 
 **Files:**
+
 - Modify: `lib/widgets/brutal_dialog.dart`
 - Test: `test/widget_test.dart`
 
 **Interfaces:**
+
 - `Future<void> showBrutalErrorDialog(BuildContext context, {required String title, required String message})`
 - `Future<void> showBrutalSuccessDialog(BuildContext context, {required String title, required String message})`
 
@@ -128,11 +130,13 @@ git commit -m "feat(widgets): add pop-in spring animation to brutal dialogs"
 ### Task 2: Strict Sign-in Email Gate & Error Dialog Presentation
 
 **Files:**
+
 - Modify: `lib/auth/auth_service.dart`
 - Modify: `lib/auth/sign_in_screen.dart`
 - Test: `test/widget_test.dart`
 
 **Interfaces:**
+
 - `AuthService.signInWithGoogle()` throws `UmEmailRejectedException` when email is invalid.
 
 - [ ] **Step 1: Write test verifying invalid login triggers pop-in error dialog on sign-in screen**
@@ -196,10 +200,12 @@ git commit -m "fix(auth): enforce strict student email validation and surface po
 ### Task 3: MemberGate Guard & Escape Hatch
 
 **Files:**
+
 - Modify: `lib/members/member_gate.dart`
 - Test: `test/widget_test.dart`
 
 **Interfaces:**
+
 - `MemberGate` checks `isValidUmStudentEmail(widget.authUser.email)` and catches errors during account resolution.
 - `_MemberSplash` includes a fallback sign-out button.
 
@@ -249,6 +255,7 @@ Run: `flutter test test/widget_test.dart -n "MemberGate rejects non-student Auth
 - [ ] **Step 3: Implement invalid user guard and error handling in lib/members/member_gate.dart**
 
 In `lib/members/member_gate.dart`:
+
 1. In `_MemberGateState.initState()`, check `if (!isValidUmStudentEmail(widget.authUser.email))`:
    - Call `widget.authService.signOut()`.
    - Show `showBrutalErrorDialog` with title `'Not a student address'`.
