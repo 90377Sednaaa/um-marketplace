@@ -1,18 +1,21 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../auth/auth_service.dart';
+import '../auth/um_email_policy.dart';
 import '../data/chat_store.dart';
 import '../data/listing_store.dart';
 import '../data/member_store.dart';
+import '../data/messaging_service.dart';
+import '../data/notification_store.dart';
 import '../data/rating_store.dart';
 import '../data/report_store.dart';
-import '../data/notification_store.dart';
-import '../data/messaging_service.dart';
-import 'package:google_fonts/google_fonts.dart';
-
 import '../home/app_shell.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brutal_dialog.dart';
 import '../widgets/brutal_loader.dart';
 import '../widgets/nbr_button.dart';
 import '../widgets/um_logo.dart';
@@ -32,6 +35,7 @@ class MemberGate extends StatefulWidget {
     required this.reportStore,
     required this.notificationStore,
     required this.messagingService,
+    this.fallbackDelay = const Duration(seconds: 4),
   });
 
   final AuthUser authUser;
@@ -43,6 +47,7 @@ class MemberGate extends StatefulWidget {
   final ReportStore reportStore;
   final NotificationStore notificationStore;
   final MessagingService messagingService;
+  final Duration fallbackDelay;
 
   @override
   State<MemberGate> createState() => _MemberGateState();
@@ -50,27 +55,95 @@ class MemberGate extends StatefulWidget {
 
 class _MemberGateState extends State<MemberGate> {
   bool _ensured = false;
+  bool _hasHandledError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!isValidUmStudentEmail(widget.authUser.email)) {
+      _handleInvalidEmail();
+    }
+  }
+
+  void _handleInvalidEmail() {
+    if (_hasHandledError) return;
+    _hasHandledError = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final dialogFuture = showBrutalErrorDialog(
+        context,
+        title: 'Not a student address',
+        message:
+            '“${widget.authUser.email}” is not a UM student address. Student addresses look like $umStudentEmailExample — initials + surname + 6-digit ID.',
+      );
+      await widget.authService.signOut();
+      await dialogFuture;
+    });
+  }
+
+  void _handleAccountError() {
+    if (_hasHandledError) return;
+    _hasHandledError = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final dialogFuture = showBrutalErrorDialog(
+        context,
+        title: 'Account error',
+        message: 'Could not access member account. Please sign in again.',
+      );
+      await widget.authService.signOut();
+      await dialogFuture;
+    });
+  }
 
   void _ensureMemberAccount() {
-    if (_ensured) return;
+    if (_ensured || _hasHandledError) return;
     _ensured = true;
-    // First stream emission is null while the member document does not
-    // exist yet; create it (idempotent get-then-set) so the stream follows
-    // with the real member. Safe after app restarts too.
-    widget.memberStore.ensureMemberAccount(widget.authUser);
-    // Register the device for FCM once the account exists (ADR 0005).
-    widget.messagingService.registerForMember(widget.authUser.uid);
+    _runEnsure();
+  }
+
+  Future<void> _runEnsure() async {
+    try {
+      await widget.memberStore
+          .ensureMemberAccount(widget.authUser)
+          .timeout(const Duration(seconds: 8));
+      if (!mounted || _hasHandledError) return;
+      // Register the device for FCM once the account exists (ADR 0005).
+      widget.messagingService.registerForMember(widget.authUser.uid);
+    } catch (e) {
+      if (mounted) {
+        _handleAccountError();
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!isValidUmStudentEmail(widget.authUser.email)) {
+      return MemberSplash(
+        onSignOut: widget.authService.signOut,
+        fallbackDelay: widget.fallbackDelay,
+      );
+    }
+
     return StreamBuilder<Member?>(
       stream: widget.memberStore.memberChanges(widget.authUser.uid),
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          _handleAccountError();
+          return MemberSplash(
+            onSignOut: widget.authService.signOut,
+            fallbackDelay: widget.fallbackDelay,
+          );
+        }
+
         final member = snapshot.data;
         if (member == null) {
           _ensureMemberAccount();
-          return const _MemberSplash();
+          return MemberSplash(
+            onSignOut: widget.authService.signOut,
+            fallbackDelay: widget.fallbackDelay,
+          );
         }
         if (member.banned) {
           return BannedScreen(onSignOut: widget.authService.signOut);
@@ -93,8 +166,44 @@ class _MemberGateState extends State<MemberGate> {
   }
 }
 
-class _MemberSplash extends StatelessWidget {
-  const _MemberSplash();
+class MemberSplash extends StatefulWidget {
+  const MemberSplash({
+    super.key,
+    required this.onSignOut,
+    this.fallbackDelay = const Duration(seconds: 4),
+  });
+
+  final Future<void> Function() onSignOut;
+  final Duration fallbackDelay;
+
+  @override
+  State<MemberSplash> createState() => _MemberSplashState();
+}
+
+class _MemberSplashState extends State<MemberSplash> {
+  Timer? _timer;
+  bool _showEscape = false;
+  bool _signingOut = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.fallbackDelay == Duration.zero) {
+      _showEscape = true;
+    } else {
+      _timer = Timer(widget.fallbackDelay, () {
+        if (mounted) {
+          setState(() => _showEscape = true);
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -142,6 +251,26 @@ class _MemberSplash extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (_showEscape) ...[
+                    const SizedBox(height: 24),
+                    NbrButton(
+                      label: _signingOut ? 'Signing out…' : 'Cancel & Sign Out',
+                      fill: UmColors.surface,
+                      labelColor: UmColors.ink,
+                      onPressed: _signingOut
+                          ? null
+                          : () async {
+                              setState(() => _signingOut = true);
+                              try {
+                                await widget.onSignOut();
+                              } finally {
+                                if (mounted) {
+                                  setState(() => _signingOut = false);
+                                }
+                              }
+                            },
+                    ),
+                  ],
                 ],
               ),
             ),

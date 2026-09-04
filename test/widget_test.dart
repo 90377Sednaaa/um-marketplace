@@ -18,10 +18,13 @@ import 'package:um_marketplace/data/notification_store.dart';
 import 'package:um_marketplace/data/rating_store.dart';
 import 'package:um_marketplace/data/report_store.dart';
 import 'package:um_marketplace/home/listing_card.dart';
+import 'package:um_marketplace/members/member_gate.dart';
 import 'package:um_marketplace/theme/app_theme.dart';
 import 'package:um_marketplace/widgets/brutal_dialog.dart';
 import 'package:um_marketplace/widgets/dot_grid.dart';
 import 'package:um_marketplace/widgets/um_logo.dart';
+
+typedef _MemberSplash = MemberSplash;
 
 /// Test canvas for recording circle drawing calls.
 class _RecordingCanvas extends Fake implements Canvas {
@@ -37,6 +40,7 @@ class _RecordingCanvas extends Fake implements Canvas {
 class FakeAuthService implements AuthService {
   final _controller = StreamController<AuthUser?>.broadcast();
   Object? signInError;
+  int signOutCallCount = 0;
 
   @override
   Stream<AuthUser?> get userChanges => _controller.stream;
@@ -50,7 +54,10 @@ class FakeAuthService implements AuthService {
   }
 
   @override
-  Future<void> signOut() async => emit(null);
+  Future<void> signOut() async {
+    signOutCallCount++;
+    emit(null);
+  }
 }
 
 /// In-memory [MemberStore]: ensure creates the member and emits it, like
@@ -64,6 +71,10 @@ class FakeMemberStore implements MemberStore {
   final knownMembers = <String, Member>{};
   final bannedUids = <String, bool>{};
   final _searchController = StreamController<List<Member>>.broadcast();
+  Object? ensureError;
+  Duration? ensureDelay;
+
+  void emitError(String uid, Object error) => _for(uid).addError(error);
 
   StreamController<Member?> _for(String uid) =>
       _controllers.putIfAbsent(uid, StreamController<Member?>.broadcast);
@@ -119,6 +130,10 @@ class FakeMemberStore implements MemberStore {
 
   @override
   Future<Member?> ensureMemberAccount(AuthUser authUser) async {
+    if (ensureDelay != null) {
+      await Future<void>.delayed(ensureDelay!);
+    }
+    if (ensureError != null) throw ensureError!;
     ensuredUids.add(authUser.uid);
     final member = Member(
       uid: authUser.uid,
@@ -3341,6 +3356,241 @@ void main() {
         await tester.tap(find.text('Nice'));
         await tester.pumpAndSettle();
         expect(find.text('Success Title'), findsNothing);
+      },
+    );
+  });
+
+  group('MemberGate and MemberSplash guard & escape hatch', () {
+    testWidgets(
+      'MemberGate rejects non-student AuthUser, displays pop-in error dialog, and signs out',
+      (WidgetTester tester) async {
+        final fakeAuth = FakeAuthService();
+        final fakeMember = FakeMemberStore();
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildUmTheme(),
+            home: MemberGate(
+              authUser: const AuthUser(
+                uid: 'bad-uid',
+                email: 'outsider@gmail.com',
+                displayName: 'Outsider',
+              ),
+              authService: fakeAuth,
+              memberStore: fakeMember,
+              listingsStore: FakeListingsStore(),
+              chatStore: FakeChatStore(),
+              ratingStore: FakeRatingStore(),
+              reportStore: FakeReportStore(),
+              notificationStore: FakeNotificationStore(),
+              messagingService: FakeMessagingService(),
+            ),
+          ),
+        );
+
+        // MemberGate initState schedules the dialog and sign-out post-frame
+        await tester.pump();
+        expect(fakeAuth.signOutCallCount, 1);
+        expect(fakeMember.ensuredUids, isEmpty);
+        expect(find.text('Not a student address'), findsOneWidget);
+        expect(find.textContaining('outsider@gmail.com'), findsOneWidget);
+        expect(
+          find.textContaining('l.murillo.546842@umindanao.edu.ph'),
+          findsOneWidget,
+        );
+
+        // Verify pop-in spring animation components
+        expect(find.byType(ScaleTransition), findsWidgets);
+        expect(find.byType(FadeTransition), findsWidgets);
+
+        // Dismiss the error dialog cleanly
+        await tester.tap(find.text('Got it'));
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.text('Not a student address'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      '_MemberSplash displays "Cancel & Sign Out" and triggers sign-out',
+      (WidgetTester tester) async {
+        var signedOut = false;
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildUmTheme(),
+            home: _MemberSplash(
+              onSignOut: () async => signedOut = true,
+              fallbackDelay: const Duration(seconds: 4),
+            ),
+          ),
+        );
+
+        // Initially within 4s, the escape hatch is not visible
+        expect(find.text('Cancel & Sign Out'), findsNothing);
+        expect(find.text('LOADING MARKET'), findsOneWidget);
+
+        // Fast forward 4 seconds
+        await tester.pump(const Duration(seconds: 4));
+        expect(find.text('Cancel & Sign Out'), findsOneWidget);
+
+        // Tapping triggers onSignOut
+        await tester.tap(find.text('Cancel & Sign Out'));
+        await tester.pump();
+        expect(signedOut, isTrue);
+      },
+    );
+
+    testWidgets(
+      '_MemberSplash immediately renders escape button with zero delay',
+      (WidgetTester tester) async {
+        var signedOut = false;
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildUmTheme(),
+            home: _MemberSplash(
+              onSignOut: () async => signedOut = true,
+              fallbackDelay: Duration.zero,
+            ),
+          ),
+        );
+
+        expect(find.text('Cancel & Sign Out'), findsOneWidget);
+        await tester.tap(find.text('Cancel & Sign Out'));
+        await tester.pump();
+        expect(signedOut, isTrue);
+      },
+    );
+
+    testWidgets(
+      'MemberGate handles ensureMemberAccount failure gracefully and signs out with error dialog',
+      (WidgetTester tester) async {
+        final fakeAuth = FakeAuthService();
+        final fakeMember = FakeMemberStore()
+          ..ensureError = Exception('Firestore permission denied');
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildUmTheme(),
+            home: MemberGate(
+              authUser: const AuthUser(
+                uid: 'student-uid',
+                email: 'l.murillo.546842@umindanao.edu.ph',
+                displayName: 'L. Murillo',
+              ),
+              authService: fakeAuth,
+              memberStore: fakeMember,
+              listingsStore: FakeListingsStore(),
+              chatStore: FakeChatStore(),
+              ratingStore: FakeRatingStore(),
+              reportStore: FakeReportStore(),
+              notificationStore: FakeNotificationStore(),
+              messagingService: FakeMessagingService(),
+            ),
+          ),
+        );
+
+        // Allow async ensureMemberAccount to throw and catch
+        await tester.pump();
+        await tester.pump();
+
+        expect(fakeAuth.signOutCallCount, 1);
+        expect(find.text('Account error'), findsOneWidget);
+        expect(
+          find.text('Could not access member account. Please sign in again.'),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Got it'));
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.text('Account error'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'MemberGate handles ensureMemberAccount timeout gracefully and signs out',
+      (WidgetTester tester) async {
+        final fakeAuth = FakeAuthService();
+        final fakeMember = FakeMemberStore()
+          ..ensureDelay = const Duration(seconds: 10);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildUmTheme(),
+            home: MemberGate(
+              authUser: const AuthUser(
+                uid: 'student-timeout',
+                email: 'l.murillo.546842@umindanao.edu.ph',
+                displayName: 'L. Murillo',
+              ),
+              authService: fakeAuth,
+              memberStore: fakeMember,
+              listingsStore: FakeListingsStore(),
+              chatStore: FakeChatStore(),
+              ratingStore: FakeRatingStore(),
+              reportStore: FakeReportStore(),
+              notificationStore: FakeNotificationStore(),
+              messagingService: FakeMessagingService(),
+            ),
+          ),
+        );
+
+        // Advance 8 seconds to trigger .timeout()
+        await tester.pump(const Duration(seconds: 8));
+        await tester.pump();
+
+        expect(fakeAuth.signOutCallCount, 1);
+        expect(find.text('Account error'), findsOneWidget);
+        expect(
+          find.text('Could not access member account. Please sign in again.'),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Got it'));
+        await tester.pump(const Duration(seconds: 3));
+        expect(find.text('Account error'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'MemberGate handles snapshot stream error gracefully and signs out',
+      (WidgetTester tester) async {
+        final fakeAuth = FakeAuthService();
+        final fakeMember = FakeMemberStore();
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: buildUmTheme(),
+            home: MemberGate(
+              authUser: const AuthUser(
+                uid: 'stream-err-uid',
+                email: 'l.murillo.546842@umindanao.edu.ph',
+                displayName: 'L. Murillo',
+              ),
+              authService: fakeAuth,
+              memberStore: fakeMember,
+              listingsStore: FakeListingsStore(),
+              chatStore: FakeChatStore(),
+              ratingStore: FakeRatingStore(),
+              reportStore: FakeReportStore(),
+              notificationStore: FakeNotificationStore(),
+              messagingService: FakeMessagingService(),
+            ),
+          ),
+        );
+
+        fakeMember.emitError('stream-err-uid', Exception('Firestore stream disconnected'));
+        await tester.pump();
+        await tester.pump();
+
+        expect(fakeAuth.signOutCallCount, 1);
+        expect(find.text('Account error'), findsOneWidget);
+        expect(
+          find.text('Could not access member account. Please sign in again.'),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Got it'));
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.text('Account error'), findsNothing);
       },
     );
   });
