@@ -8,6 +8,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:um_marketplace/app.dart';
 import 'package:um_marketplace/auth/auth_service.dart';
+import 'package:um_marketplace/auth/sign_in_screen.dart' show SignInScreen;
 import 'package:um_marketplace/chats/chat_thread_screen.dart';
 import 'package:um_marketplace/data/chat_store.dart';
 import 'package:um_marketplace/data/listing_store.dart';
@@ -623,6 +624,32 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Not a student address'), findsNothing);
   });
+
+  testWidgets(
+    'signing in with invalid account triggers error pop-up dialog',
+    (tester) async {
+      final fakeAuth = FakeAuthService()
+        ..signInError = const UmEmailRejectedException('invalid.student@gmail.com');
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildUmTheme(),
+          home: SignInScreen(authService: fakeAuth),
+        ),
+      );
+
+      await tester.tap(find.text('Sign in with Google'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Not a student address'), findsOneWidget);
+      expect(find.textContaining('invalid.student@gmail.com'), findsOneWidget);
+      expect(find.text('Got it'), findsOneWidget);
+
+      await tester.tap(find.text('Got it'));
+      await tester.pumpAndSettle();
+      expect(find.text('Not a student address'), findsNothing);
+      expect(find.text('Sign in with Google'), findsOneWidget);
+    },
+  );
 
   testWidgets('shows error dialog on generic sign-in failure', (
     WidgetTester tester,

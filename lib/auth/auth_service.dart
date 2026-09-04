@@ -88,9 +88,8 @@ class FirebaseAuthService implements AuthService {
     }
 
     // Gate BEFORE any Firebase session exists: a staff/alumni/non-UM
-    // account must never become a member. Bypassed in debug so QA can
-    // use any Gmail (firestore.rules.qa relaxes the server side).
-    if (!kDebugMode && !isValidUmStudentEmail(account.email)) {
+    // account must never become a member.
+    if (!isValidUmStudentEmail(account.email)) {
       await GoogleSignIn.instance.signOut();
       throw UmEmailRejectedException(account.email);
     }
