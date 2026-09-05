@@ -424,9 +424,22 @@ class FakeListingsStore implements ListingStore {
   Stream<List<Listing>> activeListingsStream({int limit = 20}) =>
       _controller.stream;
 
+  List<Listing>? _lastMyListings;
+
   @override
-  Stream<List<Listing>> myListingsStream(String sellerId) =>
-      _myListingsController.stream;
+  Stream<List<Listing>> myListingsStream(String sellerId) {
+    return Stream<List<Listing>>.multi((controller) {
+      if (_lastMyListings != null) {
+        controller.add(_lastMyListings!);
+      }
+      final sub = _myListingsController.stream.listen(
+        controller.add,
+        onError: controller.addError,
+        onDone: controller.close,
+      );
+      controller.onCancel = sub.cancel;
+    }, isBroadcast: true);
+  }
 
   @override
   Stream<Listing?> listingChanges(String id) => _listingFor(id).stream;
@@ -435,7 +448,10 @@ class FakeListingsStore implements ListingStore {
 
   void emitListings() => _controller.add(List.of(listings));
 
-  void emitMyListings() => _myListingsController.add(List.of(listings));
+  void emitMyListings() {
+    _lastMyListings = List.of(listings);
+    _myListingsController.add(_lastMyListings!);
+  }
 
   @override
   Future<void> markSold(String listingId) async {
@@ -2888,10 +2904,15 @@ void main() {
     listings.emitMyListings();
     await tester.pumpAndSettle();
 
+    expect(find.text('My listings'), findsOneWidget);
+    expect(find.text('1 active'), findsOneWidget);
+    await tester.tap(find.text('My listings'));
+    await tester.pumpAndSettle();
+
     expect(find.text('Calculus 201 textbook'), findsOneWidget);
     expect(find.text('Mark as sold'), findsOneWidget); // active row only
     expect(find.text('Old desk lamp'), findsOneWidget);
-    expect(find.text('SOLD'), findsOneWidget);
+    expect(find.text('SOLD'), findsNWidgets(2)); // filter chip + listing badge
   });
 
   testWidgets('marking a listing sold confirms and flips the row', (
@@ -2933,6 +2954,9 @@ void main() {
     listings.emitMyListings();
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('My listings'));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('Mark as sold').first);
     await tester.pumpAndSettle();
     expect(find.text('Mark as sold?'), findsOneWidget); // confirm dialog
@@ -2942,7 +2966,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(listings.soldIds, ['a']);
-    expect(find.text('SOLD'), findsOneWidget);
+    expect(find.text('SOLD'), findsNWidgets(2)); // filter chip + listing badge
     expect(find.text('Mark as sold'), findsOneWidget); // only b remains active
   });
 
@@ -2985,6 +3009,9 @@ void main() {
     listings.emitMyListings();
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('My listings'));
+    await tester.pumpAndSettle();
+
     // Keep it: the dialog dismisses and nothing changes.
     await tester.tap(find.text('Cancel listing').first);
     await tester.pumpAndSettle();
@@ -2993,7 +3020,7 @@ void main() {
 
     await tester.tap(find.text('Keep it'));
     await tester.pumpAndSettle();
-    expect(find.text('CANCELLED'), findsNothing);
+    expect(find.text('CANCELLED'), findsOneWidget); // only the filter chip
     expect(find.text('Mark as sold'), findsNWidgets(2)); // both rows active
 
     // Cancel listing: the dialog confirms and the row flips.
@@ -3004,7 +3031,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(listings.cancelledIds, ['a']);
-    expect(find.text('CANCELLED'), findsOneWidget);
+    expect(find.text('CANCELLED'), findsNWidgets(2)); // filter chip + listing badge
     expect(find.text('Mark as sold'), findsOneWidget); // only b remains active
     expect(find.text('Cancel listing'), findsOneWidget);
   });
@@ -3037,6 +3064,9 @@ void main() {
       await tester.tap(find.text('PROFILE'));
       await tester.pumpAndSettle();
       listings.emitMyListings();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('My listings'));
       await tester.pumpAndSettle();
 
       final buttonFinder = find.text('Cancel listing').first;
@@ -3126,11 +3156,133 @@ void main() {
     listings.emitMyListings();
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('My listings'));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('Calculus 201 textbook'));
     await tester.pumpAndSettle();
 
     expect(find.text('Clean set, minimal highlights.'), findsOneWidget);
   });
+
+  testWidgets(
+    'my listings profile row shows empty subtitle and updates with active count badge',
+    (WidgetTester tester) async {
+      usePortraitPhone(tester);
+      final auth = FakeAuthService();
+      final members = FakeMemberStore();
+      final listings = FakeListingsStore();
+      final chats = FakeChatStore();
+      await tester.pumpWidget(
+        _app(auth: auth, members: members, listings: listings, chats: chats),
+      );
+      auth.emit(_student);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('PROFILE'));
+      await tester.pumpAndSettle();
+      listings.emitMyListings();
+      await tester.pumpAndSettle();
+
+      // Initially empty
+      expect(find.text('My listings'), findsOneWidget);
+      expect(find.text("You haven't listed anything yet."), findsOneWidget);
+      expect(find.text('0 active'), findsOneWidget);
+
+      // Now add listings
+      listings.listings = [
+        const Listing(
+          id: 'x',
+          sellerId: 'test-uid',
+          title: 'Graphing calculator',
+          description: '',
+          price: 500,
+          category: 'gadgets',
+          condition: 'good',
+        ),
+      ];
+      listings.emitMyListings();
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 active · 1 total'), findsOneWidget);
+      expect(find.text('1 active'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'my listings screen status filters switch views and empty state',
+    (WidgetTester tester) async {
+      usePortraitPhone(tester);
+      final auth = FakeAuthService();
+      final members = FakeMemberStore();
+      final listings = FakeListingsStore()
+        ..listings = [
+          const Listing(
+            id: 'a',
+            sellerId: 'test-uid',
+            title: 'Active Notebook',
+            description: '',
+            price: 50,
+            category: 'stationery',
+            condition: 'like new',
+          ),
+          const Listing(
+            id: 'b',
+            sellerId: 'test-uid',
+            title: 'Sold Textbook',
+            description: '',
+            price: 300,
+            category: 'textbooks',
+            condition: 'good',
+            status: 'sold',
+          ),
+        ];
+      final chats = FakeChatStore();
+      await tester.pumpWidget(
+        _app(auth: auth, members: members, listings: listings, chats: chats),
+      );
+      auth.emit(_student);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('PROFILE'));
+      await tester.pumpAndSettle();
+      listings.emitMyListings();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('My listings'));
+      await tester.pumpAndSettle();
+
+      // Screen title and filters
+      expect(find.text('MY LISTINGS'), findsOneWidget);
+      expect(find.text('ALL'), findsOneWidget);
+      expect(find.text('ACTIVE'), findsOneWidget);
+      expect(find.text('SOLD'), findsNWidgets(2)); // filter chip + sold listing badge
+      expect(find.text('CANCELLED'), findsOneWidget);
+
+      // ALL tab shows both
+      expect(find.text('Active Notebook'), findsOneWidget);
+      expect(find.text('Sold Textbook'), findsOneWidget);
+
+      // Filter ACTIVE only
+      await tester.tap(find.text('ACTIVE'));
+      await tester.pumpAndSettle();
+      expect(find.text('Active Notebook'), findsOneWidget);
+      expect(find.text('Sold Textbook'), findsNothing);
+
+      // Filter SOLD only (tap filter chip)
+      await tester.tap(find.text('SOLD').first);
+      await tester.pumpAndSettle();
+      expect(find.text('Active Notebook'), findsNothing);
+      expect(find.text('Sold Textbook'), findsOneWidget);
+
+      // Filter CANCELLED only (none exist)
+      await tester.tap(find.text('CANCELLED'));
+      await tester.pumpAndSettle();
+      expect(find.text('Active Notebook'), findsNothing);
+      expect(find.text('Sold Textbook'), findsNothing);
+      expect(find.text('No cancelled listings.'), findsOneWidget);
+    },
+  );
 
   testWidgets('category tiles open Browse pre-filtered by category', (
     WidgetTester tester,
