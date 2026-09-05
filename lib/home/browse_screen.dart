@@ -47,17 +47,44 @@ class BrowseScreen extends StatefulWidget {
 
 class _BrowseScreenState extends State<BrowseScreen> {
   final _search = TextEditingController();
+  final _searchFocusNode = FocusNode();
   late String _query = widget.initialQuery;
   late BrowseFilters _filters = BrowseFilters(category: widget.initialCategory);
+  late final Stream<List<Listing>> _listingsStream = widget.listingsStore
+      .activeListingsStream(limit: kBrowseFetchLimit);
 
   @override
   void initState() {
     super.initState();
     _search.text = widget.initialQuery;
+    // Delay requesting keyboard focus until route transition finishes
+    // so Android IME window opening does not cause frame drops during the 180ms slide/fade.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final modalRoute = ModalRoute.of(context);
+      if (modalRoute != null &&
+          modalRoute.animation != null &&
+          !modalRoute.animation!.isCompleted) {
+        void handler(AnimationStatus status) {
+          if (status == AnimationStatus.completed) {
+            modalRoute.animation!.removeStatusListener(handler);
+            if (mounted) {
+              _searchFocusNode.requestFocus();
+            }
+          }
+        }
+
+        modalRoute.animation!.addStatusListener(handler);
+      } else {
+        if (mounted) {
+          _searchFocusNode.requestFocus();
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
+    _searchFocusNode.dispose();
     _search.dispose();
     super.dispose();
   }
@@ -124,9 +151,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
             ),
             Expanded(
               child: StreamBuilder<List<Listing>>(
-                stream: widget.listingsStore.activeListingsStream(
-                  limit: kBrowseFetchLimit,
-                ),
+                stream: _listingsStream,
                 builder: (context, snapshot) {
                   final all = snapshot.data;
                   if (all == null) return const _BrowseSkeleton();
@@ -135,107 +160,132 @@ class _BrowseScreenState extends State<BrowseScreen> {
                     query: _query,
                     filters: _filters,
                   );
-                  return ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          color: UmColors.surface,
-                          border: Border.all(color: UmColors.ink, width: 3),
-                          borderRadius: BorderRadius.circular(999),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: UmColors.ink,
-                              offset: Offset(4, 4),
-                              blurRadius: 0,
-                            ),
-                          ],
-                        ),
-                        child: TextField(
-                          controller: _search,
-                          autofocus: true,
-                          onChanged: (value) => setState(() => _query = value),
-                          decoration: InputDecoration(
-                            hintText: 'Search textbooks, gadgets…',
-                            prefixIcon: const Icon(
-                              LucideIcons.search500,
-                              color: UmColors.ink,
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
+                  return CustomScrollView(
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                        sliver: SliverToBoxAdapter(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: UmColors.surface,
+                                  border: Border.all(
+                                    color: UmColors.ink,
+                                    width: 3,
+                                  ),
+                                  borderRadius: BorderRadius.circular(999),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: UmColors.ink,
+                                      offset: Offset(4, 4),
+                                      blurRadius: 0,
+                                    ),
+                                  ],
+                                ),
+                                child: TextField(
+                                  controller: _search,
+                                  focusNode: _searchFocusNode,
+                                  onChanged: (value) =>
+                                      setState(() => _query = value),
+                                  decoration: InputDecoration(
+                                    hintText: 'Search textbooks, gadgets…',
+                                    prefixIcon: const Icon(
+                                      LucideIcons.search500,
+                                      color: UmColors.ink,
+                                    ),
+                                    border: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 14,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Wrap(
+                                key: const Key('browse-category-chips'),
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  _FilterChipLabel(
+                                    label: 'All',
+                                    selected: _filters.category == null,
+                                    onTap: () => _setCategory(null),
+                                  ),
+                                  for (final category in kListingCategories)
+                                    _FilterChipLabel(
+                                      label: category,
+                                      selected: _filters.category == category,
+                                      onTap: () => _setCategory(category),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  NbrButton(
+                                    label: 'Filters',
+                                    icon: const Icon(
+                                      LucideIcons.slidersHorizontal500,
+                                      size: 20,
+                                      color: UmColors.ink,
+                                    ),
+                                    fill: UmColors.surface,
+                                    labelColor: UmColors.ink,
+                                    onPressed: _openFilters,
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    '${results.length} '
+                                    '${results.length == 1 ? 'result' : 'results'}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelMedium
+                                        ?.copyWith(
+                                          color: UmColors.mutedForeground,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                            ],
                           ),
                         ),
                       ),
-                      const SizedBox(height: 14),
-                      Wrap(
-                        key: const Key('browse-category-chips'),
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _FilterChipLabel(
-                            label: 'All',
-                            selected: _filters.category == null,
-                            onTap: () => _setCategory(null),
-                          ),
-                          for (final category in kListingCategories)
-                            _FilterChipLabel(
-                              label: category,
-                              selected: _filters.category == category,
-                              onTap: () => _setCategory(category),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          NbrButton(
-                            label: 'Filters',
-                            icon: const Icon(
-                              LucideIcons.slidersHorizontal500,
-                              size: 20,
-                              color: UmColors.ink,
-                            ),
-                            fill: UmColors.surface,
-                            labelColor: UmColors.ink,
-                            onPressed: _openFilters,
-                          ),
-                          const Spacer(),
-                          Text(
-                            '${results.length} '
-                            '${results.length == 1 ? 'result' : 'results'}',
-                            style: Theme.of(context).textTheme.labelMedium
-                                ?.copyWith(color: UmColors.mutedForeground),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
                       if (results.isEmpty)
-                        _BrowseEmpty(
-                          hasActiveFilter: hasActiveFilter,
-                          onClear: _clearAll,
+                        SliverPadding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          sliver: SliverToBoxAdapter(
+                            child: _BrowseEmpty(
+                              hasActiveFilter: hasActiveFilter,
+                              onClear: _clearAll,
+                            ),
+                          ),
                         )
                       else
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 12,
-                                crossAxisSpacing: 12,
-                                childAspectRatio: 0.70,
-                              ),
-                          itemCount: results.length,
-                          itemBuilder: (context, index) {
-                            final listing = results[index];
-                            return ListingCard(
-                              listing: listing,
-                              onTap: () => _openDetail(listing),
-                            );
-                          },
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          sliver: SliverGrid(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  mainAxisSpacing: 12,
+                                  crossAxisSpacing: 12,
+                                  childAspectRatio: 0.70,
+                                ),
+                            delegate: SliverChildBuilderDelegate((
+                              context,
+                              index,
+                            ) {
+                              final listing = results[index];
+                              return ListingCard(
+                                listing: listing,
+                                onTap: () => _openDetail(listing),
+                              );
+                            }, childCount: results.length),
+                          ),
                         ),
                     ],
                   );

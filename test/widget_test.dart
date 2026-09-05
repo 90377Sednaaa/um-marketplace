@@ -1179,6 +1179,60 @@ void main() {
     expect(find.text('Title — e.g. Calculus 201 textbook'), findsNothing);
   });
 
+  testWidgets(
+    'bottom nav items switch instantly without animated decoration lerp artifacts',
+    (WidgetTester tester) async {
+      usePortraitPhone(tester);
+      final auth = FakeAuthService();
+      final members = FakeMemberStore();
+      final listings = FakeListingsStore();
+      final chats = FakeChatStore();
+      await tester.pumpWidget(
+        _app(auth: auth, members: members, listings: listings, chats: chats),
+      );
+      auth.emit(_student);
+      await tester.pumpAndSettle();
+
+      // HOME should start active with gold background and small shadow
+      final homeText = find.text('HOME');
+      expect(homeText, findsOneWidget);
+      final homeContainerFinder = find.ancestor(
+        of: homeText,
+        matching: find.byType(Container),
+      );
+      final homeContainer = tester.widget<Container>(homeContainerFinder.first);
+      final homeDecoration = homeContainer.decoration as BoxDecoration;
+      expect(homeDecoration.color, UmColors.gold);
+      expect(homeDecoration.boxShadow, isNotNull);
+
+      // Tap CHATS and pump just a single frame
+      await tester.tap(find.text('CHATS'));
+      await tester.pump();
+
+      // HOME immediately becomes inactive with transparent background and no shadow
+      final homeContainerAfter = tester.widget<Container>(
+        homeContainerFinder.first,
+      );
+      final homeDecorationAfter =
+          homeContainerAfter.decoration as BoxDecoration;
+      expect(homeDecorationAfter.color, Colors.transparent);
+      expect(homeDecorationAfter.boxShadow, isNull);
+
+      // CHATS immediately becomes active with gold background and shadow
+      final chatsText = find.text('CHATS');
+      final chatsContainerFinder = find.ancestor(
+        of: chatsText,
+        matching: find.byType(Container),
+      );
+      final chatsContainer = tester.widget<Container>(
+        chatsContainerFinder.first,
+      );
+      final chatsDecoration = chatsContainer.decoration as BoxDecoration;
+      expect(chatsDecoration.color, UmColors.gold);
+      expect(chatsDecoration.boxShadow, isNotNull);
+    },
+  );
+
   testWidgets('the Sell CTA switches to the Sell tab', (
     WidgetTester tester,
   ) async {

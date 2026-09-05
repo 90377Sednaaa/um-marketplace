@@ -326,53 +326,37 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
-class _NavItem extends StatefulWidget {
+class _NavItem extends StatelessWidget {
   const _NavItem({
-    required this.label,
     required this.icon,
+    required this.label,
     required this.active,
     required this.onTap,
   });
 
-  final String label;
   final IconData icon;
+  final String label;
   final bool active;
   final VoidCallback onTap;
 
   @override
-  State<_NavItem> createState() => _NavItemState();
-}
-
-class _NavItemState extends State<_NavItem> {
-  bool _pressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    final color = widget.active ? UmColors.ink : UmColors.mutedForeground;
-    final bg = widget.active ? UmColors.gold : Colors.transparent;
+    final color = active ? UmColors.ink : UmColors.mutedForeground;
+    final bg = active ? UmColors.gold : Colors.transparent;
     return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      onTap: widget.onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 80),
-        curve: Curves.linear,
-        transform: Matrix4.translationValues(
-          _pressed ? 2 : 0,
-          _pressed ? 2 : 0,
-          0,
-        ),
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         decoration: BoxDecoration(
           color: bg,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: widget.active ? UmColors.ink : Colors.transparent,
+            color: active ? UmColors.ink : Colors.transparent,
             width: 2,
           ),
-          boxShadow: widget.active && !_pressed
+          boxShadow: active
               ? const [
                   BoxShadow(
                     color: UmColors.ink,
@@ -385,10 +369,10 @@ class _NavItemState extends State<_NavItem> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(widget.icon, size: 22, color: color),
+            Icon(icon, size: 22, color: color),
             const SizedBox(height: 2),
             Text(
-              widget.label,
+              label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.spaceGrotesk(
