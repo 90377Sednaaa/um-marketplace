@@ -84,24 +84,29 @@ Future<bool?> showBrutalConfirmDialog(
               ),
             ),
             const SizedBox(height: 18),
-            Wrap(
-              alignment: WrapAlignment.end,
-              spacing: 10,
-              runSpacing: 8,
+            Row(
               children: [
-                NbrButton(
-                  label: cancelLabel,
-                  fill: UmColors.surface,
-                  labelColor: UmColors.ink,
-                  compact: true,
-                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                Expanded(
+                  child: NbrButton(
+                    label: cancelLabel,
+                    fill: UmColors.surface,
+                    labelColor: UmColors.ink,
+                    compact: true,
+                    stretch: true,
+                    onPressed: () => Navigator.of(dialogContext).pop(false),
+                  ),
                 ),
-                NbrButton(
-                  label: confirmLabel,
-                  fill: isDestructive ? UmColors.destructive : UmColors.primary,
-                  labelColor: UmColors.onPrimary,
-                  compact: true,
-                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: NbrButton(
+                    label: confirmLabel,
+                    fill:
+                        isDestructive ? UmColors.destructive : UmColors.primary,
+                    labelColor: UmColors.onPrimary,
+                    compact: true,
+                    stretch: true,
+                    onPressed: () => Navigator.of(dialogContext).pop(true),
+                  ),
                 ),
               ],
             ),
