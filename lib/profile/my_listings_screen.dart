@@ -304,7 +304,7 @@ class _FilterBar extends StatelessWidget {
   }
 }
 
-class _FilterSegment extends StatefulWidget {
+class _FilterSegment extends StatelessWidget {
   const _FilterSegment({
     required this.label,
     required this.selected,
@@ -316,44 +316,25 @@ class _FilterSegment extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_FilterSegment> createState() => _FilterSegmentState();
-}
-
-class _FilterSegmentState extends State<_FilterSegment> {
-  bool _pressed = false;
-
-  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTapCancel: () => setState(() => _pressed = false),
-      onTap: widget.onTap,
+      onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 100),
-        curve: Curves.easeOut,
-        transform: Matrix4.translationValues(
-          _pressed && widget.selected ? 1 : 0,
-          _pressed && widget.selected ? 1 : 0,
-          0,
-        ),
+      child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: widget.selected ? UmColors.gold : Colors.transparent,
+          color: selected ? UmColors.gold : Colors.transparent,
           border: Border.all(
-            color: widget.selected ? UmColors.ink : Colors.transparent,
+            color: selected ? UmColors.ink : Colors.transparent,
             width: 2,
           ),
           borderRadius: BorderRadius.circular(7),
           boxShadow: [
-            if (widget.selected)
-              BoxShadow(
+            if (selected)
+              const BoxShadow(
                 color: UmColors.ink,
-                offset: _pressed
-                    ? const Offset(0.5, 0.5)
-                    : const Offset(1.5, 1.5),
+                offset: Offset(1.5, 1.5),
                 blurRadius: 0,
               ),
           ],
@@ -363,12 +344,12 @@ class _FilterSegmentState extends State<_FilterSegment> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
-              widget.label,
+              label,
               style: GoogleFonts.spaceGrotesk(
-                fontWeight: widget.selected ? FontWeight.w900 : FontWeight.w700,
+                fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
                 fontSize: 11.5,
                 letterSpacing: 0.5,
-                color: widget.selected
+                color: selected
                     ? UmColors.ink
                     : UmColors.mutedForeground,
               ),

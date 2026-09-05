@@ -3291,6 +3291,68 @@ void main() {
     },
   );
 
+  testWidgets(
+    'my listings filter bar segments switch instantly without animated decoration lerp artifacts',
+    (WidgetTester tester) async {
+      usePortraitPhone(tester);
+      final auth = FakeAuthService();
+      final members = FakeMemberStore();
+      final listings = FakeListingsStore();
+      final chats = FakeChatStore();
+      await tester.pumpWidget(
+        _app(auth: auth, members: members, listings: listings, chats: chats),
+      );
+      auth.emit(_student);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('PROFILE'));
+      await tester.pumpAndSettle();
+      listings.emitMyListings();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('My listings'));
+      await tester.pumpAndSettle();
+
+      // Find the filter segment containers
+      // ALL should start selected with gold background and shadow
+      final allText = find.text('ALL');
+      expect(allText, findsOneWidget);
+      final allContainerFinder = find.ancestor(
+        of: allText,
+        matching: find.byType(Container),
+      );
+      final allContainer = tester.widget<Container>(allContainerFinder.first);
+      final allDecoration = allContainer.decoration as BoxDecoration;
+      expect(allDecoration.color, UmColors.gold);
+      expect(allDecoration.boxShadow, isNotEmpty);
+
+      // Tap ACTIVE and pump just a single frame (no settling)
+      await tester.tap(find.text('ACTIVE'));
+      await tester.pump();
+
+      // ALL should immediately be unselected (transparent color, no shadow) without intermediate lerp
+      final allContainerAfter = tester.widget<Container>(
+        allContainerFinder.first,
+      );
+      final allDecorationAfter = allContainerAfter.decoration as BoxDecoration;
+      expect(allDecorationAfter.color, Colors.transparent);
+      expect(allDecorationAfter.boxShadow, isEmpty);
+
+      // ACTIVE should immediately be selected (gold, shadow)
+      final activeText = find.text('ACTIVE');
+      final activeContainerFinder = find.ancestor(
+        of: activeText,
+        matching: find.byType(Container),
+      );
+      final activeContainer = tester.widget<Container>(
+        activeContainerFinder.first,
+      );
+      final activeDecoration = activeContainer.decoration as BoxDecoration;
+      expect(activeDecoration.color, UmColors.gold);
+      expect(activeDecoration.boxShadow, isNotEmpty);
+    },
+  );
+
   testWidgets('category tiles open Browse pre-filtered by category', (
     WidgetTester tester,
   ) async {
