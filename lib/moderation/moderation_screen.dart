@@ -12,6 +12,7 @@ import '../theme/app_theme.dart';
 import '../widgets/brutal_app_bar.dart';
 import '../widgets/brutal_confirm_dialog.dart';
 import '../widgets/brutal_dialog.dart';
+import '../widgets/brutal_page_route.dart';
 import '../widgets/brutal_shimmer.dart';
 
 /// Moderation (DESIGN.md screen 9, ADR 0003): the single Admin's console
@@ -142,7 +143,7 @@ class ModerationScreen extends StatelessWidget {
       }
       if (!context.mounted) return;
       Navigator.of(context).push(
-        MaterialPageRoute<void>(
+        BrutalPageRoute<void>(
           builder: (_) => ListingDetailScreen(
             listing: listing,
             memberStore: memberStore,

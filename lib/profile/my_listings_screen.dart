@@ -13,6 +13,7 @@ import '../theme/app_theme.dart';
 import '../widgets/brutal_app_bar.dart';
 import '../widgets/brutal_confirm_dialog.dart';
 import '../widgets/brutal_dialog.dart';
+import '../widgets/brutal_page_route.dart';
 import '../widgets/brutal_shimmer.dart';
 import '../widgets/nbr_button.dart';
 import '../widgets/photo_placeholder.dart';
@@ -49,7 +50,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
 
   Future<void> _openListing(Listing listing) async {
     await Navigator.of(context).push(
-      MaterialPageRoute<void>(
+      BrutalPageRoute<void>(
         builder: (_) => ListingDetailScreen(
           listing: listing,
           listingsStore: widget.listingsStore,

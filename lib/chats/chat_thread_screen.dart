@@ -10,6 +10,7 @@ import '../home/listing_detail_screen.dart';
 import '../home/money_format.dart';
 import '../theme/app_theme.dart';
 import '../widgets/brutal_dialog.dart';
+import '../widgets/brutal_page_route.dart';
 import '../widgets/brutal_shimmer.dart';
 import '../widgets/nbr_button.dart';
 import '../widgets/offer_price_dialog.dart';
@@ -406,7 +407,7 @@ class _PinnedListing extends StatelessWidget {
     final VoidCallback? onTap = listing.status != 'active'
         ? null
         : () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
+              BrutalPageRoute<void>(
                 builder: (_) => ListingDetailScreen(
                   listing: listing,
                   memberStore: memberStore,

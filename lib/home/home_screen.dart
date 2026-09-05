@@ -11,6 +11,7 @@ import '../theme/app_theme.dart';
 import 'browse_screen.dart';
 import 'listing_card.dart';
 import 'listing_detail_screen.dart';
+import '../widgets/brutal_page_route.dart';
 import '../widgets/product_card_skeleton.dart';
 
 /// Home (DESIGN.md screen 1): hero search + category tiles + recent
@@ -42,7 +43,7 @@ class HomeScreen extends StatelessWidget {
     String? category,
   }) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
+      BrutalPageRoute<void>(
         builder: (_) => BrowseScreen(
           viewerUid: member.uid,
           memberStore: memberStore,
@@ -59,7 +60,7 @@ class HomeScreen extends StatelessWidget {
 
   void _openDetail(BuildContext context, Listing listing) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
+      BrutalPageRoute<void>(
         builder: (_) => ListingDetailScreen(
           listing: listing,
           memberStore: memberStore,

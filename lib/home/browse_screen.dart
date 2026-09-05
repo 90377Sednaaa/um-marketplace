@@ -8,6 +8,7 @@ import '../data/rating_store.dart';
 import '../data/report_store.dart';
 import '../theme/app_theme.dart';
 import '../widgets/brutal_app_bar.dart';
+import '../widgets/brutal_page_route.dart';
 import '../widgets/nbr_button.dart';
 import '../widgets/product_card_skeleton.dart';
 import 'listing_card.dart';
@@ -63,7 +64,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
 
   void _openDetail(Listing listing) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
+      BrutalPageRoute<void>(
         builder: (_) => ListingDetailScreen(
           listing: listing,
           memberStore: widget.memberStore,

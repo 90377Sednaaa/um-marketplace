@@ -12,6 +12,7 @@ import '../data/report_store.dart';
 import '../notifications/notification_center_screen.dart';
 import '../profile/profile_screen.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brutal_page_route.dart';
 import '../widgets/um_logo.dart';
 import 'home_screen.dart';
 import 'sell_screen.dart';
@@ -143,7 +144,7 @@ class _BrandBand extends StatelessWidget {
 
   void _openCenter(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
+      BrutalPageRoute<void>(
         builder: (_) => NotificationCenterScreen(
           ownerId: viewerUid,
           notificationStore: notificationStore,

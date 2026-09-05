@@ -9,6 +9,7 @@ import '../data/rating_store.dart';
 import '../data/report_store.dart';
 import '../moderation/moderation_screen.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brutal_page_route.dart';
 import '../widgets/member_badges.dart';
 import 'my_listings_screen.dart';
 
@@ -82,7 +83,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 widget.member.uid,
               ),
               onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
+                BrutalPageRoute<void>(
                   builder: (_) => MyListingsScreen(
                     member: widget.member,
                     listingsStore: widget.listingsStore,
@@ -99,7 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 12),
               _AdminRow(
                 onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
+                  BrutalPageRoute<void>(
                     builder: (_) => ModerationScreen(
                       memberStore: widget.memberStore,
                       listingsStore: widget.listingsStore,

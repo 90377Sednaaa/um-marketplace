@@ -28,6 +28,7 @@ import 'package:um_marketplace/theme/app_theme.dart';
 import 'package:um_marketplace/widgets/brutal_app_bar.dart';
 import 'package:um_marketplace/widgets/brutal_confirm_dialog.dart';
 import 'package:um_marketplace/widgets/brutal_dialog.dart';
+import 'package:um_marketplace/widgets/brutal_page_route.dart';
 import 'package:um_marketplace/widgets/brutal_shimmer.dart';
 import 'package:um_marketplace/widgets/listing_detail_skeleton.dart';
 import 'package:um_marketplace/widgets/product_card_skeleton.dart';
@@ -4406,4 +4407,86 @@ void main() {
       },
     );
   });
+
+  group('BrutalPageRoute and BrutalPageTransitionsBuilder transitions', () {
+    test('BrutalPageRoute duration parameters match DESIGN.md motion tokens', () {
+      final route = BrutalPageRoute<void>(builder: (_) => const SizedBox());
+      expect(route.transitionDuration, const Duration(milliseconds: 180));
+      expect(route.reverseTransitionDuration, const Duration(milliseconds: 150));
+    });
+
+    testWidgets('BrutalPageRoute animates with RepaintBoundary and finishes cleanly', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    BrutalPageRoute<void>(
+                      builder: (_) => const Scaffold(
+                        body: Text('Destination Screen'),
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('Go'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Go'));
+      await tester.pump(); // Start navigation
+
+      // Mid-animation: RepaintBoundary and transitions should be present
+      await tester.pump(const Duration(milliseconds: 90));
+      expect(find.byType(RepaintBoundary), findsWidgets);
+      expect(find.byType(SlideTransition), findsWidgets);
+      expect(find.byType(FadeTransition), findsWidgets);
+
+      // Settle animation
+      await tester.pumpAndSettle();
+      expect(find.text('Destination Screen'), findsOneWidget);
+    });
+
+    testWidgets('Reduced motion bypasses slide and fade transitions', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MediaQuery(
+            data: const MediaQueryData(disableAnimations: true),
+            child: Builder(
+              builder: (context) => Scaffold(
+                body: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      BrutalPageRoute<void>(
+                        builder: (_) => const Scaffold(
+                          body: Text('Accessible Screen'),
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('Go Accessible'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Go Accessible'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Accessible Screen'), findsOneWidget);
+    });
+  });
 }
+

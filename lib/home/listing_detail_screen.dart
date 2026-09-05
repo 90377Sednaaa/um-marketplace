@@ -14,6 +14,7 @@ import '../data/report_store.dart';
 import '../theme/app_theme.dart';
 import '../widgets/brutal_app_bar.dart';
 import '../widgets/brutal_dialog.dart';
+import '../widgets/brutal_page_route.dart';
 import '../widgets/nbr_button.dart';
 import '../widgets/offer_price_dialog.dart';
 import '../widgets/photo_placeholder.dart';
@@ -110,7 +111,7 @@ class ListingDetailScreen extends StatelessWidget {
       return;
     }
     if (!context.mounted) return;
-    Navigator.of(context).push(MaterialPageRoute<void>(
+    Navigator.of(context).push(BrutalPageRoute<void>(
       builder: (_) => ChatThreadScreen(
         chat: chat,
         viewerUid: viewerId,
@@ -165,7 +166,7 @@ class ListingDetailScreen extends StatelessWidget {
       return;
     }
     if (!context.mounted) return;
-    Navigator.of(context).push(MaterialPageRoute<void>(
+    Navigator.of(context).push(BrutalPageRoute<void>(
       builder: (_) => ChatThreadScreen(
         chat: chat,
         viewerUid: viewerId,

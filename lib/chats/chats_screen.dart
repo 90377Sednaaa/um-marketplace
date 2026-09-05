@@ -10,6 +10,7 @@ import '../data/report_store.dart';
 import '../home/browse_screen.dart';
 import '../home/relative_time.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brutal_page_route.dart';
 import '../widgets/brutal_shimmer.dart';
 import '../widgets/nbr_button.dart';
 import 'chat_thread_screen.dart';
@@ -37,7 +38,7 @@ class ChatsScreen extends StatelessWidget {
 
   void _openBrowse(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
+      BrutalPageRoute<void>(
         builder: (_) => BrowseScreen(
           viewerUid: viewerUid,
           memberStore: memberStore,
@@ -75,7 +76,7 @@ class ChatsScreen extends StatelessWidget {
                     chat: chat,
                     viewerUid: viewerUid,
                     onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
+                      BrutalPageRoute<void>(
                         builder: (_) => ChatThreadScreen(
                           chat: chat,
                           viewerUid: viewerUid,

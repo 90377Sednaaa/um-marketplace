@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../widgets/brutal_page_route.dart';
+
 /// UM Marketplace design tokens (DESIGN.md §2).
 abstract final class UmColors {
   static const Color primary = Color(0xFF7C2D12); // UM maroon
@@ -34,8 +36,8 @@ ThemeData buildUmTheme() {
     scaffoldBackgroundColor: UmColors.background,
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
-        TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
-        TargetPlatform.iOS: FadeForwardsPageTransitionsBuilder(),
+        TargetPlatform.android: BrutalPageTransitionsBuilder(),
+        TargetPlatform.iOS: BrutalPageTransitionsBuilder(),
       },
     ),
     colorScheme: const ColorScheme.light(
