@@ -174,23 +174,72 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
 
                   final filtered = _filterListings(listings);
                   if (filtered.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Text(
-                          'No ${_filter.name} listings.',
-                          style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            color: UmColors.mutedForeground,
+                    return ListView(
+                      padding: const EdgeInsets.all(24),
+                      children: [
+                        const SizedBox(height: 24),
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: UmColors.surface,
+                            border: Border.all(color: UmColors.ink, width: 2),
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: UmColors.ink,
+                                offset: UmShadows.card,
+                                blurRadius: 0,
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 52,
+                                height: 52,
+                                decoration: BoxDecoration(
+                                  color: UmColors.goldSoft,
+                                  border: Border.all(
+                                    color: UmColors.ink,
+                                    width: 2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  LucideIcons.filter500,
+                                  size: 26,
+                                  color: UmColors.ink,
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                'No ${_filter.name} listings.',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.spaceGrotesk(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 15,
+                                  color: UmColors.ink,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Try selecting another tab above.',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.outfit(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 13,
+                                  color: UmColors.mutedForeground,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
+                      ],
                     );
                   }
 
                   return ListView.separated(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
                     itemCount: filtered.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
@@ -228,33 +277,34 @@ class _FilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
         color: UmColors.surface,
-        border: Border(bottom: BorderSide(color: UmColors.ink, width: 2)),
+        border: Border.all(color: UmColors.ink, width: 2),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: const [
+          BoxShadow(color: UmColors.ink, offset: Offset(3, 3), blurRadius: 0),
+        ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            for (final filter in MyListingFilter.values)
-              Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: _FilterChip(
-                  label: filter.name.toUpperCase(),
-                  selected: filter == selected,
-                  onTap: () => onSelect(filter),
-                ),
+      child: Row(
+        children: [
+          for (final filter in MyListingFilter.values)
+            Expanded(
+              child: _FilterSegment(
+                label: filter.name.toUpperCase(),
+                selected: filter == selected,
+                onTap: () => onSelect(filter),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
 }
 
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({
+class _FilterSegment extends StatefulWidget {
+  const _FilterSegment({
     required this.label,
     required this.selected,
     required this.onTap,
@@ -265,31 +315,63 @@ class _FilterChip extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_FilterSegment> createState() => _FilterSegmentState();
+}
+
+class _FilterSegmentState extends State<_FilterSegment> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+        transform: Matrix4.translationValues(
+          _pressed && widget.selected ? 1 : 0,
+          _pressed && widget.selected ? 1 : 0,
+          0,
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? UmColors.gold : UmColors.surface,
-          border: Border.all(color: UmColors.ink, width: 2),
-          borderRadius: BorderRadius.circular(999),
+          color: widget.selected ? UmColors.gold : Colors.transparent,
+          border: Border.all(
+            color: widget.selected ? UmColors.ink : Colors.transparent,
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(7),
           boxShadow: [
-            if (selected)
-              const BoxShadow(
+            if (widget.selected)
+              BoxShadow(
                 color: UmColors.ink,
-                offset: Offset(2, 2),
+                offset: _pressed
+                    ? const Offset(0.5, 0.5)
+                    : const Offset(1.5, 1.5),
                 blurRadius: 0,
               ),
           ],
         ),
-        child: Text(
-          label,
-          style: GoogleFonts.spaceGrotesk(
-            fontWeight: FontWeight.w800,
-            fontSize: 12,
-            letterSpacing: 0.5,
-            color: UmColors.ink,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              widget.label,
+              style: GoogleFonts.spaceGrotesk(
+                fontWeight: widget.selected ? FontWeight.w900 : FontWeight.w700,
+                fontSize: 11.5,
+                letterSpacing: 0.5,
+                color: widget.selected
+                    ? UmColors.ink
+                    : UmColors.mutedForeground,
+              ),
+            ),
           ),
         ),
       ),
