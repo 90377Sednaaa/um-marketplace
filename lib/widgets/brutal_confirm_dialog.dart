@@ -100,8 +100,9 @@ Future<bool?> showBrutalConfirmDialog(
                 Expanded(
                   child: NbrButton(
                     label: confirmLabel,
-                    fill:
-                        isDestructive ? UmColors.destructive : UmColors.primary,
+                    fill: isDestructive
+                        ? UmColors.destructive
+                        : UmColors.primary,
                     labelColor: UmColors.onPrimary,
                     compact: true,
                     stretch: true,
