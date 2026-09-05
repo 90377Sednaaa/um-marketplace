@@ -3031,7 +3031,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(listings.cancelledIds, ['a']);
-    expect(find.text('CANCELLED'), findsNWidgets(2)); // filter chip + listing badge
+    expect(
+      find.text('CANCELLED'),
+      findsNWidgets(2),
+    ); // filter chip + listing badge
     expect(find.text('Mark as sold'), findsOneWidget); // only b remains active
     expect(find.text('Cancel listing'), findsOneWidget);
   });
@@ -3256,7 +3259,10 @@ void main() {
       expect(find.text('MY LISTINGS'), findsOneWidget);
       expect(find.text('ALL'), findsOneWidget);
       expect(find.text('ACTIVE'), findsOneWidget);
-      expect(find.text('SOLD'), findsNWidgets(2)); // filter chip + sold listing badge
+      expect(
+        find.text('SOLD'),
+        findsNWidgets(2),
+      ); // filter chip + sold listing badge
       expect(find.text('CANCELLED'), findsOneWidget);
 
       // ALL tab shows both

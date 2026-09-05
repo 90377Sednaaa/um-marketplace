@@ -145,8 +145,9 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
             ),
             Expanded(
               child: StreamBuilder<List<Listing>>(
-                stream:
-                    widget.listingsStore.myListingsStream(widget.member.uid),
+                stream: widget.listingsStore.myListingsStream(
+                  widget.member.uid,
+                ),
                 builder: (context, snapshot) {
                   final listings = snapshot.data;
                   if (listings == null) {
@@ -194,14 +195,17 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                     separatorBuilder: (_, _) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final item = filtered[index];
-                      final isActive = item.status != 'sold' &&
-                          item.status != 'cancelled';
+                      final isActive =
+                          item.status != 'sold' && item.status != 'cancelled';
                       return _MyListingRow(
                         listing: item,
                         onTap: () => _openListing(item),
-                        onMarkSold: isActive ? () => _confirmMarkSold(item) : null,
-                        onCancel:
-                            isActive ? () => _confirmCancelListing(item) : null,
+                        onMarkSold: isActive
+                            ? () => _confirmMarkSold(item)
+                            : null,
+                        onCancel: isActive
+                            ? () => _confirmCancelListing(item)
+                            : null,
                       );
                     },
                   );
@@ -226,9 +230,7 @@ class _FilterBar extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: UmColors.surface,
-        border: Border(
-          bottom: BorderSide(color: UmColors.ink, width: 2),
-        ),
+        border: Border(bottom: BorderSide(color: UmColors.ink, width: 2)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: SingleChildScrollView(
@@ -309,11 +311,7 @@ class _EmptyListingsBox extends StatelessWidget {
         border: Border.all(color: UmColors.ink, width: 2),
         borderRadius: BorderRadius.circular(8),
         boxShadow: const [
-          BoxShadow(
-            color: UmColors.ink,
-            offset: UmShadows.card,
-            blurRadius: 0,
-          ),
+          BoxShadow(color: UmColors.ink, offset: UmShadows.card, blurRadius: 0),
         ],
       ),
       child: Column(
@@ -353,9 +351,8 @@ class _EmptyListingsBox extends StatelessWidget {
           Text(
             'You haven\'t listed anything yet.',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: UmColors.mutedForeground,
-                ),
+            style: Theme.of(context).textTheme.bodyMedium
+                ?.copyWith(color: UmColors.mutedForeground),
           ),
           if (onSellRequested != null) ...[
             const SizedBox(height: 16),
@@ -435,18 +432,16 @@ class _MyListingRow extends StatelessWidget {
                     listing.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
+                    style: Theme.of(context).textTheme.titleLarge
                         ?.copyWith(fontSize: 15),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     listing.condition,
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          fontSize: 11.5,
-                          color: UmColors.mutedForeground,
-                        ),
+                      fontSize: 11.5,
+                      color: UmColors.mutedForeground,
+                    ),
                   ),
                   const SizedBox(height: 3),
                   Text(

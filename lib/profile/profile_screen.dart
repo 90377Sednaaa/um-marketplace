@@ -78,8 +78,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 12),
             _MyListingsRow(
-              listingsStream:
-                  widget.listingsStore.myListingsStream(widget.member.uid),
+              listingsStream: widget.listingsStore.myListingsStream(
+                widget.member.uid,
+              ),
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
                   builder: (_) => MyListingsScreen(
@@ -278,10 +279,7 @@ class _RatingCard extends StatelessWidget {
 }
 
 class _MyListingsRow extends StatelessWidget {
-  const _MyListingsRow({
-    required this.onTap,
-    required this.listingsStream,
-  });
+  const _MyListingsRow({required this.onTap, required this.listingsStream});
 
   final VoidCallback onTap;
   final Stream<List<Listing>> listingsStream;
@@ -306,11 +304,7 @@ class _MyListingsRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(
-              LucideIcons.package500,
-              size: 22,
-              color: UmColors.ink,
-            ),
+            const Icon(LucideIcons.package500, size: 22, color: UmColors.ink),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -340,8 +334,10 @@ class _MyListingsRow extends StatelessWidget {
                         );
                       }
                       final activeCount = listings
-                          .where((l) =>
-                              l.status != 'sold' && l.status != 'cancelled')
+                          .where(
+                            (l) =>
+                                l.status != 'sold' && l.status != 'cancelled',
+                          )
                           .length;
                       return Text(
                         '$activeCount active · ${listings.length} total',
@@ -363,12 +359,16 @@ class _MyListingsRow extends StatelessWidget {
                 final activeCount = listings == null
                     ? 0
                     : listings
-                        .where((l) =>
-                            l.status != 'sold' && l.status != 'cancelled')
-                        .length;
+                          .where(
+                            (l) =>
+                                l.status != 'sold' && l.status != 'cancelled',
+                          )
+                          .length;
                 return Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: activeCount > 0 ? UmColors.gold : UmColors.muted,
                     border: Border.all(color: UmColors.ink, width: 1.5),
