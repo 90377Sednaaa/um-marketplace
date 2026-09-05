@@ -349,9 +349,7 @@ class _FilterSegment extends StatelessWidget {
                 fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
                 fontSize: 11.5,
                 letterSpacing: 0.5,
-                color: selected
-                    ? UmColors.ink
-                    : UmColors.mutedForeground,
+                color: selected ? UmColors.ink : UmColors.mutedForeground,
               ),
             ),
           ),
