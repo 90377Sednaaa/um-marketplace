@@ -4409,49 +4409,55 @@ void main() {
   });
 
   group('BrutalPageRoute and BrutalPageTransitionsBuilder transitions', () {
-    test('BrutalPageRoute duration parameters match DESIGN.md motion tokens', () {
-      final route = BrutalPageRoute<void>(builder: (_) => const SizedBox());
-      expect(route.transitionDuration, const Duration(milliseconds: 180));
-      expect(route.reverseTransitionDuration, const Duration(milliseconds: 150));
-    });
+    test(
+      'BrutalPageRoute duration parameters match DESIGN.md motion tokens',
+      () {
+        final route = BrutalPageRoute<void>(builder: (_) => const SizedBox());
+        expect(route.transitionDuration, const Duration(milliseconds: 180));
+        expect(
+          route.reverseTransitionDuration,
+          const Duration(milliseconds: 150),
+        );
+      },
+    );
 
-    testWidgets('BrutalPageRoute animates with RepaintBoundary and finishes cleanly', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Builder(
-            builder: (context) => Scaffold(
-              body: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    BrutalPageRoute<void>(
-                      builder: (_) => const Scaffold(
-                        body: Text('Destination Screen'),
+    testWidgets(
+      'BrutalPageRoute animates with RepaintBoundary and finishes cleanly',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      BrutalPageRoute<void>(
+                        builder: (_) =>
+                            const Scaffold(body: Text('Destination Screen')),
                       ),
-                    ),
-                  );
-                },
-                child: const Text('Go'),
+                    );
+                  },
+                  child: const Text('Go'),
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.tap(find.text('Go'));
-      await tester.pump(); // Start navigation
+        await tester.tap(find.text('Go'));
+        await tester.pump(); // Start navigation
 
-      // Mid-animation: RepaintBoundary and transitions should be present
-      await tester.pump(const Duration(milliseconds: 90));
-      expect(find.byType(RepaintBoundary), findsWidgets);
-      expect(find.byType(SlideTransition), findsWidgets);
-      expect(find.byType(FadeTransition), findsWidgets);
+        // Mid-animation: RepaintBoundary and transitions should be present
+        await tester.pump(const Duration(milliseconds: 90));
+        expect(find.byType(RepaintBoundary), findsWidgets);
+        expect(find.byType(SlideTransition), findsWidgets);
+        expect(find.byType(FadeTransition), findsWidgets);
 
-      // Settle animation
-      await tester.pumpAndSettle();
-      expect(find.text('Destination Screen'), findsOneWidget);
-    });
+        // Settle animation
+        await tester.pumpAndSettle();
+        expect(find.text('Destination Screen'), findsOneWidget);
+      },
+    );
 
     testWidgets('Reduced motion bypasses slide and fade transitions', (
       WidgetTester tester,
@@ -4466,9 +4472,8 @@ void main() {
                   onPressed: () {
                     Navigator.of(context).push(
                       BrutalPageRoute<void>(
-                        builder: (_) => const Scaffold(
-                          body: Text('Accessible Screen'),
-                        ),
+                        builder: (_) =>
+                            const Scaffold(body: Text('Accessible Screen')),
                       ),
                     );
                   },
@@ -4489,4 +4494,3 @@ void main() {
     });
   });
 }
-

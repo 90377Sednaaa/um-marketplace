@@ -41,7 +41,8 @@ class ModerationScreen extends StatelessWidget {
     final ok = await showBrutalConfirmDialog(
       context,
       title: 'Hide this listing?',
-      body: 'The listing will be removed from the marketplace and the report '
+      body:
+          'The listing will be removed from the marketplace and the report '
           'will be cleared. This hides the content but does not ban the user.',
       confirmLabel: 'Hide listing',
     );
@@ -71,7 +72,8 @@ class ModerationScreen extends StatelessWidget {
     final ok = await showBrutalConfirmDialog(
       context,
       title: 'Dismiss this report?',
-      body: 'Mark this report as spam or not actionable. The listing stays '
+      body:
+          'Mark this report as spam or not actionable. The listing stays '
           'and the report will be cleared without hiding or banning.',
       confirmLabel: 'Dismiss',
       isDestructive: false,
@@ -95,15 +97,19 @@ class ModerationScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _banMember(BuildContext context, Report report,
-      {bool confirm = true}) async {
+  Future<void> _banMember(
+    BuildContext context,
+    Report report, {
+    bool confirm = true,
+  }) async {
     final uid = report.reportedUid;
     if (uid == null) return;
     if (confirm) {
       final ok = await showBrutalConfirmDialog(
         context,
         title: 'Ban this member?',
-        body: 'Their account loses access and their listings leave the '
+        body:
+            'Their account loses access and their listings leave the '
             'marketplace. This can be undone from member lookup.',
         confirmLabel: 'Ban user',
       );
@@ -196,8 +202,7 @@ class ModerationScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
                             color: UmColors.surface,
-                            border:
-                                Border.all(color: UmColors.ink, width: 2),
+                            border: Border.all(color: UmColors.ink, width: 2),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Column(
@@ -229,12 +234,13 @@ class ModerationScreen extends StatelessWidget {
                                     ? () => _hideListing(context, report)
                                     : null,
                                 onBan: report.reportedUid != null
-                                    ? () =>
-                                        _banMember(context, report)
+                                    ? () => _banMember(context, report)
                                     : null,
                                 onView: report.listingId != null
                                     ? () => _viewListing(
-                                        context, report.listingId!)
+                                        context,
+                                        report.listingId!,
+                                      )
                                     : null,
                                 onDismiss: () =>
                                     _dismissReport(context, report),
@@ -304,9 +310,7 @@ class _ReportCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   report.reason,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
+                  style: Theme.of(context).textTheme.titleLarge
                       ?.copyWith(fontSize: 15),
                 ),
               ),
@@ -314,18 +318,17 @@ class _ReportCard extends StatelessWidget {
                 Text(
                   formatRelativeTime(report.createdAt!),
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: UmColors.mutedForeground,
-                        fontSize: 11.5,
-                      ),
+                    color: UmColors.mutedForeground,
+                    fontSize: 11.5,
+                  ),
                 ),
             ],
           ),
           const SizedBox(height: 6),
           Text(
             target,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: UmColors.mutedForeground,
-                ),
+            style: Theme.of(context).textTheme.labelMedium
+                ?.copyWith(color: UmColors.mutedForeground),
           ),
           const SizedBox(height: 2),
           StreamBuilder<Member?>(
@@ -333,10 +336,8 @@ class _ReportCard extends StatelessWidget {
             builder: (context, snapshot) {
               return Text(
                 'Reported by ${snapshot.data?.displayName ?? report.reporterId}',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: UmColors.mutedForeground,
-                      fontSize: 12,
-                    ),
+                style: Theme.of(context).textTheme.labelMedium
+                    ?.copyWith(color: UmColors.mutedForeground, fontSize: 12),
               );
             },
           ),
@@ -462,10 +463,7 @@ class _ActionPillState extends State<_ActionPill> {
 }
 
 class _MemberSearch extends StatefulWidget {
-  const _MemberSearch({
-    required this.memberStore,
-    required this.listingsStore,
-  });
+  const _MemberSearch({required this.memberStore, required this.listingsStore});
 
   final MemberStore memberStore;
   final ListingStore listingsStore;
@@ -497,8 +495,10 @@ class _MemberSearchState extends State<_MemberSearch> {
             prefixIcon: const Icon(LucideIcons.search500, color: UmColors.ink),
             filled: true,
             fillColor: UmColors.surface,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 12,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: UmColors.ink, width: 2),
@@ -518,8 +518,10 @@ class _MemberSearchState extends State<_MemberSearch> {
                 return const Padding(
                   padding: EdgeInsets.only(top: 12),
                   child: Center(
-                    child: Text('Searching…',
-                        style: TextStyle(color: UmColors.mutedForeground)),
+                    child: Text(
+                      'Searching…',
+                      style: TextStyle(color: UmColors.mutedForeground),
+                    ),
                   ),
                 );
               }
@@ -529,9 +531,7 @@ class _MemberSearchState extends State<_MemberSearch> {
                   child: Center(
                     child: Text(
                       'No members match.',
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelMedium
+                      style: Theme.of(context).textTheme.labelMedium
                           ?.copyWith(color: UmColors.mutedForeground),
                     ),
                   ),
@@ -583,7 +583,8 @@ class _MemberRowState extends State<_MemberRow> {
       final ok = await showBrutalConfirmDialog(
         context,
         title: 'Ban this member?',
-        body: '${_member.displayName}\'s account loses access and their '
+        body:
+            '${_member.displayName}\'s account loses access and their '
             'listings leave the marketplace. This can be undone from '
             'this lookup.',
         confirmLabel: 'Ban user',
@@ -664,10 +665,8 @@ class _MemberRowState extends State<_MemberRow> {
                 if (_member.banned)
                   Text(
                     'Banned',
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: UmColors.destructive,
-                          fontSize: 11.5,
-                        ),
+                    style: Theme.of(context).textTheme.labelMedium
+                        ?.copyWith(color: UmColors.destructive, fontSize: 11.5),
                   ),
               ],
             ),

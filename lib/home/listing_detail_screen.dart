@@ -111,17 +111,19 @@ class ListingDetailScreen extends StatelessWidget {
       return;
     }
     if (!context.mounted) return;
-    Navigator.of(context).push(BrutalPageRoute<void>(
-      builder: (_) => ChatThreadScreen(
-        chat: chat,
-        viewerUid: viewerId,
-        chatStore: chatStore,
-        memberStore: memberStore,
-        listingsStore: listingsStore,
-        ratingStore: ratingStore,
-        reportStore: reportStore,
+    Navigator.of(context).push(
+      BrutalPageRoute<void>(
+        builder: (_) => ChatThreadScreen(
+          chat: chat,
+          viewerUid: viewerId,
+          chatStore: chatStore,
+          memberStore: memberStore,
+          listingsStore: listingsStore,
+          ratingStore: ratingStore,
+          reportStore: reportStore,
+        ),
       ),
-    ));
+    );
   }
 
   Future<void> _makeOffer(BuildContext context) async {
@@ -166,17 +168,19 @@ class ListingDetailScreen extends StatelessWidget {
       return;
     }
     if (!context.mounted) return;
-    Navigator.of(context).push(BrutalPageRoute<void>(
-      builder: (_) => ChatThreadScreen(
-        chat: chat,
-        viewerUid: viewerId,
-        chatStore: chatStore,
-        memberStore: memberStore,
-        listingsStore: listingsStore,
-        ratingStore: ratingStore,
-        reportStore: reportStore,
+    Navigator.of(context).push(
+      BrutalPageRoute<void>(
+        builder: (_) => ChatThreadScreen(
+          chat: chat,
+          viewerUid: viewerId,
+          chatStore: chatStore,
+          memberStore: memberStore,
+          listingsStore: listingsStore,
+          ratingStore: ratingStore,
+          reportStore: reportStore,
+        ),
       ),
-    ));
+    );
   }
 
   @override
@@ -195,10 +199,7 @@ class ListingDetailScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   _ListingBody(listing: listing),
                   const SizedBox(height: 16),
-                  _SellerStrip(
-                    listing: listing,
-                    ratingStore: ratingStore,
-                  ),
+                  _SellerStrip(listing: listing, ratingStore: ratingStore),
                   const SizedBox(height: 16),
                   const _SafetyTips(),
                 ],
@@ -284,11 +285,7 @@ class _PhotoHeroState extends State<_PhotoHero> {
           border: Border.all(color: UmColors.ink, width: 2),
           borderRadius: BorderRadius.circular(12),
           boxShadow: const [
-            BoxShadow(
-              color: UmColors.ink,
-              offset: Offset(4, 4),
-              blurRadius: 0,
-            ),
+            BoxShadow(color: UmColors.ink, offset: Offset(4, 4), blurRadius: 0),
           ],
         ),
         child: Stack(
@@ -332,52 +329,59 @@ class _PhotoHeroState extends State<_PhotoHero> {
                   return true;
                 },
                 onPressed: (index) => _openFullscreen(index),
-                cardBuilder: (context, index, horizontalPercentage,
-                    verticalPercentage) {
-                  // Brutal card: ink border + 8dp radius, image cover.
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: UmColors.surface,
-                      border: Border.all(color: UmColors.ink, width: 2),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: UmColors.ink,
-                          offset: Offset(3, 3),
-                          blurRadius: 0,
-                        ),
-                      ],
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.memory(
-                          photos[index],
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) =>
-                              const PhotoPlaceholder(),
-                        ),
-                        // Tap hint — subtle eye icon bottom-right.
-                        Positioned(
-                          bottom: 8,
-                          right: 8,
-                          child: Container(
-                            padding: const EdgeInsets.all(5),
-                            decoration: BoxDecoration(
-                              color: UmColors.surface.withValues(alpha: 0.92),
-                              border:
-                                  Border.all(color: UmColors.ink, width: 1.5),
-                              shape: BoxShape.circle,
+                cardBuilder:
+                    (context, index, horizontalPercentage, verticalPercentage) {
+                      // Brutal card: ink border + 8dp radius, image cover.
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: UmColors.surface,
+                          border: Border.all(color: UmColors.ink, width: 2),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: UmColors.ink,
+                              offset: Offset(3, 3),
+                              blurRadius: 0,
                             ),
-                            child: const Icon(LucideIcons.expand500,
-                                size: 14, color: UmColors.ink),
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
-                  );
-                },
+                        clipBehavior: Clip.antiAlias,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.memory(
+                              photos[index],
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) =>
+                                  const PhotoPlaceholder(),
+                            ),
+                            // Tap hint — subtle eye icon bottom-right.
+                            Positioned(
+                              bottom: 8,
+                              right: 8,
+                              child: Container(
+                                padding: const EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  color: UmColors.surface.withValues(
+                                    alpha: 0.92,
+                                  ),
+                                  border: Border.all(
+                                    color: UmColors.ink,
+                                    width: 1.5,
+                                  ),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  LucideIcons.expand500,
+                                  size: 14,
+                                  color: UmColors.ink,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
               ),
             // Dots for 2-image listings — stay readable over swiper.
             if (photos.length > 1)
@@ -394,10 +398,8 @@ class _PhotoHeroState extends State<_PhotoHero> {
                         width: 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color:
-                              i == _index ? UmColors.gold : UmColors.surface,
-                          border:
-                              Border.all(color: UmColors.ink, width: 1.5),
+                          color: i == _index ? UmColors.gold : UmColors.surface,
+                          border: Border.all(color: UmColors.ink, width: 1.5),
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -409,8 +411,10 @@ class _PhotoHeroState extends State<_PhotoHero> {
                 top: 10,
                 right: 10,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: UmColors.surface,
                     border: Border.all(color: UmColors.ink, width: 2),
@@ -434,7 +438,9 @@ class _PhotoHeroState extends State<_PhotoHero> {
                   angle: -0.035,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: UmColors.gold,
                       border: Border.all(color: UmColors.ink, width: 2),
@@ -460,8 +466,7 @@ class _PhotoHeroState extends State<_PhotoHero> {
 }
 
 class _FullscreenGallery extends StatefulWidget {
-  const _FullscreenGallery(
-      {required this.photos, required this.initialIndex});
+  const _FullscreenGallery({required this.photos, required this.initialIndex});
 
   final List<Uint8List> photos;
   final int initialIndex;
@@ -530,8 +535,7 @@ class _FullscreenGalleryState extends State<_FullscreenGallery> {
             top: 40,
             right: 16,
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 color: UmColors.ink,
                 borderRadius: BorderRadius.circular(999),
@@ -539,7 +543,9 @@ class _FullscreenGalleryState extends State<_FullscreenGallery> {
               child: Text(
                 '${_index + 1}/${widget.photos.length}',
                 style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w700),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ),
@@ -589,7 +595,10 @@ class _ListingBody extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             boxShadow: const [
               BoxShadow(
-                  color: UmColors.ink, offset: Offset(4, 4), blurRadius: 0),
+                color: UmColors.ink,
+                offset: Offset(4, 4),
+                blurRadius: 0,
+              ),
             ],
           ),
           child: Column(
@@ -614,7 +623,9 @@ class _ListingBody extends StatelessWidget {
                     Container(
                       margin: const EdgeInsets.only(left: 8, bottom: 4),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 9, vertical: 4),
+                        horizontal: 9,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: UmColors.goldSoft,
                         border: Border.all(color: UmColors.ink, width: 1.5),
@@ -652,18 +663,25 @@ class _ListingBody extends StatelessWidget {
                   if (listing.location?.isNotEmpty ?? false)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: UmColors.surface,
                         border: Border.all(
-                            color: UmColors.ink.withValues(alpha: 0.6), width: 1.2),
+                          color: UmColors.ink.withValues(alpha: 0.6),
+                          width: 1.2,
+                        ),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(LucideIcons.mapPin500,
-                              size: 12, color: UmColors.mutedForeground),
+                          const Icon(
+                            LucideIcons.mapPin500,
+                            size: 12,
+                            color: UmColors.mutedForeground,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             listing.location!,
@@ -690,7 +708,10 @@ class _ListingBody extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             boxShadow: const [
               BoxShadow(
-                  color: UmColors.ink, offset: Offset(4, 4), blurRadius: 0),
+                color: UmColors.ink,
+                offset: Offset(4, 4),
+                blurRadius: 0,
+              ),
             ],
           ),
           child: Column(
@@ -706,16 +727,21 @@ class _ListingBody extends StatelessWidget {
                       border: Border.all(color: UmColors.ink, width: 1.5),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Icon(LucideIcons.fileText500,
-                        size: 16, color: UmColors.ink),
+                    child: const Icon(
+                      LucideIcons.fileText500,
+                      size: 16,
+                      color: UmColors.ink,
+                    ),
                   ),
                   const SizedBox(width: 8),
-                  Text('Details',
-                      style: GoogleFonts.spaceGrotesk(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 15,
-                        color: UmColors.onSurface,
-                      )),
+                  Text(
+                    'Details',
+                    style: GoogleFonts.spaceGrotesk(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                      color: UmColors.onSurface,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 10),
@@ -792,11 +818,7 @@ class _SellerStrip extends StatelessWidget {
         border: Border.all(color: UmColors.ink, width: 2),
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
-          BoxShadow(
-            color: UmColors.ink,
-            offset: Offset(4, 4),
-            blurRadius: 0,
-          ),
+          BoxShadow(color: UmColors.ink, offset: Offset(4, 4), blurRadius: 0),
         ],
       ),
       child: Column(
@@ -818,8 +840,9 @@ class _SellerStrip extends StatelessWidget {
                   style: GoogleFonts.spaceGrotesk(
                     fontWeight: FontWeight.w800,
                     fontSize: 15,
-                    color:
-                        name.isEmpty ? UmColors.mutedForeground : UmColors.ink,
+                    color: name.isEmpty
+                        ? UmColors.mutedForeground
+                        : UmColors.ink,
                   ),
                 ),
               ),
@@ -851,7 +874,9 @@ class _SellerStrip extends StatelessWidget {
                         return Row(
                           children: [
                             Icon(
-                              hasRatings ? LucideIcons.star500 : LucideIcons.star500,
+                              hasRatings
+                                  ? LucideIcons.star500
+                                  : LucideIcons.star500,
                               size: 13,
                               color: hasRatings
                                   ? UmColors.gold
@@ -897,8 +922,11 @@ class _SellerStrip extends StatelessWidget {
                     color: UmColors.gold,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(LucideIcons.badgeCheck500,
-                      size: 12, color: UmColors.ink),
+                  child: const Icon(
+                    LucideIcons.badgeCheck500,
+                    size: 12,
+                    color: UmColors.ink,
+                  ),
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -930,11 +958,7 @@ class _SafetyTips extends StatelessWidget {
         border: Border.all(color: UmColors.ink, width: 2),
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
-          BoxShadow(
-            color: UmColors.ink,
-            offset: Offset(4, 4),
-            blurRadius: 0,
-          ),
+          BoxShadow(color: UmColors.ink, offset: Offset(4, 4), blurRadius: 0),
         ],
       ),
       child: Column(
@@ -950,8 +974,11 @@ class _SafetyTips extends StatelessWidget {
                   border: Border.all(color: UmColors.ink, width: 1.5),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Icon(LucideIcons.shield500,
-                    size: 16, color: UmColors.onPrimary),
+                child: const Icon(
+                  LucideIcons.shield500,
+                  size: 16,
+                  color: UmColors.onPrimary,
+                ),
               ),
               const SizedBox(width: 8),
               Text(

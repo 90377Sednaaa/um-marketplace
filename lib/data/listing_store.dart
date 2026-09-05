@@ -231,7 +231,7 @@ abstract interface class ListingStore {
 
 class FirestoreListingsStore implements ListingStore {
   FirestoreListingsStore({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
 
@@ -243,9 +243,11 @@ class FirestoreListingsStore implements ListingStore {
         .orderBy('createdAt', descending: true)
         .limit(limit)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Listing.fromDoc(doc.id, doc.data()))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Listing.fromDoc(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   @override
@@ -254,9 +256,11 @@ class FirestoreListingsStore implements ListingStore {
         .collection('listings')
         .doc(id)
         .snapshots()
-        .map((snapshot) => snapshot.exists
-            ? Listing.fromDoc(snapshot.id, snapshot.data()!)
-            : null);
+        .map(
+          (snapshot) => snapshot.exists
+              ? Listing.fromDoc(snapshot.id, snapshot.data()!)
+              : null,
+        );
   }
 
   @override
@@ -267,9 +271,11 @@ class FirestoreListingsStore implements ListingStore {
         .orderBy('createdAt', descending: true)
         .limit(50)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Listing.fromDoc(doc.id, doc.data()))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Listing.fromDoc(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   @override

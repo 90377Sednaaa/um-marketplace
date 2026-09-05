@@ -60,10 +60,7 @@ Widget buildBrutalPageTransitions(
   ).animate(curvedAnimation);
 
   // Smooth opacity fade
-  final fadeIn = Tween<double>(
-    begin: 0.0,
-    end: 1.0,
-  ).animate(curvedAnimation);
+  final fadeIn = Tween<double>(begin: 0.0, end: 1.0).animate(curvedAnimation);
 
   // Subtle exit dim for route underneath without expensive transforms
   final secondaryCurved = CurvedAnimation(
@@ -81,10 +78,7 @@ Widget buildBrutalPageTransitions(
       position: slideIn,
       child: FadeTransition(
         opacity: fadeIn,
-        child: FadeTransition(
-          opacity: secondaryFade,
-          child: child,
-        ),
+        child: FadeTransition(opacity: secondaryFade, child: child),
       ),
     ),
   );
@@ -99,17 +93,17 @@ class BrutalPageRoute<T> extends PageRouteBuilder<T> {
     super.maintainState = true,
     super.fullscreenDialog = false,
   }) : super(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              builder(context),
-          transitionDuration: const Duration(milliseconds: 180),
-          reverseTransitionDuration: const Duration(milliseconds: 150),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return buildBrutalPageTransitions(
-              context,
-              animation,
-              secondaryAnimation,
-              child,
-            );
-          },
-        );
+         pageBuilder: (context, animation, secondaryAnimation) =>
+             builder(context),
+         transitionDuration: const Duration(milliseconds: 180),
+         reverseTransitionDuration: const Duration(milliseconds: 150),
+         transitionsBuilder: (context, animation, secondaryAnimation, child) {
+           return buildBrutalPageTransitions(
+             context,
+             animation,
+             secondaryAnimation,
+             child,
+           );
+         },
+       );
 }

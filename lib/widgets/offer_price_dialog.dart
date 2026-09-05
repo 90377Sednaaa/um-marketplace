@@ -71,37 +71,36 @@ class _OfferPriceDialogState extends State<_OfferPriceDialog> {
             Text(
               'Your offer lands on the thread as an offer message. '
               'No money moves in the app.',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
+              style: Theme.of(context).textTheme.bodyMedium
                   ?.copyWith(color: UmColors.mutedForeground),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _controller,
               autofocus: true,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: InputDecoration(
                 hintText: 'e.g. 250',
                 errorText: _error,
                 filled: true,
                 fillColor: UmColors.surface,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color:
-                        _error == null ? UmColors.ink : UmColors.destructive,
+                    color: _error == null ? UmColors.ink : UmColors.destructive,
                     width: 2,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(
-                    color:
-                        _error == null ? UmColors.ink : UmColors.destructive,
+                    color: _error == null ? UmColors.ink : UmColors.destructive,
                     width: 2,
                   ),
                 ),

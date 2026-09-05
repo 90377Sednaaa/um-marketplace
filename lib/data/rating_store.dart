@@ -68,7 +68,7 @@ abstract interface class RatingStore {
 
 class FirestoreRatingStore implements RatingStore {
   FirestoreRatingStore({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
 
@@ -79,9 +79,11 @@ class FirestoreRatingStore implements RatingStore {
         .where('rateeId', isEqualTo: rateeId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Rating.fromDoc(doc.id, doc.data()))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Rating.fromDoc(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   @override
@@ -101,10 +103,7 @@ class FirestoreRatingStore implements RatingStore {
     required String rateeId,
     required int stars,
   }) async {
-    await _firestore
-        .collection('ratings')
-        .doc('${listingId}_$raterId')
-        .set({
+    await _firestore.collection('ratings').doc('${listingId}_$raterId').set({
       'listingId': listingId,
       'raterId': raterId,
       'rateeId': rateeId,

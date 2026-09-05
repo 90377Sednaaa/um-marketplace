@@ -49,7 +49,8 @@ abstract interface class AuthService {
 /// runs Google Workspace, so a Google account *is* proof of inbox
 /// ownership — no verification code needed. The format gate still applies.
 class FirebaseAuthService implements AuthService {
-  FirebaseAuthService({FirebaseAuth? auth}) : _auth = auth ?? FirebaseAuth.instance;
+  FirebaseAuthService({FirebaseAuth? auth})
+    : _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseAuth _auth;
 
@@ -58,10 +59,9 @@ class FirebaseAuthService implements AuthService {
   /// google_sign_in v7 requires `initialize` exactly once, awaited before
   /// any other call on the plugin. In debug (qa/bypass) the hostedDomain
   /// gate is lifted so any Gmail can QA without a UM Workspace account.
-  Future<void> _ensureGoogleInitialized() =>
-      _googleInit ??= GoogleSignIn.instance.initialize(
-        hostedDomain: kDebugMode ? null : umDomain,
-      );
+  Future<void> _ensureGoogleInitialized() => _googleInit ??= GoogleSignIn
+      .instance
+      .initialize(hostedDomain: kDebugMode ? null : umDomain);
 
   @override
   Stream<AuthUser?> get userChanges =>
@@ -118,10 +118,6 @@ class FirebaseAuthService implements AuthService {
     final displayName = isValidUmStudentEmail(email)
         ? (googleName.isNotEmpty ? googleName : fallbackFromEmail)
         : (googleName.isNotEmpty ? googleName : email);
-    return AuthUser(
-      uid: user.uid,
-      email: email,
-      displayName: displayName,
-    );
+    return AuthUser(uid: user.uid, email: email, displayName: displayName);
   }
 }

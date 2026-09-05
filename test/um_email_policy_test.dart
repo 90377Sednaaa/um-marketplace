@@ -24,7 +24,10 @@ void main() {
 
     test('rejects wrong ID segment lengths', () {
       // 5 digits and 7 digits — the segment is exactly 6 (ADR 0001).
-      expect(isValidUmStudentEmail('l.murillo.54684@umindanao.edu.ph'), isFalse);
+      expect(
+        isValidUmStudentEmail('l.murillo.54684@umindanao.edu.ph'),
+        isFalse,
+      );
       expect(
         isValidUmStudentEmail('l.murillo.5468421@umindanao.edu.ph'),
         isFalse,
@@ -38,7 +41,10 @@ void main() {
 
     test('rejects malformed addresses', () {
       expect(isValidUmStudentEmail(''), isFalse);
-      expect(isValidUmStudentEmail('l.murillo.abc546@umindanao.edu.ph'), isFalse);
+      expect(
+        isValidUmStudentEmail('l.murillo.abc546@umindanao.edu.ph'),
+        isFalse,
+      );
       expect(
         isValidUmStudentEmail('lean.murillo.546842@umindanao.edu.ph'),
         isFalse, // "lean" is not a single initial.

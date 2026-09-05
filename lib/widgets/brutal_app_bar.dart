@@ -36,11 +36,7 @@ class BrutalAppBar extends StatelessWidget {
         color: UmColors.primary,
         border: Border(bottom: BorderSide(color: UmColors.ink, width: 3)),
         boxShadow: [
-          BoxShadow(
-            color: UmColors.ink,
-            offset: Offset(0, 4),
-            blurRadius: 0,
-          ),
+          BoxShadow(color: UmColors.ink, offset: Offset(0, 4), blurRadius: 0),
         ],
       ),
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
@@ -86,8 +82,10 @@ class BrutalAppBar extends StatelessWidget {
                 if (subtitle != null) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: UmColors.surface,
                       border: Border.all(color: UmColors.ink, width: 1.5),

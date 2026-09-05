@@ -29,12 +29,10 @@ class _BrutalShimmerState extends State<BrutalShimmer>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: widget.duration,
+    _controller = AnimationController(vsync: this, duration: widget.duration);
+    final isTest = WidgetsBinding.instance.runtimeType.toString().contains(
+      'Test',
     );
-    final isTest =
-        WidgetsBinding.instance.runtimeType.toString().contains('Test');
     if (isTest) {
       _controller.forward();
     } else {
@@ -109,10 +107,7 @@ class BrutalSkeletonBox extends StatelessWidget {
         color: color,
         borderRadius: borderRadius,
         border: hasBorder
-            ? Border.all(
-                color: borderColor,
-                width: borderWidth,
-              )
+            ? Border.all(color: borderColor, width: borderWidth)
             : null,
       ),
       child: child,

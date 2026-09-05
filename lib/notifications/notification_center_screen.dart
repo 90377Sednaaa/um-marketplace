@@ -73,8 +73,9 @@ class NotificationCenterScreen extends StatelessWidget {
                             notification: notification,
                             onTap: notification.read
                                 ? null
-                                : () =>
-                                    notificationStore.markRead(notification.id),
+                                : () => notificationStore.markRead(
+                                    notification.id,
+                                  ),
                           ),
                         ),
                     ],
@@ -113,11 +114,7 @@ class _NotificationRow extends StatelessWidget {
           border: Border.all(color: UmColors.ink, width: 2),
           borderRadius: BorderRadius.circular(8),
           boxShadow: const [
-            BoxShadow(
-              color: UmColors.ink,
-              offset: Offset(3, 3),
-              blurRadius: 0,
-            ),
+            BoxShadow(color: UmColors.ink, offset: Offset(3, 3), blurRadius: 0),
           ],
         ),
         child: Row(
@@ -143,27 +140,25 @@ class _NotificationRow extends StatelessWidget {
                 children: [
                   Text(
                     notification.title,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
+                    style: Theme.of(context).textTheme.titleLarge
                         ?.copyWith(fontSize: 14.5),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     notification.body,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: UmColors.mutedForeground,
-                          fontSize: 13,
-                        ),
+                      color: UmColors.mutedForeground,
+                      fontSize: 13,
+                    ),
                   ),
                   if (notification.createdAt != null) ...[
                     const SizedBox(height: 6),
                     Text(
                       formatRelativeTime(notification.createdAt!),
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: UmColors.mutedForeground,
-                            fontSize: 11,
-                          ),
+                        color: UmColors.mutedForeground,
+                        fontSize: 11,
+                      ),
                     ),
                   ],
                 ],
@@ -176,7 +171,9 @@ class _NotificationRow extends StatelessWidget {
                 angle: -0.035,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 4),
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: UmColors.gold,
                     border: Border.all(color: UmColors.ink, width: 2),

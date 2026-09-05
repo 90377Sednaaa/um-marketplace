@@ -175,7 +175,7 @@ abstract interface class ChatStore {
 
 class FirestoreChatStore implements ChatStore {
   FirestoreChatStore({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
 
@@ -237,9 +237,11 @@ class FirestoreChatStore implements ChatStore {
         .collection('messages')
         .orderBy('createdAt')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ChatMessage.fromDoc(doc.id, doc.data()))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => ChatMessage.fromDoc(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   @override
@@ -269,8 +271,10 @@ class FirestoreChatStore implements ChatStore {
       if (e.code == 'permission-denied') {
         // Rules see a blocked pair or a non-active listing. Distinguish
         // deterministically (spec §2.4): re-read the listing.
-        final listingSnap =
-            await _firestore.collection('listings').doc(listing.id).get();
+        final listingSnap = await _firestore
+            .collection('listings')
+            .doc(listing.id)
+            .get();
         final status = listingSnap.data()?['status'];
         if (status != null && status != 'active') {
           throw const ChatOpenException(ChatOpenFailure.listingInactive);
@@ -302,8 +306,13 @@ class FirestoreChatStore implements ChatStore {
 
   /// Batch: message doc + chat-doc bookkeeping, both-or-neither. The
   /// participants map is copied exactly from [chat] (rule line 201).
-  Future<void> _send(Chat chat, String senderId, String type, String text,
-      {double? price}) async {
+  Future<void> _send(
+    Chat chat,
+    String senderId,
+    String type,
+    String text, {
+    double? price,
+  }) async {
     final batch = _firestore.batch();
     batch.set(
       _firestore.collection('chats').doc(chat.id).collection('messages').doc(),
@@ -312,26 +321,23 @@ class FirestoreChatStore implements ChatStore {
         'type': type,
         'text': text,
         'price': ?price,
-        'participants': {
-          for (final uid in chat.participants) uid: true,
-        },
+        'participants': {for (final uid in chat.participants) uid: true},
         'createdAt': FieldValue.serverTimestamp(),
       },
     );
-    batch.update(
-      _firestore.collection('chats').doc(chat.id),
-      {
-        'lastMessageAt': FieldValue.serverTimestamp(),
-        'lastMessagePreview': chatPreview(ChatMessage(
+    batch.update(_firestore.collection('chats').doc(chat.id), {
+      'lastMessageAt': FieldValue.serverTimestamp(),
+      'lastMessagePreview': chatPreview(
+        ChatMessage(
           id: '',
           senderId: senderId,
           type: type,
           text: text,
           price: price,
-        )),
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-    );
+        ),
+      ),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
     try {
       await batch.commit();
     } on FirebaseException {

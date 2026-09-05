@@ -166,14 +166,19 @@ class ChatThreadScreen extends StatelessWidget {
                       _Composer(
                         enabled: active,
                         onSend: (text) {
-                          if (text.trim().isNotEmpty) _send(context, text.trim());
+                          if (text.trim().isNotEmpty) {
+                            _send(context, text.trim());
+                          }
                         },
                         onOffer: active && isBuyer
                             ? () async {
-                                final price =
-                                    await showOfferPriceDialog(context);
+                                final price = await showOfferPriceDialog(
+                                  context,
+                                );
                                 if (!context.mounted) return;
-                                if (price != null) _sendOffer(context, price);
+                                if (price != null) {
+                                  _sendOffer(context, price);
+                                }
                               }
                             : null,
                       ),
@@ -202,8 +207,9 @@ class _ThreadHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final otherName =
-        viewerUid == chat.buyerId ? chat.sellerName : chat.buyerName;
+    final otherName = viewerUid == chat.buyerId
+        ? chat.sellerName
+        : chat.buyerName;
     final shownName = otherName.isEmpty ? 'Chat' : otherName;
     return Container(
       width: double.infinity,
@@ -373,7 +379,11 @@ class _MessageBubbleSkeleton extends StatelessWidget {
           border: Border.all(color: UmColors.ink, width: 2),
           borderRadius: BorderRadius.circular(8),
           boxShadow: const [
-            BoxShadow(color: UmColors.ink, offset: UmShadows.small, blurRadius: 0),
+            BoxShadow(
+              color: UmColors.ink,
+              offset: UmShadows.small,
+              blurRadius: 0,
+            ),
           ],
         ),
       ),
@@ -407,18 +417,18 @@ class _PinnedListing extends StatelessWidget {
     final VoidCallback? onTap = listing.status != 'active'
         ? null
         : () => Navigator.of(context).push(
-              BrutalPageRoute<void>(
-                builder: (_) => ListingDetailScreen(
-                  listing: listing,
-                  memberStore: memberStore,
-                  listingsStore: listingsStore,
-                  chatStore: chatStore,
-                  ratingStore: ratingStore,
-                  reportStore: reportStore,
-                  viewerId: viewerUid,
-                ),
+            BrutalPageRoute<void>(
+              builder: (_) => ListingDetailScreen(
+                listing: listing,
+                memberStore: memberStore,
+                listingsStore: listingsStore,
+                chatStore: chatStore,
+                ratingStore: ratingStore,
+                reportStore: reportStore,
+                viewerId: viewerUid,
               ),
-            );
+            ),
+          );
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -535,9 +545,7 @@ class _MessageList extends StatelessWidget {
           return Center(
             child: Text(
               'Say hi — or send an offer.',
-              style: Theme.of(context)
-                  .textTheme
-                  .labelMedium
+              style: Theme.of(context).textTheme.labelMedium
                   ?.copyWith(color: UmColors.mutedForeground),
             ),
           );
@@ -641,11 +649,7 @@ class _MessageBubble extends StatelessWidget {
 }
 
 class _Composer extends StatefulWidget {
-  const _Composer({
-    required this.enabled,
-    required this.onSend,
-    this.onOffer,
-  });
+  const _Composer({required this.enabled, required this.onSend, this.onOffer});
 
   final bool enabled;
   final ValueChanged<String> onSend;
@@ -690,8 +694,10 @@ class _ComposerState extends State<_Composer> {
                 ),
                 filled: true,
                 fillColor: UmColors.surface,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: const BorderSide(color: UmColors.ink, width: 2),
@@ -703,7 +709,9 @@ class _ComposerState extends State<_Composer> {
                 disabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: const BorderSide(
-                      color: UmColors.mutedForeground, width: 2),
+                    color: UmColors.mutedForeground,
+                    width: 2,
+                  ),
                 ),
               ),
             ),
@@ -730,8 +738,11 @@ class _ComposerState extends State<_Composer> {
                       ),
                     ],
                   ),
-                  child: const Icon(LucideIcons.handCoins500,
-                      size: 24, color: UmColors.ink),
+                  child: const Icon(
+                    LucideIcons.handCoins500,
+                    size: 24,
+                    color: UmColors.ink,
+                  ),
                 ),
               ),
             ),
@@ -823,8 +834,10 @@ class _RatingPromptState extends State<_RatingPrompt> {
   }
 
   Future<void> _load() async {
-    final mine =
-        await widget.ratingStore.myRatingFor(widget.listing.id, widget.viewerUid);
+    final mine = await widget.ratingStore.myRatingFor(
+      widget.listing.id,
+      widget.viewerUid,
+    );
     if (mounted) {
       setState(() {
         _myRating = mine;
@@ -839,8 +852,9 @@ class _RatingPromptState extends State<_RatingPrompt> {
       builder: (_) => const _RateDialog(),
     );
     if (stars == null || !mounted) return;
-    final otherUid =
-        widget.chat.participants.firstWhere((u) => u != widget.viewerUid);
+    final otherUid = widget.chat.participants.firstWhere(
+      (u) => u != widget.viewerUid,
+    );
     try {
       await widget.ratingStore.rate(
         listingId: widget.listing.id,
@@ -905,17 +919,20 @@ class _RatingPromptState extends State<_RatingPrompt> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 80),
                 margin: const EdgeInsets.only(left: 8),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
                   color: UmColors.gold,
                   border: Border.all(color: UmColors.ink, width: 2),
                   borderRadius: BorderRadius.circular(999),
                   boxShadow: const [
                     BoxShadow(
-                        color: UmColors.ink,
-                        offset: Offset(3, 3),
-                        blurRadius: 0),
+                      color: UmColors.ink,
+                      offset: Offset(3, 3),
+                      blurRadius: 0,
+                    ),
                   ],
                 ),
                 child: const Text(
@@ -970,9 +987,7 @@ class _RateDialogState extends State<_RateDialog> {
             Text(
               'One honest score for a deal that already happened in person. '
               'It becomes part of their public ★ average.',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
+              style: Theme.of(context).textTheme.bodyMedium
                   ?.copyWith(color: UmColors.mutedForeground),
             ),
             const SizedBox(height: 16),
@@ -984,7 +999,9 @@ class _RateDialogState extends State<_RateDialog> {
                     key: Key('rate-star-$star'),
                     onPressed: () => setState(() => _stars = star),
                     icon: Icon(
-                      star <= _stars ? LucideIcons.star500 : LucideIcons.star500,
+                      star <= _stars
+                          ? LucideIcons.star500
+                          : LucideIcons.star500,
                       size: 34,
                       color: star <= _stars
                           ? UmColors.gold

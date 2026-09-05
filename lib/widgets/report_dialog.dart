@@ -61,80 +61,84 @@ class _ReportDialogState extends State<_ReportDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-            Text(
-              widget.title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 20,
-                color: UmColors.onSurface,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              widget.description,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: UmColors.mutedForeground),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _controller,
-              autofocus: true,
-              maxLength: 300,
-              decoration: InputDecoration(
-                hintText: 'Reason (required)',
-                errorText: _error,
-                filled: true,
-                fillColor: UmColors.surface,
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(
-                    color: _error == null ? UmColors.ink : UmColors.destructive,
-                    width: 2,
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(
-                    color: _error == null ? UmColors.ink : UmColors.destructive,
-                    width: 2,
-                  ),
+              Text(
+                widget.title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 20,
+                  color: UmColors.onSurface,
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: NbrButton(
-                    label: 'Cancel',
-                    fill: UmColors.surface,
-                    labelColor: UmColors.ink,
-                    stretch: true,
-                    compact: true,
-                    onPressed: () => Navigator.of(context).pop(),
+              const SizedBox(height: 6),
+              Text(
+                widget.description,
+                style: Theme.of(context).textTheme.bodyMedium
+                    ?.copyWith(color: UmColors.mutedForeground),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _controller,
+                autofocus: true,
+                maxLength: 300,
+                decoration: InputDecoration(
+                  hintText: 'Reason (required)',
+                  errorText: _error,
+                  filled: true,
+                  fillColor: UmColors.surface,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: _error == null
+                          ? UmColors.ink
+                          : UmColors.destructive,
+                      width: 2,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: _error == null
+                          ? UmColors.ink
+                          : UmColors.destructive,
+                      width: 2,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: NbrButton(
-                    label: 'Submit report',
-                    fill: UmColors.gold,
-                    labelColor: UmColors.ink,
-                    stretch: true,
-                    compact: true,
-                    onPressed: _submit,
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: NbrButton(
+                      label: 'Cancel',
+                      fill: UmColors.surface,
+                      labelColor: UmColors.ink,
+                      stretch: true,
+                      compact: true,
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: NbrButton(
+                      label: 'Submit report',
+                      fill: UmColors.gold,
+                      labelColor: UmColors.ink,
+                      stretch: true,
+                      compact: true,
+                      onPressed: _submit,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 }

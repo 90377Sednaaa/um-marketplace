@@ -16,11 +16,7 @@ class ProductCardSkeleton extends StatelessWidget {
         border: Border.all(color: UmColors.ink, width: 2),
         borderRadius: BorderRadius.circular(8),
         boxShadow: const [
-          BoxShadow(
-            color: UmColors.ink,
-            offset: UmShadows.card,
-            blurRadius: 0,
-          ),
+          BoxShadow(color: UmColors.ink, offset: UmShadows.card, blurRadius: 0),
         ],
       ),
       child: BrutalShimmer(
@@ -32,9 +28,7 @@ class ProductCardSkeleton extends StatelessWidget {
               child: Container(
                 decoration: const BoxDecoration(
                   color: UmColors.muted,
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(6),
-                  ),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(6)),
                   border: Border(
                     bottom: BorderSide(color: UmColors.ink, width: 2),
                   ),

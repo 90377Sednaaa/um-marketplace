@@ -75,17 +75,15 @@ abstract interface class MemberStore {
 
 class FirestoreMemberStore implements MemberStore {
   FirestoreMemberStore({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
 
   @override
   Stream<Member?> memberChanges(String uid) {
-    return _firestore
-        .collection('members')
-        .doc(uid)
-        .snapshots()
-        .map((snapshot) {
+    return _firestore.collection('members').doc(uid).snapshots().map((
+      snapshot,
+    ) {
       final data = snapshot.data();
       return data == null ? null : Member.fromDoc(snapshot.id, data);
     });
@@ -111,8 +109,8 @@ class FirestoreMemberStore implements MemberStore {
       // to the full name without a manual backfill.
       if (existingName != authUser.displayName &&
           authUser.displayName.isNotEmpty) {
-        final isAbbreviated = RegExp(r'^[A-Z]\.\s+[A-Z][a-z]+$')
-                .hasMatch(existingName) ||
+        final isAbbreviated =
+            RegExp(r'^[A-Z]\.\s+[A-Z][a-z]+$').hasMatch(existingName) ||
             existingName.length < authUser.displayName.length;
         if (isAbbreviated) {
           try {
@@ -162,9 +160,11 @@ class FirestoreMemberStore implements MemberStore {
         .where('displayName', isLessThan: '$prefix\uf8ff')
         .limit(20)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Member.fromDoc(doc.id, doc.data()))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Member.fromDoc(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   @override

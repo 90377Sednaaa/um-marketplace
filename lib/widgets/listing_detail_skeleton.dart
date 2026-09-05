@@ -112,8 +112,9 @@ class ListingDetailSkeleton extends StatelessWidget {
                           BrutalSkeletonBox(
                             width: 44,
                             height: 44,
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(999)),
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(999),
+                            ),
                             hasBorder: true,
                           ),
                           SizedBox(width: 12),
@@ -124,15 +125,17 @@ class ListingDetailSkeleton extends StatelessWidget {
                                 BrutalSkeletonBox(
                                   height: 14,
                                   width: 120,
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(4)),
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(4),
+                                  ),
                                 ),
                                 SizedBox(height: 6),
                                 BrutalSkeletonBox(
                                   height: 12,
                                   width: 80,
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(999)),
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(999),
+                                  ),
                                 ),
                               ],
                             ),

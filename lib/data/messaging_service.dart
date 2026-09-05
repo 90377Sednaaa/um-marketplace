@@ -16,7 +16,7 @@ abstract interface class MessagingService {
 
 class FirestoreMessagingService implements MessagingService {
   FirestoreMessagingService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
@@ -32,16 +32,13 @@ class FirestoreMessagingService implements MessagingService {
         .doc(uid)
         .collection('devices')
         .doc(token)
-        .set(
-      {
-        'token': token,
-        'ownerId': uid,
-        'platform': 'android',
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+        .set({
+          'token': token,
+          'ownerId': uid,
+          'platform': 'android',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
   }
 
   @override

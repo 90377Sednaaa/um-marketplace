@@ -26,10 +26,7 @@ Future<T?> showBrutalGeneralDialog<T>({
       );
       return ScaleTransition(
         scale: Tween<double>(begin: 0.78, end: 1.0).animate(curved),
-        child: FadeTransition(
-          opacity: animation,
-          child: child,
-        ),
+        child: FadeTransition(opacity: animation, child: child),
       );
     },
   );
@@ -70,8 +67,11 @@ Future<void> showBrutalErrorDialog(
                     border: Border.all(color: UmColors.ink, width: 2),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Icon(LucideIcons.triangleAlert500,
-                      size: 20, color: UmColors.onPrimary),
+                  child: const Icon(
+                    LucideIcons.triangleAlert500,
+                    size: 20,
+                    color: UmColors.onPrimary,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -148,8 +148,11 @@ Future<void> showBrutalSuccessDialog(
                     border: Border.all(color: UmColors.ink, width: 2),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child:
-                      const Icon(LucideIcons.check500, size: 20, color: UmColors.onPrimary),
+                  child: const Icon(
+                    LucideIcons.check500,
+                    size: 20,
+                    color: UmColors.onPrimary,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(

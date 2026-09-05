@@ -61,7 +61,7 @@ abstract interface class ReportStore {
 
 class FirestoreReportStore implements ReportStore {
   FirestoreReportStore({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
 
@@ -72,9 +72,11 @@ class FirestoreReportStore implements ReportStore {
         .where('status', isEqualTo: 'open')
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Report.fromDoc(doc.id, doc.data()))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Report.fromDoc(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   @override

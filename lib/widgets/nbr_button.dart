@@ -70,10 +70,7 @@ class _NbrButtonState extends State<NbrButton> {
         mainAxisSize: widget.stretch ? MainAxisSize.max : MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (widget.icon != null) ...[
-            widget.icon!,
-            const SizedBox(width: 8),
-          ],
+          if (widget.icon != null) ...[widget.icon!, const SizedBox(width: 8)],
           Flexible(
             child: FittedBox(
               fit: BoxFit.scaleDown,

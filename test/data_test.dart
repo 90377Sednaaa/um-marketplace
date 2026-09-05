@@ -93,7 +93,10 @@ void main() {
     });
 
     test('rejects wrong ID segment lengths', () {
-      expect(isValidUmStudentEmail('l.murillo.54684@umindanao.edu.ph'), isFalse);
+      expect(
+        isValidUmStudentEmail('l.murillo.54684@umindanao.edu.ph'),
+        isFalse,
+      );
       expect(
         isValidUmStudentEmail('l.murillo.5468421@umindanao.edu.ph'),
         isFalse,
@@ -183,14 +186,14 @@ void main() {
 
     test('mergeChatStreams dedupes, sorts by activity desc, caps at 50', () {
       Chat chat(String id, DateTime? at) => Chat(
-            id: id,
-            listingId: 'l-$id',
-            sellerId: 's-$id',
-            buyerId: 'b-$id',
-            participants: {'s-$id', 'b-$id'},
-            lastMessagePreview: '',
-            lastMessageAt: at,
-          );
+        id: id,
+        listingId: 'l-$id',
+        sellerId: 's-$id',
+        buyerId: 'b-$id',
+        participants: {'s-$id', 'b-$id'},
+        lastMessagePreview: '',
+        lastMessageAt: at,
+      );
 
       final a = [
         chat('1', DateTime(2026, 8, 28, 10)),
@@ -218,15 +221,21 @@ void main() {
   group('formatRelativeTime', () {
     test('covers the buckets', () {
       final now = DateTime(2026, 8, 28, 12);
-      expect(formatRelativeTime(DateTime(2026, 8, 28, 11, 59, 30), now: now),
-          'now');
+      expect(
+        formatRelativeTime(DateTime(2026, 8, 28, 11, 59, 30), now: now),
+        'now',
+      );
       expect(formatRelativeTime(DateTime(2026, 8, 28, 11, 58), now: now), '2m');
       expect(formatRelativeTime(DateTime(2026, 8, 28, 9), now: now), '3h');
-      expect(formatRelativeTime(DateTime(2026, 8, 27, 10), now: now),
-          'yesterday');
+      expect(
+        formatRelativeTime(DateTime(2026, 8, 27, 10), now: now),
+        'yesterday',
+      );
       expect(formatRelativeTime(DateTime(2026, 8, 1), now: now), 'Aug 1');
-      expect(formatRelativeTime(DateTime(2024, 12, 25), now: now),
-          '25 Dec 2024');
+      expect(
+        formatRelativeTime(DateTime(2024, 12, 25), now: now),
+        '25 Dec 2024',
+      );
     });
   });
 
@@ -238,16 +247,15 @@ void main() {
       String category = 'textbooks',
       String condition = 'good',
       double price = 100,
-    }) =>
-        Listing(
-          id: id,
-          sellerId: 's',
-          title: title,
-          description: description,
-          price: price,
-          category: category,
-          condition: condition,
-        );
+    }) => Listing(
+      id: id,
+      sellerId: 's',
+      title: title,
+      description: description,
+      price: price,
+      category: category,
+      condition: condition,
+    );
 
     final all = [
       listing('1', title: 'Calculus 201 textbook', category: 'textbooks'),
@@ -269,18 +277,12 @@ void main() {
     ];
 
     test('empty query with no filters returns everything in order', () {
-      expect(
-        filterListings(all, query: ''),
-        all,
-      );
+      expect(filterListings(all, query: ''), all);
     });
 
     test('query matches title and description case-insensitively', () {
       expect(filterListings(all, query: 'CALCULUS').map((l) => l.id), ['1']);
-      expect(
-        filterListings(all, query: 'backlight').map((l) => l.id),
-        ['2'],
-      );
+      expect(filterListings(all, query: 'backlight').map((l) => l.id), ['2']);
       expect(filterListings(all, query: 'nonexistent'), isEmpty);
     });
 
@@ -357,12 +359,12 @@ void main() {
 
   group('ratingSummaryText', () {
     Rating rating(int stars) => Rating(
-          listingId: 'l1',
-          raterId: 'r1',
-          rateeId: 's1',
-          stars: stars,
-          chatId: 'c',
-        );
+      listingId: 'l1',
+      raterId: 'r1',
+      rateeId: 's1',
+      stars: stars,
+      chatId: 'c',
+    );
 
     test('placeholder when there are no ratings', () {
       expect(ratingSummaryText(const []), '★ — · no trades yet');
@@ -383,8 +385,9 @@ void main() {
 
   group('denormalized names', () {
     test('Listing.fromDoc reads sellerDisplayName', () {
-      final listing =
-          Listing.fromDoc('l1', {'sellerDisplayName': 'J. Dela Cruz'});
+      final listing = Listing.fromDoc('l1', {
+        'sellerDisplayName': 'J. Dela Cruz',
+      });
       expect(listing.sellerDisplayName, 'J. Dela Cruz');
     });
 

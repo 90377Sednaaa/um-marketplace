@@ -111,8 +111,9 @@ class _ChatRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final otherName =
-        viewerUid == chat.buyerId ? chat.sellerName : chat.buyerName;
+    final otherName = viewerUid == chat.buyerId
+        ? chat.sellerName
+        : chat.buyerName;
     final shownName = otherName.isEmpty ? 'UM student' : otherName;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -136,8 +137,9 @@ class _ChatRow extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 22,
-                backgroundColor:
-                    otherName.isEmpty ? UmColors.muted : UmColors.gold,
+                backgroundColor: otherName.isEmpty
+                    ? UmColors.muted
+                    : UmColors.gold,
                 child: Text(
                   otherName.isEmpty ? '?' : otherName[0].toUpperCase(),
                   style: GoogleFonts.spaceGrotesk(
@@ -168,9 +170,9 @@ class _ChatRow extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: UmColors.mutedForeground,
-                            fontSize: 13,
-                          ),
+                        color: UmColors.mutedForeground,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
@@ -180,10 +182,8 @@ class _ChatRow extends StatelessWidget {
                 chat.lastMessageAt == null
                     ? ''
                     : formatRelativeTime(chat.lastMessageAt!),
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: UmColors.mutedForeground,
-                      fontSize: 11.5,
-                    ),
+                style: Theme.of(context).textTheme.labelMedium
+                    ?.copyWith(color: UmColors.mutedForeground, fontSize: 11.5),
               ),
             ],
           ),
@@ -242,15 +242,17 @@ class _ChatsSkeleton extends StatelessWidget {
                               BrutalSkeletonBox(
                                 height: 14,
                                 width: 110,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(4)),
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(4),
+                                ),
                               ),
                               SizedBox(height: 6),
                               BrutalSkeletonBox(
                                 height: 11,
                                 width: 180,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(4)),
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(4),
+                                ),
                               ),
                             ],
                           ),
@@ -340,14 +342,17 @@ class _ChatsEmpty extends StatelessWidget {
               Text(
                 'No conversations yet — tap Chat on a listing to start one.',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: UmColors.mutedForeground,
-                    ),
+                style: Theme.of(context).textTheme.bodyMedium
+                    ?.copyWith(color: UmColors.mutedForeground),
               ),
               const SizedBox(height: 16),
               NbrButton(
                 label: 'Browse listings',
-                icon: const Icon(LucideIcons.search500, size: 18, color: UmColors.ink),
+                icon: const Icon(
+                  LucideIcons.search500,
+                  size: 18,
+                  color: UmColors.ink,
+                ),
                 fill: UmColors.gold,
                 labelColor: UmColors.ink,
                 onPressed: onBrowse,

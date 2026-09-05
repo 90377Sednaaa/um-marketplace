@@ -50,7 +50,7 @@ abstract interface class NotificationStore {
 
 class FirestoreNotificationStore implements NotificationStore {
   FirestoreNotificationStore({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
 
@@ -61,9 +61,11 @@ class FirestoreNotificationStore implements NotificationStore {
         .where('ownerId', isEqualTo: ownerId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => AppNotification.fromDoc(doc.id, doc.data()))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => AppNotification.fromDoc(doc.id, doc.data()))
+              .toList(),
+        );
   }
 
   @override
