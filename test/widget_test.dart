@@ -411,6 +411,7 @@ class FakeListingsStore implements ListingStore {
   final _listingControllers = <String, StreamController<Listing?>>{};
   final drafts = <ListingDraft>[];
   final soldIds = <String>[];
+  final cancelledIds = <String>[];
   final hiddenIds = <String>[];
   final hiddenFor = <String>[];
   List<Listing> listings = [];
@@ -453,6 +454,31 @@ class FakeListingsStore implements ListingStore {
         location: l.location,
         photos: l.photos,
         status: 'sold',
+        createdAt: l.createdAt,
+      );
+    }
+    emitListings();
+    emitMyListings();
+  }
+
+  @override
+  Future<void> cancelListing(String listingId) async {
+    cancelledIds.add(listingId);
+    final index = listings.indexWhere((l) => l.id == listingId);
+    if (index >= 0) {
+      final l = listings[index];
+      listings[index] = Listing(
+        id: l.id,
+        sellerId: l.sellerId,
+        title: l.title,
+        description: l.description,
+        price: l.price,
+        category: l.category,
+        condition: l.condition,
+        sellerDisplayName: l.sellerDisplayName,
+        location: l.location,
+        photos: l.photos,
+        status: 'cancelled',
         createdAt: l.createdAt,
       );
     }
@@ -2917,6 +2943,69 @@ void main() {
     expect(listings.soldIds, ['a']);
     expect(find.text('SOLD'), findsOneWidget);
     expect(find.text('Mark as sold'), findsOneWidget); // only b remains active
+  });
+
+  testWidgets('cancelling a listing confirms and flips the row', (
+    WidgetTester tester,
+  ) async {
+    usePortraitPhone(tester);
+    final auth = FakeAuthService();
+    final members = FakeMemberStore();
+    final listings = FakeListingsStore()
+      ..listings = [
+        const Listing(
+          id: 'a',
+          sellerId: 'test-uid',
+          title: 'Calculus 201 textbook',
+          description: '',
+          price: 1250,
+          category: 'textbooks',
+          condition: 'good',
+        ),
+        const Listing(
+          id: 'b',
+          sellerId: 'test-uid',
+          title: 'Mechanical keyboard',
+          description: '',
+          price: 250,
+          category: 'gadgets',
+          condition: 'like new',
+        ),
+      ];
+    final chats = FakeChatStore();
+    await tester.pumpWidget(
+      _app(auth: auth, members: members, listings: listings, chats: chats),
+    );
+    auth.emit(_student);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('PROFILE'));
+    await tester.pumpAndSettle();
+    listings.emitMyListings();
+    await tester.pumpAndSettle();
+
+    // Keep it: the dialog dismisses and nothing changes.
+    await tester.tap(find.text('Cancel listing').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Cancel this listing?'), findsOneWidget); // confirm dialog
+    expect(find.text('Keep it'), findsOneWidget);
+
+    await tester.tap(find.text('Keep it'));
+    await tester.pumpAndSettle();
+    expect(find.text('CANCELLED'), findsNothing);
+    expect(find.text('Mark as sold'), findsNWidgets(2)); // both rows active
+
+    // Cancel listing: the dialog confirms and the row flips.
+    await tester.tap(find.text('Cancel listing').first);
+    await tester.pumpAndSettle();
+    // The dialog's confirm button is the later match.
+    await tester.tap(find.text('Cancel listing').last);
+    await tester.pumpAndSettle();
+
+    expect(listings.cancelledIds, ['a']);
+    expect(find.text('CANCELLED'), findsOneWidget);
+    expect(find.text('Mark as sold'), findsOneWidget); // only b remains active
+    expect(find.text('Cancel listing'), findsOneWidget);
   });
 
   testWidgets('the moderation row is admin-only and opens the screen', (

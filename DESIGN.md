@@ -104,7 +104,7 @@ Anti-patterns: light/thin weights anywhere; all-caps paragraphs (caps reserved f
 4. **Sell / List an item** — step form: photos → details → price → publish; progress shown as filled blocks
 5. **Auth** — Google Sign-In only (ADR 0008); maroon header panel with logo lockup, ink-bordered form card. Google proves the account owns a UM address; accounts are refused unless the address matches the student format `initial.surname.######@umindanao.edu.ph` (ADR 0001)
 6. **Chats** — conversation list → thread with pinned product snippet card; "Make an offer" sends an offer-typed message with a price on the thread; after a Listing is marked Sold, a rating prompt appears in the thread (stretch, ADR 0004)
-7. **Profile** — avatar, rating summary (★ avg · trade count), my listings (with mark-Sold), settings; a **Moderation row appears only for the Admin** and opens screen 9 — every user is an ordinary member first (ADR 0003)
+7. **Profile** — avatar, rating summary (★ avg · trade count), my listings (with mark-Sold and a destructive cancel-listing action → brutal confirm dialog; cancelled rows show a muted CANCELLED badge), settings; a **Moderation row appears only for the Admin** and opens screen 9 — every user is an ordinary member first (ADR 0003)
 8. **Notification center** — pushed from the Home bell; list of notifications (offer, message, sold, rating) with unread items marked by a gold sticker; empty state per the empty/error component (ADR 0005)
 9. **Moderation (Admin)** — one screen: open reports (reporter, reported, listing/chat, reason) each with hide-listing and ban-user actions, plus member lookup by display name; unreachable for ordinary members (ADR 0003)
 

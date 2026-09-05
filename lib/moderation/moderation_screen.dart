@@ -10,6 +10,7 @@ import '../home/listing_detail_screen.dart';
 import '../home/relative_time.dart';
 import '../theme/app_theme.dart';
 import '../widgets/brutal_app_bar.dart';
+import '../widgets/brutal_confirm_dialog.dart';
 import '../widgets/brutal_dialog.dart';
 import '../widgets/brutal_shimmer.dart';
 
@@ -36,15 +37,12 @@ class ModerationScreen extends StatelessWidget {
   final String viewerId;
 
   Future<void> _hideListing(BuildContext context, Report report) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => _ConfirmDialog(
-        title: 'Hide this listing?',
-        body: 'The listing will be removed from the marketplace and the report '
-            'will be cleared. This hides the content but does not ban the user.',
-        confirmLabel: 'Hide listing',
-        isDestructive: true,
-      ),
+    final ok = await showBrutalConfirmDialog(
+      context,
+      title: 'Hide this listing?',
+      body: 'The listing will be removed from the marketplace and the report '
+          'will be cleared. This hides the content but does not ban the user.',
+      confirmLabel: 'Hide listing',
     );
     if (ok != true || !context.mounted) return;
     try {
@@ -69,15 +67,13 @@ class ModerationScreen extends StatelessWidget {
   }
 
   Future<void> _dismissReport(BuildContext context, Report report) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => _ConfirmDialog(
-        title: 'Dismiss this report?',
-        body: 'Mark this report as spam or not actionable. The listing stays '
-            'and the report will be cleared without hiding or banning.',
-        confirmLabel: 'Dismiss',
-        isDestructive: false,
-      ),
+    final ok = await showBrutalConfirmDialog(
+      context,
+      title: 'Dismiss this report?',
+      body: 'Mark this report as spam or not actionable. The listing stays '
+          'and the report will be cleared without hiding or banning.',
+      confirmLabel: 'Dismiss',
+      isDestructive: false,
     );
     if (ok != true || !context.mounted) return;
     try {
@@ -103,14 +99,12 @@ class ModerationScreen extends StatelessWidget {
     final uid = report.reportedUid;
     if (uid == null) return;
     if (confirm) {
-      final ok = await showDialog<bool>(
-        context: context,
-        builder: (_) => _ConfirmDialog(
-          title: 'Ban this member?',
-          body: 'Their account loses access and their listings leave the '
-              'marketplace. This can be undone from member lookup.',
-          confirmLabel: 'Ban user',
-        ),
+      final ok = await showBrutalConfirmDialog(
+        context,
+        title: 'Ban this member?',
+        body: 'Their account loses access and their listings leave the '
+            'marketplace. This can be undone from member lookup.',
+        confirmLabel: 'Ban user',
       );
       if (ok != true || !context.mounted) return;
     }
@@ -585,15 +579,13 @@ class _MemberRowState extends State<_MemberRow> {
     if (_busy) return;
     final banning = !_member.banned;
     if (banning) {
-      final ok = await showDialog<bool>(
-        context: context,
-        builder: (_) => _ConfirmDialog(
-          title: 'Ban this member?',
-          body: '${_member.displayName}\'s account loses access and their '
-              'listings leave the marketplace. This can be undone from '
-              'this lookup.',
-          confirmLabel: 'Ban user',
-        ),
+      final ok = await showBrutalConfirmDialog(
+        context,
+        title: 'Ban this member?',
+        body: '${_member.displayName}\'s account loses access and their '
+            'listings leave the marketplace. This can be undone from '
+            'this lookup.',
+        confirmLabel: 'Ban user',
       );
       if (ok != true || !mounted) return;
     }
@@ -687,58 +679,6 @@ class _MemberRowState extends State<_MemberRow> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _ConfirmDialog extends StatelessWidget {
-  const _ConfirmDialog({
-    required this.title,
-    required this.body,
-    required this.confirmLabel,
-    this.isDestructive = true,
-  });
-
-  final String title;
-  final String body;
-  final String confirmLabel;
-  final bool isDestructive;
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: UmColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: UmColors.ink, width: 2),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontWeight: FontWeight.w800,
-          color: UmColors.onSurface,
-        ),
-      ),
-      content: Text(body, style: Theme.of(context).textTheme.bodyMedium),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text(
-            'Cancel',
-            style: TextStyle(color: UmColors.ink, fontWeight: FontWeight.w600),
-          ),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: Text(
-            confirmLabel,
-            style: TextStyle(
-              color: isDestructive ? UmColors.destructive : UmColors.primary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

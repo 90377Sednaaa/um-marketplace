@@ -122,7 +122,8 @@ class Listing {
   final String? location;
   final List<Uint8List> photos;
 
-  /// 'active' | 'sold' | 'hidden' — the seller's terminal states.
+  /// 'active' | 'sold' | 'hidden' | 'cancelled' — the seller's terminal
+  /// states ('hidden' is Admin-set, 'cancelled' is seller-initiated).
   final String status;
   final DateTime? createdAt;
 
@@ -210,6 +211,11 @@ abstract interface class ListingStore {
   /// rules allow the seller that transition from 'active').
   Future<void> markSold(String listingId);
 
+  /// Flips a listing to the terminal 'cancelled' state (seller-initiated
+  /// retract: it leaves every feed and its chats close to new messages;
+  /// the rules allow the seller that transition from 'active').
+  Future<void> cancelListing(String listingId);
+
   /// Admin: hides every active listing of a member (the ban flow uses it
   /// so a banned member's listings disappear, CONTEXT: Ban). Returns the
   /// number of listings hidden.
@@ -278,6 +284,14 @@ class FirestoreListingsStore implements ListingStore {
   Future<void> markSold(String listingId) async {
     await _firestore.collection('listings').doc(listingId).update({
       'status': 'sold',
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  @override
+  Future<void> cancelListing(String listingId) async {
+    await _firestore.collection('listings').doc(listingId).update({
+      'status': 'cancelled',
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }

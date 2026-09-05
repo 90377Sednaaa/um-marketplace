@@ -11,6 +11,7 @@ import '../home/listing_detail_screen.dart';
 import '../home/money_format.dart';
 import '../moderation/moderation_screen.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brutal_confirm_dialog.dart';
 import '../widgets/brutal_dialog.dart';
 import '../widgets/brutal_shimmer.dart';
 import '../widgets/member_badges.dart';
@@ -122,6 +123,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (confirmed != true || !context.mounted) return;
     try {
       await widget.listingsStore.markSold(listing.id);
+    } catch (_) {
+      if (context.mounted) {
+        await showBrutalErrorDialog(
+          context,
+          title: 'Update failed',
+          message: 'Couldn\'t update the listing — try again.',
+        );
+      }
+    }
+  }
+
+  /// Seller-initiated retract: the listing leaves every feed and its
+  /// chats close to new messages. Terminal — no undo (mirrors mark-Sold).
+  Future<void> _confirmCancelListing(
+    BuildContext context,
+    Listing listing,
+  ) async {
+    final confirmed = await showBrutalConfirmDialog(
+      context,
+      title: 'Cancel this listing?',
+      body: '"${listing.title}" leaves the marketplace right away, its chats '
+          'close to new messages, and this cannot be undone.',
+      confirmLabel: 'Cancel listing',
+      cancelLabel: 'Keep it',
+    );
+    if (confirmed != true || !context.mounted) return;
+    try {
+      await widget.listingsStore.cancelListing(listing.id);
     } catch (_) {
       if (context.mounted) {
         await showBrutalErrorDialog(
@@ -306,6 +335,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           onMarkSold: listing.status == 'active'
                               ? () => _confirmMarkSold(context, listing)
                               : null,
+                          onCancel: listing.status == 'active'
+                              ? () => _confirmCancelListing(context, listing)
+                              : null,
                         ),
                       ),
                   ],
@@ -477,15 +509,20 @@ class _MyListingRow extends StatelessWidget {
     required this.listing,
     required this.onTap,
     required this.onMarkSold,
+    required this.onCancel,
   });
 
   final Listing listing;
   final VoidCallback onTap;
   final VoidCallback? onMarkSold;
 
+  /// Active-only cancel affordance; null hides the destructive pill.
+  final VoidCallback? onCancel;
+
   @override
   Widget build(BuildContext context) {
     final sold = listing.status == 'sold';
+    final cancelled = listing.status == 'cancelled';
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -568,8 +605,34 @@ class _MyListingRow extends StatelessWidget {
                   ),
                 ),
               )
+            else if (cancelled)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: UmColors.muted,
+                  border: Border.all(color: UmColors.ink, width: 2),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  'CANCELLED',
+                  style: GoogleFonts.spaceGrotesk(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 11,
+                    letterSpacing: 1,
+                    color: UmColors.mutedForeground,
+                  ),
+                ),
+              )
             else
-              _MarkSoldButton(onPressed: onMarkSold),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _MarkSoldButton(onPressed: onMarkSold),
+                  const SizedBox(height: 6),
+                  _CancelListingButton(onPressed: onCancel),
+                ],
+              ),
           ],
         ),
       ),
@@ -632,6 +695,39 @@ class _MarkSoldButtonState extends State<_MarkSoldButton> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CancelListingButton extends StatelessWidget {
+  const _CancelListingButton({required this.onPressed});
+
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onPressed != null;
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: UmColors.surface,
+          border: Border.all(
+            color: enabled ? UmColors.destructive : UmColors.mutedForeground,
+            width: 2,
+          ),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          'Cancel listing',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
+            color: enabled ? UmColors.destructive : UmColors.mutedForeground,
+          ),
+        ),
       ),
     );
   }

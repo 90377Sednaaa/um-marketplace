@@ -167,11 +167,13 @@ service cloud.firestore {
         && (resource.data.status == 'active'
             || resource.data.sellerId == request.auth.uid);
 
-      // Seller: any state transition active/sold/hidden. Admin: hide only.
+      // Seller: any state transition active/sold/hidden/cancelled.
+      // Admin: hide only.
       allow update: if isVerifiedMember(request.auth.uid)
         && request.resource.data.sellerId == resource.data.sellerId
         && ((resource.data.sellerId == request.auth.uid
-             && request.resource.data.status in ['active', 'sold', 'hidden'])
+             && request.resource.data.status
+                  in ['active', 'sold', 'hidden', 'cancelled'])
             || (isAdmin(request.auth.uid)
                 && request.resource.data.status == 'hidden'));
 
