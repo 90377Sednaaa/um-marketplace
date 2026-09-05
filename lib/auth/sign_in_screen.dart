@@ -11,7 +11,6 @@ import '../widgets/dot_grid.dart';
 import '../widgets/nbr_button.dart';
 import '../widgets/um_logo.dart';
 import 'auth_service.dart';
-import 'um_email_policy.dart';
 
 export '../widgets/dot_grid.dart';
 
@@ -44,7 +43,7 @@ class _SignInScreenState extends State<SignInScreen> {
         context,
         title: 'Not a student address',
         message:
-            '“${e.email}” is not a UM student address. Student addresses look like $umStudentEmailExample — initials + surname + 6-digit ID.',
+            '“${e.email}” is not a valid UM student address. Please use a valid UM student gmail to proceed',
       );
     } catch (e) {
       debugPrint('Google sign-in failed: $e');

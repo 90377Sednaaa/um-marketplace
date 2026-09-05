@@ -77,48 +77,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _confirmMarkSold(BuildContext context, Listing listing) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: UmColors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: UmColors.ink, width: 2),
-        ),
-        title: Text(
-          'Mark as sold?',
-          style: GoogleFonts.spaceGrotesk(
-              fontWeight: FontWeight.w800, color: UmColors.onSurface),
-        ),
-        content: Text(
+    final confirmed = await showBrutalConfirmDialog(
+      context,
+      title: 'Mark as sold?',
+      body:
           '"${listing.title}" leaves the marketplace, stops appearing in '
           'search, and its chats close to new messages — the '
           'deal already happened in person. This cannot be undone.',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.outfit(
-                color: UmColors.ink,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(
-              'Mark as sold',
-              style: GoogleFonts.outfit(
-                color: UmColors.primary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
+      confirmLabel: 'Mark as sold',
+      cancelLabel: 'Cancel',
+      isDestructive: false,
     );
     if (confirmed != true || !context.mounted) return;
     try {
@@ -143,7 +111,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final confirmed = await showBrutalConfirmDialog(
       context,
       title: 'Cancel this listing?',
-      body: '"${listing.title}" leaves the marketplace right away, its chats '
+      body:
+          '"${listing.title}" leaves the marketplace right away, its chats '
           'close to new messages, and this cannot be undone.',
       confirmLabel: 'Cancel listing',
       cancelLabel: 'Keep it',
@@ -210,14 +179,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: const [
                     BoxShadow(
-                        color: UmColors.ink,
-                        offset: UmShadows.card,
-                        blurRadius: 0),
+                      color: UmColors.ink,
+                      offset: UmShadows.card,
+                      blurRadius: 0,
+                    ),
                   ],
                 ),
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.logOut500, size: 22, color: UmColors.ink),
+                    const Icon(
+                      LucideIcons.logOut500,
+                      size: 22,
+                      color: UmColors.ink,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -234,11 +208,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: UmColors.ink),
+                          strokeWidth: 2,
+                          color: UmColors.ink,
+                        ),
                       )
                     else
-                      const Icon(LucideIcons.chevronRight500,
-                          size: 18, color: UmColors.ink),
+                      const Icon(
+                        LucideIcons.chevronRight500,
+                        size: 18,
+                        color: UmColors.ink,
+                      ),
                   ],
                 ),
               ),
@@ -250,8 +229,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 12),
             StreamBuilder<List<Listing>>(
-              stream:
-                  widget.listingsStore.myListingsStream(widget.member.uid),
+              stream: widget.listingsStore.myListingsStream(widget.member.uid),
               builder: (context, snapshot) {
                 final listings = snapshot.data;
                 if (listings == null) return const _MyListingsSkeleton();
@@ -264,9 +242,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       borderRadius: BorderRadius.circular(8),
                       boxShadow: const [
                         BoxShadow(
-                            color: UmColors.ink,
-                            offset: UmShadows.card,
-                            blurRadius: 0),
+                          color: UmColors.ink,
+                          offset: UmShadows.card,
+                          blurRadius: 0,
+                        ),
                       ],
                     ),
                     child: Column(
@@ -276,14 +255,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           height: 56,
                           decoration: BoxDecoration(
                             color: UmColors.surface,
-                            border:
-                                Border.all(color: UmColors.ink, width: 2),
+                            border: Border.all(color: UmColors.ink, width: 2),
                             borderRadius: BorderRadius.circular(8),
                             boxShadow: const [
                               BoxShadow(
-                                  color: UmColors.ink,
-                                  offset: UmShadows.small,
-                                  blurRadius: 0),
+                                color: UmColors.ink,
+                                offset: UmShadows.small,
+                                blurRadius: 0,
+                              ),
                             ],
                           ),
                           child: const Icon(
@@ -306,16 +285,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Text(
                           'You haven\'t listed anything yet.',
                           textAlign: TextAlign.center,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: UmColors.mutedForeground,
-                                  ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: UmColors.mutedForeground),
                         ),
                         const SizedBox(height: 16),
                         NbrButton(
                           label: 'Sell something',
-                          icon: const Icon(LucideIcons.plus500,
-                              size: 18, color: UmColors.ink),
+                          icon: const Icon(
+                            LucideIcons.plus500,
+                            size: 18,
+                            color: UmColors.ink,
+                          ),
                           fill: UmColors.gold,
                           labelColor: UmColors.ink,
                           onPressed: widget.onSellRequested,
@@ -366,8 +346,7 @@ class _IdentityCard extends StatelessWidget {
         border: Border.all(color: UmColors.ink, width: 2),
         borderRadius: BorderRadius.circular(8),
         boxShadow: const [
-          BoxShadow(
-              color: UmColors.ink, offset: UmShadows.card, blurRadius: 0),
+          BoxShadow(color: UmColors.ink, offset: UmShadows.card, blurRadius: 0),
         ],
       ),
       child: Column(
@@ -401,9 +380,8 @@ class _IdentityCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       member.email,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: UmColors.mutedForeground,
-                          ),
+                      style: Theme.of(context).textTheme.labelMedium
+                          ?.copyWith(color: UmColors.mutedForeground),
                     ),
                   ],
                 ),
@@ -436,7 +414,10 @@ class _RatingCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         boxShadow: const [
           BoxShadow(
-              color: UmColors.ink, offset: UmShadows.small, blurRadius: 0),
+            color: UmColors.ink,
+            offset: UmShadows.small,
+            blurRadius: 0,
+          ),
         ],
       ),
       child: Row(
@@ -449,9 +430,7 @@ class _RatingCard extends StatelessWidget {
           const SizedBox(width: 10),
           Text(
             summary,
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
+            style: Theme.of(context).textTheme.titleLarge
                 ?.copyWith(fontSize: 15),
           ),
         ],
@@ -479,24 +458,31 @@ class _AdminRow extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           boxShadow: const [
             BoxShadow(
-                color: UmColors.ink, offset: UmShadows.small, blurRadius: 0),
+              color: UmColors.ink,
+              offset: UmShadows.small,
+              blurRadius: 0,
+            ),
           ],
         ),
         child: Row(
           children: [
-            const Icon(LucideIcons.shieldCheck500,
-                size: 22, color: UmColors.ink),
+            const Icon(
+              LucideIcons.shieldCheck500,
+              size: 22,
+              color: UmColors.ink,
+            ),
             const SizedBox(width: 10),
             Text(
               'Moderation',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
+              style: Theme.of(context).textTheme.titleLarge
                   ?.copyWith(fontSize: 15),
             ),
             const Spacer(),
-            const Icon(LucideIcons.chevronRight500,
-                size: 22, color: UmColors.ink),
+            const Icon(
+              LucideIcons.chevronRight500,
+              size: 22,
+              color: UmColors.ink,
+            ),
           ],
         ),
       ),
@@ -533,7 +519,10 @@ class _MyListingRow extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           boxShadow: const [
             BoxShadow(
-                color: UmColors.ink, offset: UmShadows.card, blurRadius: 0),
+              color: UmColors.ink,
+              offset: UmShadows.card,
+              blurRadius: 0,
+            ),
           ],
         ),
         child: Row(
@@ -561,17 +550,16 @@ class _MyListingRow extends StatelessWidget {
                     listing.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontSize: 15,
-                        ),
+                    style: Theme.of(context).textTheme.titleLarge
+                        ?.copyWith(fontSize: 15),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     listing.condition,
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          fontSize: 11.5,
-                          color: UmColors.mutedForeground,
-                        ),
+                      fontSize: 11.5,
+                      color: UmColors.mutedForeground,
+                    ),
                   ),
                   const SizedBox(height: 3),
                   Text(
@@ -588,8 +576,10 @@ class _MyListingRow extends StatelessWidget {
             const SizedBox(width: 8),
             if (sold)
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: UmColors.gold,
                   border: Border.all(color: UmColors.ink, width: 2),
@@ -607,8 +597,10 @@ class _MyListingRow extends StatelessWidget {
               )
             else if (cancelled)
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: UmColors.muted,
                   border: Border.all(color: UmColors.ink, width: 2),
@@ -700,34 +692,63 @@ class _MarkSoldButtonState extends State<_MarkSoldButton> {
   }
 }
 
-class _CancelListingButton extends StatelessWidget {
+class _CancelListingButton extends StatefulWidget {
   const _CancelListingButton({required this.onPressed});
 
   final VoidCallback? onPressed;
 
   @override
+  State<_CancelListingButton> createState() => _CancelListingButtonState();
+}
+
+class _CancelListingButtonState extends State<_CancelListingButton> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    final enabled = onPressed != null;
+    final enabled = widget.onPressed != null;
     return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: UmColors.surface,
-          border: Border.all(
-            color: enabled ? UmColors.destructive : UmColors.mutedForeground,
-            width: 2,
+      onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
+      onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
+      onTapCancel: enabled ? () => setState(() => _pressed = false) : null,
+      onTap: widget.onPressed,
+      child: Stack(
+        children: [
+          if (enabled)
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: UmColors.ink,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            ),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 80),
+            curve: Curves.linear,
+            transform: Matrix4.translationValues(
+              _pressed ? 0 : UmShadows.card.dx,
+              _pressed ? 0 : UmShadows.card.dy,
+              0,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: UmColors.surface,
+              border: Border.all(color: UmColors.ink, width: 2),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              'Cancel listing',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+                color: enabled
+                    ? UmColors.destructive
+                    : UmColors.mutedForeground,
+              ),
+            ),
           ),
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Text(
-          'Cancel listing',
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-            color: enabled ? UmColors.destructive : UmColors.mutedForeground,
-          ),
-        ),
+        ],
       ),
     );
   }

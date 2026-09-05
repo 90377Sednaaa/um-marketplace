@@ -26,6 +26,7 @@ import 'package:um_marketplace/moderation/moderation_screen.dart';
 import 'package:um_marketplace/notifications/notification_center_screen.dart';
 import 'package:um_marketplace/theme/app_theme.dart';
 import 'package:um_marketplace/widgets/brutal_app_bar.dart';
+import 'package:um_marketplace/widgets/brutal_confirm_dialog.dart';
 import 'package:um_marketplace/widgets/brutal_dialog.dart';
 import 'package:um_marketplace/widgets/brutal_shimmer.dart';
 import 'package:um_marketplace/widgets/listing_detail_skeleton.dart';
@@ -3008,6 +3009,57 @@ void main() {
     expect(find.text('Cancel listing'), findsOneWidget);
   });
 
+  testWidgets(
+    'cancelling a listing button has brutal mechanical press animation and stack shadow',
+    (WidgetTester tester) async {
+      usePortraitPhone(tester);
+      final auth = FakeAuthService();
+      final members = FakeMemberStore();
+      final listings = FakeListingsStore()
+        ..listings = [
+          const Listing(
+            id: 'a',
+            sellerId: 'test-uid',
+            title: 'Calculus 201 textbook',
+            description: '',
+            price: 1250,
+            category: 'textbooks',
+            condition: 'good',
+          ),
+        ];
+      final chats = FakeChatStore();
+      await tester.pumpWidget(
+        _app(auth: auth, members: members, listings: listings, chats: chats),
+      );
+      auth.emit(_student);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('PROFILE'));
+      await tester.pumpAndSettle();
+      listings.emitMyListings();
+      await tester.pumpAndSettle();
+
+      final buttonFinder = find.text('Cancel listing').first;
+      expect(buttonFinder, findsOneWidget);
+
+      // Verify the button is placed inside a Stack with its brutal shadow backing
+      final stackFinder = find.ancestor(
+        of: buttonFinder,
+        matching: find.byType(Stack),
+      );
+      expect(stackFinder, findsWidgets);
+
+      // Tap down triggers the mechanical press translation
+      final gesture = await tester.startGesture(tester.getCenter(buttonFinder));
+      await tester.pump();
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(find.text('Cancel this listing?'), findsOneWidget);
+      await tester.tap(find.text('Keep it'));
+      await tester.pumpAndSettle();
+    },
+  );
+
   testWidgets('the moderation row is admin-only and opens the screen', (
     WidgetTester tester,
   ) async {
@@ -3457,6 +3509,65 @@ void main() {
         expect(find.text('Success Title'), findsNothing);
       },
     );
+
+    testWidgets(
+      'showBrutalConfirmDialog renders with pop-in scale and fade transition and returns user choice',
+      (WidgetTester tester) async {
+        bool? result;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: ElevatedButton(
+                  onPressed: () async {
+                    result = await showBrutalConfirmDialog(
+                      context,
+                      title: 'Cancel this listing?',
+                      body: 'This cannot be undone.',
+                      confirmLabel: 'Cancel listing',
+                      cancelLabel: 'Keep it',
+                      isDestructive: true,
+                    );
+                  },
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open'));
+        await tester.pump(); // Start of animation
+        expect(find.byType(ScaleTransition), findsWidgets);
+        expect(find.byType(FadeTransition), findsWidgets);
+        expect(
+          find.ancestor(
+            of: find.byType(Dialog),
+            matching: find.byType(ScaleTransition),
+          ),
+          findsOneWidget,
+        );
+
+        await tester.pumpAndSettle();
+        expect(find.text('Cancel this listing?'), findsOneWidget);
+        expect(find.text('This cannot be undone.'), findsOneWidget);
+        expect(find.text('Keep it'), findsOneWidget);
+        expect(find.text('Cancel listing'), findsOneWidget);
+
+        // Tap cancel button (Keep it)
+        await tester.tap(find.text('Keep it'));
+        await tester.pumpAndSettle();
+        expect(result, isFalse);
+        expect(find.text('Cancel this listing?'), findsNothing);
+
+        // Open again and confirm
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Cancel listing'));
+        await tester.pumpAndSettle();
+        expect(result, isTrue);
+      },
+    );
   });
 
   group('MemberGate and MemberSplash guard & escape hatch', () {
@@ -3494,7 +3605,11 @@ void main() {
         expect(find.text('Not a student address'), findsOneWidget);
         expect(find.textContaining('outsider@gmail.com'), findsOneWidget);
         expect(
-          find.textContaining('l.murillo.546842@umindanao.edu.ph'),
+          find.textContaining('is not a valid UM student address'),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('Please use a valid UM student gmail to proceed'),
           findsOneWidget,
         );
 
@@ -3726,7 +3841,10 @@ void main() {
           find.descendant(of: boxFinder, matching: find.byType(Container)),
         );
         final decoration = container.decoration as BoxDecoration;
-        expect(container.constraints?.tighten(width: 120, height: 40).minWidth, 120);
+        expect(
+          container.constraints?.tighten(width: 120, height: 40).minWidth,
+          120,
+        );
         expect(decoration.color, UmColors.gold);
         expect(decoration.borderRadius, BorderRadius.circular(10));
         expect(decoration.border, isNotNull);
@@ -3743,10 +3861,7 @@ void main() {
           const MaterialApp(
             home: Scaffold(
               body: BrutalShimmer(
-                child: BrutalSkeletonBox(
-                  width: 100,
-                  height: 20,
-                ),
+                child: BrutalSkeletonBox(width: 100, height: 20),
               ),
             ),
           ),
@@ -3792,10 +3907,12 @@ void main() {
 
         // Outer container decoration check
         final cardContainer = tester.widget<Container>(
-          find.descendant(
-            of: find.byType(ProductCardSkeleton),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .descendant(
+                of: find.byType(ProductCardSkeleton),
+                matching: find.byType(Container),
+              )
+              .first,
         );
         final decoration = cardContainer.decoration as BoxDecoration;
         expect(decoration.color, UmColors.surface);
@@ -3929,9 +4046,7 @@ void main() {
       (WidgetTester tester) async {
         usePortraitPhone(tester);
         await tester.pumpWidget(
-          const MaterialApp(
-            home: ListingDetailSkeleton(),
-          ),
+          const MaterialApp(home: ListingDetailSkeleton()),
         );
 
         expect(find.byType(ListingDetailSkeleton), findsOneWidget);
@@ -3948,10 +4063,12 @@ void main() {
 
         // Hero photo container decoration check
         final heroContainer = tester.widget<Container>(
-          find.descendant(
-            of: aspectRatioFinder,
-            matching: find.byType(Container),
-          ).first,
+          find
+              .descendant(
+                of: aspectRatioFinder,
+                matching: find.byType(Container),
+              )
+              .first,
         );
         final heroDecoration = heroContainer.decoration as BoxDecoration;
         expect(heroDecoration.color, UmColors.muted);
@@ -4132,4 +4249,3 @@ void main() {
     );
   });
 }
-

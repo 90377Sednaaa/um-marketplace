@@ -74,7 +74,7 @@ class _MemberGateState extends State<MemberGate> {
         context,
         title: 'Not a student address',
         message:
-            '“${widget.authUser.email}” is not a UM student address. Student addresses look like $umStudentEmailExample — initials + surname + 6-digit ID.',
+            '“${widget.authUser.email}” is not a valid UM student address. Please use a valid UM student gmail to proceed',
       );
       await widget.authService.signOut();
       await dialogFuture;
